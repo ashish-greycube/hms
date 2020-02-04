@@ -1,0 +1,159 @@
+{
+ "autoname": "naming_series:",
+ "creation": "2020-02-03 08:04:35.352094",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series",
+  "customer",
+  "check_in",
+  "column_break_4",
+  "compamy",
+  "check_out",
+  "room_details_section",
+  "room_no",
+  "room_type",
+  "notes",
+  "advance_payment_section",
+  "room_folio_advance",
+  "charge_purchase_section",
+  "sales_invoice_reference"
+ ],
+ "fields": [
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Series",
+   "options": "HMS-RR-.YY.-",
+   "reqd": 1
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Customer",
+   "options": "Customer",
+   "reqd": 1
+  },
+  {
+   "default": "Now",
+   "fieldname": "check_in",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Check In",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "compamy",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Compamy",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "fieldname": "check_out",
+   "fieldtype": "Datetime",
+   "label": "Check Out"
+  },
+  {
+   "fieldname": "room_details_section",
+   "fieldtype": "Section Break",
+   "label": "Room Details"
+  },
+  {
+   "fieldname": "room_no",
+   "fieldtype": "Link",
+   "label": "Room No",
+   "options": "Room HMS",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "room_no.room_type",
+   "fieldname": "room_type",
+   "fieldtype": "Link",
+   "label": "Room Type",
+   "options": "Room Type HMS",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Text Editor",
+   "label": "Notes"
+  },
+  {
+   "fieldname": "advance_payment_section",
+   "fieldtype": "Section Break",
+   "label": "Advance Payment"
+  },
+  {
+   "fieldname": "room_folio_advance",
+   "fieldtype": "Table",
+   "label": "Room Folio Advance",
+   "options": "Room Folio Advance"
+  },
+  {
+   "fieldname": "charge_purchase_section",
+   "fieldtype": "Section Break",
+   "label": "Charge Purchase"
+  },
+  {
+   "fieldname": "sales_invoice_reference",
+   "fieldtype": "HTML",
+   "label": "Sales Invoice Reference"
+  }
+ ],
+ "modified": "2020-02-03 13:55:01.366422",
+ "modified_by": "Administrator",
+ "module": "HMS",
+ "name": "Room Folio HMS",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Hotel Manager HMS",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Hotel User HMS",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

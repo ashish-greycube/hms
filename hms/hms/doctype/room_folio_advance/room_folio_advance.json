@@ -1,0 +1,75 @@
+{
+ "creation": "2020-02-03 07:55:23.213964",
+ "description": "to fetch room folio advances",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "reference_type",
+  "reference_name",
+  "remarks",
+  "reference_row",
+  "column_break_5",
+  "advance_amount",
+  "allocated_amount"
+ ],
+ "fields": [
+  {
+   "fieldname": "reference_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Reference Type",
+   "options": "DocType",
+   "read_only": 1
+  },
+  {
+   "fieldname": "reference_name",
+   "fieldtype": "Dynamic Link",
+   "in_list_view": 1,
+   "label": "Reference Name",
+   "options": "reference_type",
+   "read_only": 1
+  },
+  {
+   "fieldname": "remarks",
+   "fieldtype": "Text",
+   "in_list_view": 1,
+   "label": "Remarks"
+  },
+  {
+   "fieldname": "reference_row",
+   "fieldtype": "Data",
+   "label": "Reference Row"
+  },
+  {
+   "fieldname": "column_break_5",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "advance_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Advance amount",
+   "options": "party_account_currency",
+   "read_only": 1
+  },
+  {
+   "fieldname": "allocated_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Allocated amount",
+   "options": "party_account_currency"
+  }
+ ],
+ "istable": 1,
+ "modified": "2020-02-03 07:55:23.213964",
+ "modified_by": "Administrator",
+ "module": "HMS",
+ "name": "Room Folio Advance",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}
