@@ -27,6 +27,7 @@ app_license = "proprietary"
 
 # include js in doctype views
 # doctype_js = {"doctype" : "public/js/doctype.js"}
+doctype_js = {"Sales Order": "public/js/sales_order.js"}
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
@@ -87,6 +88,13 @@ app_license = "proprietary"
 #	}
 # }
 
+doc_events = {
+    "Sales Order": {
+        "validate": "hms.hms.controllers.reservation.on_submit_sales_order",
+        "on_update_after_submit": "hms.hms.controllers.reservation.on_update_after_submit_sales_order"
+    }
+}
+
 # Scheduled Tasks
 # ---------------
 
@@ -126,4 +134,3 @@ app_license = "proprietary"
 # override_doctype_dashboards = {
 # 	"Task": "hms.task.get_dashboard_data"
 # }
-

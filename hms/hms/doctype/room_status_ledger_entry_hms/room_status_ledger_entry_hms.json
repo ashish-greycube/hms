@@ -1,0 +1,49 @@
+{
+ "creation": "2020-02-06 07:22:11.759159",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "room_no",
+  "posting_date",
+  "status"
+ ],
+ "fields": [
+  {
+   "fieldname": "room_no",
+   "fieldtype": "Data",
+   "label": "Room No"
+  },
+  {
+   "fieldname": "posting_date",
+   "fieldtype": "Date",
+   "label": "Posting Date"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Data",
+   "label": "Status"
+  }
+ ],
+ "modified": "2020-02-06 07:22:11.759159",
+ "modified_by": "Administrator",
+ "module": "HMS",
+ "name": "Room Status Ledger Entry HMS",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC"
+}
