@@ -1,6 +1,7 @@
 {
  "autoname": "naming_series:",
  "creation": "2020-02-03 08:04:35.352094",
+ "description": "Room Folio ",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
@@ -21,7 +22,12 @@
   "advance_payment_section",
   "room_folio_advance",
   "charge_purchase_section",
-  "sales_invoice_reference"
+  "sales_invoice_reference",
+  "finance_summary_section",
+  "column_break_19",
+  "total_advance_paid",
+  "total_charges",
+  "balance"
  ],
  "fields": [
   {
@@ -84,7 +90,6 @@
   {
    "fieldname": "room_folio_advance",
    "fieldtype": "Table",
-   "label": "Room Folio Advance",
    "options": "Room Folio Advance"
   },
   {
@@ -115,12 +120,11 @@
    "depends_on": "eval:doc.is_split_bill == 1",
    "fieldname": "split_bill_section_section",
    "fieldtype": "Section Break",
-   "label": "Split Bill Section"
+   "label": "Split Bill Detail"
   },
   {
    "fieldname": "room_folio_split_bill_detail",
    "fieldtype": "Table",
-   "label": "Room Folio Split Bill Detail",
    "options": "Room Folio Split Bill Detail HMS"
   },
   {
@@ -134,9 +138,33 @@
    "fieldtype": "Table",
    "label": "Room Guest Detail",
    "options": "Room Guest Detail HMS"
+  },
+  {
+   "fieldname": "finance_summary_section",
+   "fieldtype": "Section Break",
+   "label": "Finance Summary"
+  },
+  {
+   "fieldname": "column_break_19",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_advance_paid",
+   "fieldtype": "Currency",
+   "label": "Total Advance Paid"
+  },
+  {
+   "fieldname": "total_charges",
+   "fieldtype": "Currency",
+   "label": "Total Charges"
+  },
+  {
+   "fieldname": "balance",
+   "fieldtype": "Currency",
+   "label": "Balance"
   }
  ],
- "modified": "2020-02-15 06:06:38.351859",
+ "modified": "2020-02-15 06:46:56.512937",
  "modified_by": "Administrator",
  "module": "HMS",
  "name": "Room Folio HMS",
