@@ -64,11 +64,16 @@ frappe.ui.form.on("Sales Order", {
               r.message
             );
             frappe.model.set_value(item.doctype, item.name, "qty", 1);
+            frm.event.set_weekend_rate(frm);
             frm.refresh();
           }
         }
       });
     }
+  },
+
+  set_weekend_rate: function(frm) {
+    // frappe.model.with_doc("")
   },
 
   refresh: function(frm) {
