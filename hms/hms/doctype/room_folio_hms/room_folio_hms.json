@@ -1,30 +1,38 @@
 {
  "autoname": "naming_series:",
  "creation": "2020-02-03 08:04:35.352094",
+ "description": "Room Folio ",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
   "naming_series",
   "customer",
-  "check_in",
-  "column_break_4",
-  "compamy",
-  "check_out",
-  "room_details_section",
+  "is_split_bill",
   "room_no",
   "room_type",
-  "notes",
+  "column_break_4",
+  "company",
+  "check_in",
+  "check_out",
+  "split_bill_section_section",
+  "room_folio_split_bill_detail",
+  "guest_details_section",
+  "room_guest_detail",
   "advance_payment_section",
   "room_folio_advance",
   "charge_purchase_section",
-  "sales_invoice_reference"
+  "sales_invoice_reference",
+  "finance_summary_section",
+  "column_break_19",
+  "total_advance_paid",
+  "total_charges",
+  "balance"
  ],
  "fields": [
   {
    "fieldname": "naming_series",
    "fieldtype": "Select",
-   "in_list_view": 1,
    "label": "Series",
    "options": "HMS-RR-.YY.-",
    "reqd": 1
@@ -33,7 +41,7 @@
    "fieldname": "customer",
    "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "Customer",
+   "label": "Bill To Customer",
    "options": "Customer",
    "reqd": 1
   },
@@ -50,26 +58,17 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "compamy",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Compamy",
-   "options": "Company",
-   "reqd": 1
-  },
-  {
    "fieldname": "check_out",
    "fieldtype": "Datetime",
-   "label": "Check Out"
-  },
-  {
-   "fieldname": "room_details_section",
-   "fieldtype": "Section Break",
-   "label": "Room Details"
+   "in_list_view": 1,
+   "label": "Check Out",
+   "reqd": 1
   },
   {
    "fieldname": "room_no",
    "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Room No",
    "options": "Room HMS",
    "reqd": 1
@@ -84,11 +83,6 @@
    "reqd": 1
   },
   {
-   "fieldname": "notes",
-   "fieldtype": "Text Editor",
-   "label": "Notes"
-  },
-  {
    "fieldname": "advance_payment_section",
    "fieldtype": "Section Break",
    "label": "Advance Payment"
@@ -96,7 +90,6 @@
   {
    "fieldname": "room_folio_advance",
    "fieldtype": "Table",
-   "label": "Room Folio Advance",
    "options": "Room Folio Advance"
   },
   {
@@ -108,9 +101,70 @@
    "fieldname": "sales_invoice_reference",
    "fieldtype": "HTML",
    "label": "Sales Invoice Reference"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_split_bill",
+   "fieldtype": "Check",
+   "label": "is split bill"
+  },
+  {
+   "depends_on": "eval:doc.is_split_bill == 1",
+   "fieldname": "split_bill_section_section",
+   "fieldtype": "Section Break",
+   "label": "Split Bill Detail"
+  },
+  {
+   "fieldname": "room_folio_split_bill_detail",
+   "fieldtype": "Table",
+   "options": "Room Folio Split Bill Detail HMS"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "guest_details_section",
+   "fieldtype": "Section Break",
+   "label": "Guest Details"
+  },
+  {
+   "fieldname": "room_guest_detail",
+   "fieldtype": "Table",
+   "label": "Room Guest Detail",
+   "options": "Room Guest Detail HMS"
+  },
+  {
+   "fieldname": "finance_summary_section",
+   "fieldtype": "Section Break",
+   "label": "Finance Summary"
+  },
+  {
+   "fieldname": "column_break_19",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_advance_paid",
+   "fieldtype": "Currency",
+   "label": "Total Advance Paid"
+  },
+  {
+   "fieldname": "total_charges",
+   "fieldtype": "Currency",
+   "label": "Total Charges"
+  },
+  {
+   "fieldname": "balance",
+   "fieldtype": "Currency",
+   "label": "Balance"
   }
  ],
- "modified": "2020-02-03 13:55:01.366422",
+ "modified": "2020-02-15 06:46:56.512937",
  "modified_by": "Administrator",
  "module": "HMS",
  "name": "Room Folio HMS",
