@@ -15,6 +15,7 @@
   "company",
   "check_in",
   "check_out",
+  "status",
   "split_bill_section_section",
   "room_folio_split_bill_detail",
   "guest_details_section",
@@ -27,10 +28,12 @@
   "column_break_19",
   "total_advance_paid",
   "total_charges",
-  "balance"
+  "balance",
+  "amended_from"
  ],
  "fields": [
   {
+   "default": "HMS-RR-.YY.-",
    "fieldname": "naming_series",
    "fieldtype": "Select",
    "label": "Series",
@@ -162,9 +165,24 @@
    "fieldname": "balance",
    "fieldtype": "Currency",
    "label": "Balance"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Room Folio HMS",
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "\nChecked In\nChecked Out\nSkipper"
   }
  ],
- "modified": "2020-02-15 06:46:56.512937",
+ "modified": "2020-03-02 06:08:20.520246",
  "modified_by": "Administrator",
  "module": "HMS",
  "name": "Room Folio HMS",

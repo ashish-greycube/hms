@@ -5,7 +5,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
-from frappe.utils import add_days
+from frappe.utils import getdate, date_diff, add_to_date, add_days, cint
 
 
 def on_submit_sales_order(doc, method):
@@ -29,7 +29,7 @@ def on_cancel_sales_order(doc, method):
 
 def add_room_ledger_entry(doc):
     for d in [add_days(doc.check_in_cf, _)
-              for _ in range(0, doc.no_of_nights_cf)]:
+              for _ in range(0, cint(doc.no_of_nights_cf))]:
         frappe.get_doc({
             "doctype": "Room Ledger Entry HMS",
             "parenttype": "Sales Order",
@@ -46,3 +46,24 @@ def get_room_service_item(room):
 from `tabRoom Type HMS` rt
 inner join `tabRoom HMS` r on r.room_type = rt.name and r.name = %s""", (room,))
     return docs and docs[0]
+
+
+@frappe.whitelist()
+def make_room_folio(docname):
+    so = frappe.get_doc("Sales Order", docname)
+    folio = frappe.new_doc("Room Folio HMS")
+    folio.update({
+        "company": so.company,
+        "naming_series": "HMS-RR-.YY.-",
+        "company": so.company,
+        "customer": so.customer,
+        "room_no": so.room_no_cf,
+        "check_in": so.check_in_cf,
+        "check_out": so.check_out_cf,
+    })
+    folio.append("room_guest_detail", {
+        "guest": so.guest_cf
+    })
+    # TODO: add advance payments
+    folio.insert()
+    return folio

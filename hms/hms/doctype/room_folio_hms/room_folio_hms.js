@@ -2,44 +2,100 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on("Room Folio HMS", {
+  //
+  //
   refresh: function(frm) {
-    make_grid(frm);
-    load_charge_and_purchase(frm);
-  }
-});
+    hms.make_grid_charge_and_purchase(frm);
 
-function make_grid(frm) {
-  let $wrapper = frm.fields_dict["sales_invoice_reference"].$wrapper;
-  $wrapper
-    .empty()
-    .html(
-      `<div id="charge-purchase" class="ag-theme-balham" style="width:100%;height:150px;;"></div>`
+    frm.events.load_charge_and_purchase(frm);
+
+    frm.events.add_custom_buttons(frm);
+  },
+
+  add_custom_buttons: function(frm) {
+    frm.page.add_inner_button(
+      __("Create Payment"),
+      function() {
+        frm.events.make_payment_entry(frm);
+      },
+      __("Actions")
     );
-  frm.gridOptions = {
-    columnDefs: [
-      { headerName: "Invoice", field: "name", width: 120 },
-      { headerName: "Date", field: "posting_date", width: 90 },
-      { headerName: "Time", field: "posting_time", width: 90 },
-      { headerName: "Total", field: "rounded_total" },
-      { headerName: "Outstanding", field: "outstanding_amount" }
-    ],
-    rowData: []
-  };
-  var gridDiv = document.querySelector("#charge-purchase");
-  new agGrid.Grid(gridDiv, frm.gridOptions);
-}
 
-function load_charge_and_purchase(frm) {
-  return frappe.call({
-    method:
-      "hms.hms.doctype.room_folio_hms.room_folio_hms.get_charge_and_purchase",
-    args: { docname: frm.doc.name },
-    callback: function(r) {
-      if (r.message) {
-        console.log(r.message);
-
-        frm.gridOptions.api.setRowData(r.message);
-      }
+    if (true || !frm.doc.status) {
+      frm.page.add_inner_button(
+        __("Check In"),
+        function() {
+          frm.events.check_in(frm);
+        },
+        __("Actions")
+      );
     }
-  });
-}
+
+    if (true || frm.doc.status == "Checked In") {
+      frm.page.add_inner_button(
+        __("Check Out"),
+        function() {
+          frm.events.check_out(frm);
+        },
+        __("Actions")
+      );
+    }
+    frm.page.set_inner_btn_group_as_primary(__("Actions"));
+  },
+
+  make_payment_entry: function(frm) {
+    return frappe.call({
+      doc: frm.doc,
+      method: "get_payment_entry",
+      callback: function(r) {
+        if (r.message) {
+          console.log(r.message);
+          var doc = frappe.model.sync(r.message)[0];
+          frappe.set_route("Form", doc.doctype, doc.name);
+        }
+      }
+    });
+  },
+
+  check_in: function(frm) {
+    return frappe.call({
+      doc: frm.doc,
+      method: "make_check_in",
+      callback: function(r) {
+        if (r.message) {
+          // frappe.model.sync(r.message)[0];
+          frm.reload_doc();
+        }
+      }
+    });
+  },
+
+  check_out: function(frm) {
+    return frappe.call({
+      doc: frm.doc,
+      method: "make_check_out",
+      callback: function(r) {
+        if (r.message) {
+          // frappe.model.sync(r.message)[0];
+          frm.reload_doc();
+        }
+      }
+    });
+  },
+
+  load_charge_and_purchase: function(frm) {
+    return frappe.call({
+      method:
+        "hms.hms.doctype.room_folio_hms.room_folio_hms.get_charge_and_purchase",
+      args: { docname: frm.doc.name },
+      callback: function(r) {
+        if (r.message) {
+          console.log(r.message);
+          frm.gridOptions.api.setRowData(r.message);
+        }
+      }
+    });
+  }
+
+  //
+});
