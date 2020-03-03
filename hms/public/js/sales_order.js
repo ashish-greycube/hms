@@ -110,18 +110,25 @@ frappe.ui.form.on("Sales Order", {
 });
 
 function make_room_folio(frm) {
-  frappe.call({
-    method: "hms.hms.controllers.reservation.make_room_folio",
-    args: {
-      docname: frm.doc.name
-    },
-    callback: function(r) {
-      if (!r.exc) {
-        var doc = frappe.model.sync(r.message);
-        frappe.set_route("Form", r.message.doctype, r.message.name);
-      }
-    }
-  });
-}
+  var folio = frappe.model.make_new_doc_and_get_name("Room Folio HMS");
+  folio = locals["Room Folio HMS"][folio];
 
-// },
+  $.extend(folio, {
+    reservation: frm.doc.name,
+    check_in: frm.doc.check_in_cf,
+    check_out: frm.doc.check_out_cf,
+    customer: frm.doc.customer,
+    company: frm.doc.company,
+    room_no: frm.doc.room_no_cf,
+    naming_series: "HMS-RR-.YY.-",
+    status: "Checked In"
+  });
+
+  let guest_detail = frappe.model.add_child(
+    folio,
+    "Room Guest Detail HMS",
+    "room_guest_detail"
+  );
+  guest_detail.guest = frm.doc.guest_cf;
+  frappe.set_route("Form", folio.doctype, folio.name);
+}

@@ -9,7 +9,11 @@ from frappe.utils import getdate, date_diff, add_to_date, add_days, cint
 
 
 def on_submit_sales_order(doc, method):
-    add_room_ledger_entry(doc)
+    from hms.hms.doctype.room_ledger_entry_hms.room_ledger_entry_hms import make_room_ledger_entry
+    for d in [add_days(doc.check_in_cf, _)
+              for _ in range(0, cint(doc.no_of_nights_cf))]:
+        make_room_ledger_entry(date=d, room_no=doc.room_no_cf, reference_type=doc.doctype,
+                               reference_name=doc.name, entry_type="Reservation")
 
 
 def on_update_after_submit_sales_order(doc, method):
@@ -25,19 +29,6 @@ def on_cancel_sales_order(doc, method):
     set status = 'Cancelled' 
     where parent = %s and parenttype='Sales Order'
     """, (doc.name,))
-
-
-def add_room_ledger_entry(doc):
-    for d in [add_days(doc.check_in_cf, _)
-              for _ in range(0, cint(doc.no_of_nights_cf))]:
-        frappe.get_doc({
-            "doctype": "Room Ledger Entry HMS",
-            "parenttype": "Sales Order",
-            "parent": doc.name,
-            "date": d,
-            "room_no": doc.room_no_cf,
-            "status": "Reserved"
-        }).insert(ignore_permissions=True)
 
 
 @frappe.whitelist()

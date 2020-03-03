@@ -6,7 +6,10 @@
  "field_order": [
   "room_no",
   "date",
-  "status"
+  "reference_type",
+  "reference_name",
+  "entry_type",
+  "rate"
  ],
  "fields": [
   {
@@ -20,12 +23,27 @@
    "label": "Date"
   },
   {
-   "fieldname": "status",
+   "fieldname": "reference_type",
    "fieldtype": "Data",
-   "label": "Status"
+   "label": "Reference Type"
+  },
+  {
+   "fieldname": "reference_name",
+   "fieldtype": "Data",
+   "label": "Reference Name"
+  },
+  {
+   "fieldname": "entry_type",
+   "fieldtype": "Data",
+   "label": "Entry Type"
+  },
+  {
+   "fieldname": "rate",
+   "fieldtype": "Currency",
+   "label": "Rate"
   }
  ],
- "modified": "2020-02-06 07:20:03.467368",
+ "modified": "2020-03-03 23:54:38.900553",
  "modified_by": "Administrator",
  "module": "HMS",
  "name": "Room Ledger Entry HMS",

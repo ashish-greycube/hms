@@ -7,6 +7,7 @@
  "engine": "InnoDB",
  "field_order": [
   "naming_series",
+  "reservation",
   "customer",
   "is_split_bill",
   "room_no",
@@ -180,9 +181,15 @@
    "fieldtype": "Select",
    "label": "Status",
    "options": "\nChecked In\nChecked Out\nSkipper"
+  },
+  {
+   "fieldname": "reservation",
+   "fieldtype": "Link",
+   "label": "Reservation",
+   "options": "Sales Order"
   }
  ],
- "modified": "2020-03-02 06:08:20.520246",
+ "modified": "2020-03-03 11:12:31.549790",
  "modified_by": "Administrator",
  "module": "HMS",
  "name": "Room Folio HMS",

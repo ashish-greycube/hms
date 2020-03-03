@@ -8,22 +8,10 @@ from frappe.model.document import Document
 from frappe.utils import nowdate
 from erpnext.accounts.party import get_party_account, get_party_bank_account
 from erpnext.accounts.utils import get_outstanding_invoices
+import json
 
 
 class RoomFolioHMS(Document):
-
-    def make_check_in(self):
-        frappe.get_doc({
-            "doctype": "Room Ledger Entry HMS",
-            "parenttype": "Room Folio HMS",
-            "parent": self.name,
-            "date": self.check_in,
-            "room_no": self.room_no,
-            "status": "Check In"
-        }).insert(ignore_permissions=True)
-        self.status = "Checked In"
-        self.save()
-        return self.as_dict()
 
     def make_check_out(self):
         frappe.get_doc({

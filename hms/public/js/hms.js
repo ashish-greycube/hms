@@ -27,3 +27,7 @@ hms.utils.toggle_selection = function(report) {
   if (rows.length > 0) report.gridOptions.api.deselectAll();
   else report.gridOptions.api.selectAll();
 };
+
+hms.utils.pick = function(o, ...props) {
+  return Object.assign({}, ...props.map(prop => ({ [prop]: o[prop] })));
+};

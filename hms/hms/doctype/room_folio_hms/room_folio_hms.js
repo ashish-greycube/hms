@@ -21,21 +21,11 @@ frappe.ui.form.on("Room Folio HMS", {
       __("Actions")
     );
 
-    if (true || !frm.doc.status) {
-      frm.page.add_inner_button(
-        __("Check In"),
-        function() {
-          frm.events.check_in(frm);
-        },
-        __("Actions")
-      );
-    }
-
     if (true || frm.doc.status == "Checked In") {
       frm.page.add_inner_button(
         __("Check Out"),
         function() {
-          frm.events.check_out(frm);
+          frm.events.make_check_out(frm);
         },
         __("Actions")
       );
@@ -57,20 +47,7 @@ frappe.ui.form.on("Room Folio HMS", {
     });
   },
 
-  check_in: function(frm) {
-    return frappe.call({
-      doc: frm.doc,
-      method: "make_check_in",
-      callback: function(r) {
-        if (r.message) {
-          // frappe.model.sync(r.message)[0];
-          frm.reload_doc();
-        }
-      }
-    });
-  },
-
-  check_out: function(frm) {
+  make_check_out: function(frm) {
     return frappe.call({
       doc: frm.doc,
       method: "make_check_out",
@@ -90,7 +67,6 @@ frappe.ui.form.on("Room Folio HMS", {
       args: { docname: frm.doc.name },
       callback: function(r) {
         if (r.message) {
-          console.log(r.message);
           frm.gridOptions.api.setRowData(r.message);
         }
       }
