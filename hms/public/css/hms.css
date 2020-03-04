@@ -1,0 +1,24 @@
+.hms-to-charge {
+  background-color: #ffc107 !important;
+}
+
+.hms-occupied {
+  background-color: #ffd2c2 !important;
+}
+
+.hms-dirty {
+  background-color: #fff69c !important;
+}
+
+.hms-available {
+  background-color: #cccccc !important;
+}
+
+.hms-reserved {
+  background-color: #cccccc !important;
+}
+
+.ag-header-cell-label .ag-header-cell-text {
+  font-weight: bold;
+  color: #000000;
+}
