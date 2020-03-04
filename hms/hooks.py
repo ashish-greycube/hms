@@ -20,6 +20,7 @@ app_include_js = ["/assets/hms/js/hms.js",
                   "/assets/hms/js/ag_report.js",
                   "/assets/hms/js/lib/ag-grid-community.min.js"
                   ]
+app_include_css = "/assets/hms/css/hms.css"
 
 # include js, css files in header of web template
 # web_include_css = "/assets/hms/css/hms.css"

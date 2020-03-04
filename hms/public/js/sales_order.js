@@ -19,6 +19,9 @@ frappe.ui.form.on("Sales Order", {
 
     // toolbar buttons
     // frm.page.inner_toolbar.addClass("hide");
+    // setTimeout(() => {
+    //   cur_frm.page.remove_inner_button('')
+    // }, 400);
 
     frm.page.add_inner_button("Check In", function(params) {
       make_room_folio(frm);

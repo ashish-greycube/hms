@@ -5,8 +5,9 @@
  "engine": "InnoDB",
  "field_order": [
   "room_no",
-  "posting_date",
-  "status"
+  "status",
+  "reference_type",
+  "reference_name"
  ],
  "fields": [
   {
@@ -15,17 +16,22 @@
    "label": "Room No"
   },
   {
-   "fieldname": "posting_date",
-   "fieldtype": "Date",
-   "label": "Posting Date"
-  },
-  {
    "fieldname": "status",
    "fieldtype": "Data",
    "label": "Status"
+  },
+  {
+   "fieldname": "reference_type",
+   "fieldtype": "Data",
+   "label": "Reference Type"
+  },
+  {
+   "fieldname": "reference_name",
+   "fieldtype": "Data",
+   "label": "Reference Name"
   }
  ],
- "modified": "2020-02-06 07:22:11.759159",
+ "modified": "2020-03-04 01:20:03.931239",
  "modified_by": "Administrator",
  "module": "HMS",
  "name": "Room Status Ledger Entry HMS",

@@ -9,9 +9,9 @@ hms.make_grid_charge_and_purchase = function(frm) {
     );
   frm.gridOptions = {
     columnDefs: [
-      { headerName: "Invoice", field: "name", width: 120 },
-      { headerName: "Date", field: "posting_date", width: 90 },
-      { headerName: "Time", field: "posting_time", width: 90 },
+      { headerName: "Invoice", field: "name", width: 160 },
+      { headerName: "Date", field: "room_date_cf", width: 100 },
+      { headerName: "Time", field: "posting_time", width: 100 },
       { headerName: "Total", field: "rounded_total" },
       { headerName: "Outstanding", field: "outstanding_amount" }
     ],
