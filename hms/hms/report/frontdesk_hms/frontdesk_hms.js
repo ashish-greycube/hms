@@ -13,6 +13,12 @@ frappe.query_reports["Frontdesk HMS"] = {
         frappe.datetime.add_days(frappe.datetime.get_today(), 10)
       ],
       reqd: 1
+    },
+    {
+      fieldname: "room_type",
+      label: __("Room Type"),
+      fieldtype: "Select",
+      options: "\nCLAS-SH\nSUPR-SH"
     }
   ],
 
@@ -29,16 +35,36 @@ frappe.query_reports["Frontdesk HMS"] = {
 
     gridOptions.context = { always_recreate: true };
     gridOptions.rowSelection = "multiple";
-    // gridOptions.getContextMenuItems = hrms.utils.get_context_menu;
+    // gridOptions.getContextMenuItems = hms.utils.get_context_menu;
+    // set_column_defs(gridOptions);
 
-    // get_column_defs(gridOptions);
-
-    gridOptions.onRowDataChanged = function(params) {
-      // frappe.add_row_numbers(frappe.ag_report);
-    };
+    gridOptions.onRowDataChanged = function(params) {};
 
     gridOptions.onCellDoubleClicked = function(params) {
-      // hrms.utils.open_attendance(params);
+      open_reservation(params);
     };
   }
 };
+
+function set_column_defs(gridOptions) {}
+
+function open_reservation(params) {
+  let data = params.data,
+    date = params.colDef.colId;
+  // goto folio
+  if (data[`${date}_folio`]) {
+    frappe.set_route("Form", "Room Folio HMS", data[`${date}_folio`]);
+    return;
+  }
+  // goto reservation
+  else if (data[`${date}_reservation`]) {
+    frappe.set_route("Form", "Sales Order", data[`${date}_reservation`]);
+    return;
+  }
+  // goto new reservation
+  frappe.new_doc("Sales Order", {}).then(f => {
+    cur_frm.set_value("customer", "Dummy Customer");
+    cur_frm.set_value("check_in_cf", date);
+    cur_frm.set_value("room_no_cf", data["room_no"]);
+  });
+}

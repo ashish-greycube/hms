@@ -14,7 +14,7 @@ frappe.ui.form.on("Sales Order", {
 
   refresh: function(frm) {
     if (frm.is_new()) {
-      frm.trigger("set_defaults");
+      // frm.trigger("set_defaults");
     }
 
     // toolbar buttons
