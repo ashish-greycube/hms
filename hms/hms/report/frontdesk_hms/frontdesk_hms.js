@@ -28,26 +28,35 @@ frappe.query_reports["Frontdesk HMS"] = {
 
   set_gridOptions(gridOptions) {
     let me = this;
-    gridOptions.defaultColDef = {
-      sortable: true,
-      resizable: true
-    };
-
+    set_column_defs(gridOptions);
+    gridOptions.defaultColDef = defaultColDef;
     gridOptions.context = { always_recreate: true };
     gridOptions.rowSelection = "multiple";
-    // gridOptions.getContextMenuItems = hms.utils.get_context_menu;
-    // set_column_defs(gridOptions);
-
     gridOptions.onRowDataChanged = function(params) {};
-
     gridOptions.onCellDoubleClicked = function(params) {
       open_reservation(params);
     };
+
+    // gridOptions.getContextMenuItems = get_context_menu;
   }
 };
 
-function set_column_defs(gridOptions) {}
+//
+const defaultColDef = {
+  sortable: true,
+  resizable: true
+};
 
+//
+function set_column_defs(gridOptions) {
+  for (let c of gridOptions.columnDefs) {
+    c.cellClass = function(params) {
+      return params.data[`${c.field}_css`] || "";
+    };
+  }
+}
+
+//
 function open_reservation(params) {
   let data = params.data,
     date = params.colDef.colId;

@@ -13,14 +13,18 @@ def execute(filters=None):
 
 
 def get_data(filters=None):
-    filters = dict(from_date="2020-03-02", to_date="2020-03-06")
+    filters = filters or []
+    date_range = ["2020-03-02", "2020-03-08"]
+    filters["from_date"] = filters.get("date_range", date_range)[0]
+    filters["to_date"] = filters.get("date_range", date_range)[1]
+
     data = frappe.db.sql("""
             select d.date, r.name room_no, 
             case
-            when a.name is not null then 'in-house'
-            when b.name is not null then 'reserved'
-            when d.date >= curdate() then coalesce(lower(c.status),'available') 
-            else 'disabled' end status,
+            when a.name is not null then 'hms-in-house'
+            when b.name is not null then 'hms-reserved'
+            when d.date >= curdate() then concat('hms-',coalesce(lower(c.status),'available'))
+            else 'hms-disabled' end status,
             coalesce(a.customer,b.customer) customer,
             coalesce(gd.guest, b.guest) guest,
             a.name folio, b.name `reservation`

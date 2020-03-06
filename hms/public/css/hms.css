@@ -2,8 +2,9 @@
   background-color: #ffc107 !important;
 }
 
-.hms-occupied {
-  background-color: #ffd2c2 !important;
+.hms-occupied,
+.hms-in-house {
+  background-color: mediumseagreen !important;
 }
 
 .hms-dirty {
