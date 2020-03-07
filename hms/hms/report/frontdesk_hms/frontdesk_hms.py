@@ -21,12 +21,12 @@ def get_data(filters=None):
     data = frappe.db.sql("""
             select d.date, r.name room_no, 
             case
-            when a.name is not null then 'hms-in-house'
-            when b.name is not null then 'hms-reserved'
-            when d.date >= curdate() then concat('hms-',coalesce(lower(c.status),'available'))
-            else 'hms-disabled' end status,
+            when a.name is not null  and a.status='Checked In' then 'hms-in-house'
+            when a.name is null and b.name is not null then 'hms-reserved'
+            when d.date >= curdate() then concat('hms-',coalesce(lower(c.status),''))
+            else '' end status,
             coalesce(a.customer,b.customer) customer,
-            coalesce(gd.guest, b.guest) guest,
+            coalesce(gd.guest, b.guest, c.guest) guest,
             a.name folio, b.name `reservation`
             -- ,a.*, b.* 
             from 
@@ -35,9 +35,9 @@ def get_data(filters=None):
             left outer join 
             (
                 -- room folio
-                select fo.room_no, fo.check_in, fo.check_out, fo.customer, fo.name
+                select fo.room_no, fo.check_in, fo.check_out, fo.customer, fo.name, fo.status
                 from `tabRoom Folio HMS` fo
-                where not (fo.check_in >= %(to_date)s OR fo.check_out <= %(from_date)s)
+                where fo.status = 'Checked In' and not (fo.check_in >= %(to_date)s OR fo.check_out <= %(from_date)s)
             ) a on d.date BETWEEN a.check_in and a.check_out and r.name = a.room_no
             left outer join `tabRoom Guest Detail HMS` gd on gd.name = (
                 select x.name from `tabRoom Guest Detail HMS` x 
@@ -49,17 +49,18 @@ def get_data(filters=None):
                 select so.name, so.room_no_cf room_no, so.check_in_cf check_in, so.check_out_cf check_out, so.guest_cf guest, so.customer
                 from `tabSales Order` so
                 where not (so.check_in_cf >= %(to_date)s OR so.check_out_cf <= %(from_date)s)
+                and not exists (select 1 from `tabRoom Folio HMS` x where x.reservation = so.name)
             ) b on d.date BETWEEN b.check_in and b.check_out and r.name = b.room_no
             left outer join 
             (
                 -- room status ledger: Dirty/Occupied/OOO/OOS
-                select room_no, status, reference_type, reference_name
+                select room_no, status, reference_type, reference_name, status as guest
                 from `tabRoom Status Ledger Entry HMS`
                 where docstatus <> 2
             ) c on c.room_no = r.name and d.date = curdate()
             where d.date BETWEEN %(from_date)s and %(to_date)s
             order by d.date, a.room_no
-    """, filters, as_dict=True)
+    """, filters, as_dict=True, debug=True)
 
     rows = {}
     for i, d in enumerate(data):

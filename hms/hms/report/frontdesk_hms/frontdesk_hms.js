@@ -9,7 +9,7 @@ frappe.query_reports["Frontdesk HMS"] = {
       label: __("Date Range"),
       fieldtype: "DateRange",
       default: [
-        frappe.datetime.get_today(),
+        frappe.datetime.add_days(frappe.datetime.get_today(), -1),
         frappe.datetime.add_days(frappe.datetime.get_today(), 10)
       ],
       reqd: 1
@@ -51,7 +51,10 @@ const defaultColDef = {
 function set_column_defs(gridOptions) {
   for (let c of gridOptions.columnDefs) {
     c.cellClass = function(params) {
-      return params.data[`${c.field}_css`] || "";
+      return (
+        (moment().diff(c.colId) > 0 ? "hms-disabled " : "") +
+        (params.data[`${c.field}_css`] || "")
+      );
     };
   }
 }

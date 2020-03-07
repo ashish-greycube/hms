@@ -11,12 +11,12 @@
   background-color: #fff69c !important;
 }
 
-.hms-available {
-  background-color: #cccccc !important;
+.hms-disabled {
+  background-color: #c8c8c8 !important;
 }
 
 .hms-reserved {
-  background-color: #cccccc !important;
+  background-color: #97d7de !important;
 }
 
 .ag-header-cell-label .ag-header-cell-text {
