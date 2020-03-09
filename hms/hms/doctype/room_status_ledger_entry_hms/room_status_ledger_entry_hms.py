@@ -4,7 +4,7 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe.utils import nowdate
+from frappe.utils import nowdate, now_datetime
 from frappe.model.document import Document
 
 
@@ -33,7 +33,7 @@ class update_room_status_ledger(object):
             "room_no": args.get("room_no") or args.get("room_no_cf"),
             "reference_type": args.get("doctype"),
             "reference_name": args.get("name"),
-            "modified": args.get("modified") or nowdate(),
+            "modified": args.get("modified") or now_datetime(),
             "modified_by": args.get("modified_by") or frappe.session.user
         } or {}
 
@@ -80,6 +80,7 @@ class update_room_status_ledger(object):
         set docstatus = 2, modified = %(modified)s, modified_by = %(modified_by)s
         where docstatus = 0 and status = 'Dirty' and room_no = %(room_no)s
         """, self.args)
+        frappe.db.commit()
 
     def add_to_service(self):
         # create To Service entry
@@ -97,3 +98,4 @@ class update_room_status_ledger(object):
         set docstatus = 2, modified = %(modified)s, modified_by = %(modified_by)s
         where docstatus = 0 and status = 'To Service' and room_no = %(room_no)s
         """, self.args)
+        frappe.db.commit()

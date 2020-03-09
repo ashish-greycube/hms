@@ -13,20 +13,21 @@ def execute(filters=None):
 
 
 def get_data(filters=None):
-    filters = filters or []
-    date_range = ["2020-03-02", "2020-03-08"]
-    filters["from_date"] = filters.get("date_range", date_range)[0]
-    filters["to_date"] = filters.get("date_range", date_range)[1]
+    if not filters:
+        filters = {}
+        filters["date_range"] = ["2020-03-09", "2020-03-09"]
+    filters["from_date"] = filters.get("date_range",)[0]
+    filters["to_date"] = filters.get("date_range",)[1]
 
     data = frappe.db.sql("""
-            select d.date, r.name room_no, 
+            select d.date, r.name name, r.room_no room_no, r.room_type, c.room_status,
             case
             when a.name is not null  and a.status='Checked In' then 'hms-in-house'
             when a.name is null and b.name is not null then 'hms-reserved'
-            when d.date >= curdate() then concat('hms-',coalesce(lower(c.status),''))
+            when d.date = curdate() then concat('hms-',coalesce(lower(c.room_status),''))
             else '' end status,
             coalesce(a.customer,b.customer) customer,
-            coalesce(gd.guest, b.guest, c.guest) guest,
+            coalesce(gd.guest, b.guest) guest,
             a.name folio, b.name `reservation`
             -- ,a.*, b.* 
             from 
@@ -37,7 +38,8 @@ def get_data(filters=None):
                 -- room folio
                 select fo.room_no, fo.check_in, fo.check_out, fo.customer, fo.name, fo.status
                 from `tabRoom Folio HMS` fo
-                where fo.status = 'Checked In' and not (fo.check_in >= %(to_date)s OR fo.check_out <= %(from_date)s)
+                where not (fo.check_in >= %(to_date)s OR fo.check_out <= %(from_date)s)
+                -- and fo.status = 'Checked In' 
             ) a on d.date BETWEEN a.check_in and a.check_out and r.name = a.room_no
             left outer join `tabRoom Guest Detail HMS` gd on gd.name = (
                 select x.name from `tabRoom Guest Detail HMS` x 
@@ -54,17 +56,17 @@ def get_data(filters=None):
             left outer join 
             (
                 -- room status ledger: Dirty/Occupied/OOO/OOS
-                select room_no, status, reference_type, reference_name, status as guest
+                select room_no, status, reference_type, reference_name, status room_status
                 from `tabRoom Status Ledger Entry HMS`
                 where docstatus <> 2
-            ) c on c.room_no = r.name and d.date = curdate()
+            ) c on c.room_no = r.name -- and d.date = curdate()
             where d.date BETWEEN %(from_date)s and %(to_date)s
-            order by d.date, a.room_no
-    """, filters, as_dict=True, debug=True)
+            order by d.date, r.room_type, r.room_no
+    """, filters, as_dict=True, debug=1)
 
     rows = {}
     for i, d in enumerate(data):
-        tmp = rows.setdefault(d['room_no'], {})
+        tmp = rows.setdefault(d['name'], d)
         col = d['date'].strftime("%Y-%m-%d")
 
         tmp.update({f"{col}": d['guest']})
@@ -75,7 +77,7 @@ def get_data(filters=None):
 
     results = []
     for key, val in rows.items():
-        val.update({"room_no": key})
+        val.update({"room": key})
         results += [val]
 
     columns = []
@@ -86,6 +88,8 @@ def get_data(filters=None):
                      fieldtype="Data", width=130, pinned='left')]
     columns += [dict(label="Room No", fieldname="room_no",
                      fieldtype="Data", width=130, pinned='left')]
+    columns += [dict(label="Status", fieldname="room_status",
+                     fieldtype="Data", width=100, pinned='left')]
     # dates
     for d in [add_days(filters.get('from_date'), _)
               for _ in range(0, date_diff(filters.get('to_date'), filters.get('from_date'))+1)]:
@@ -94,3 +98,9 @@ def get_data(filters=None):
 
     # print(columns, results)
     return columns, results
+
+
+@frappe.whitelist()
+def set_room_status(room_no, status_action):
+    from hms.hms.doctype.room_status_ledger_entry_hms.room_status_ledger_entry_hms import update_room_status_ledger
+    update_room_status_ledger(dict(room_no=room_no), action=status_action)
