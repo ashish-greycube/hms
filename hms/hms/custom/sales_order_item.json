@@ -8,6 +8,29 @@
    "_comments": null,
    "_liked_by": null,
    "_user_tags": null,
+   "creation": "2020-02-03 13:37:31.473498",
+   "default_value": null,
+   "doc_type": "Sales Order Item",
+   "docstatus": 0,
+   "doctype_or_field": "DocField",
+   "field_name": "delivery_date",
+   "idx": 0,
+   "modified": "2020-02-03 13:37:31.473498",
+   "modified_by": "Administrator",
+   "name": "Sales Order Item-delivery_date-default",
+   "owner": "Administrator",
+   "parent": null,
+   "parentfield": null,
+   "parenttype": null,
+   "property": "default",
+   "property_type": "Text",
+   "value": "Today"
+  },
+  {
+   "_assign": null,
+   "_comments": null,
+   "_liked_by": null,
+   "_user_tags": null,
    "creation": "2020-02-03 05:41:39.292686",
    "default_value": null,
    "doc_type": "Sales Order Item",
@@ -188,5 +211,5 @@
    "value": "0"
   }
  ],
- "sync_on_migrate": 0
+ "sync_on_migrate": 1
 }
