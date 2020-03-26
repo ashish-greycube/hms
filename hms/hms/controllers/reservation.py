@@ -58,3 +58,13 @@ def make_room_folio(docname):
     # TODO: add advance payments
     folio.insert()
     return folio
+
+
+@frappe.whitelist()
+def get_reservation_details(room_no, date):
+    return frappe.db.sql("""
+    select name, room_type, customer, '' guest, check_out, check_in, room_no,
+    reservation, status, total_charges, total_advance_paid
+    from `tabRoom Folio HMS`
+    limit 1
+    """, as_dict=True)[0]

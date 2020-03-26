@@ -1,25 +1,35 @@
-.hms-to-charge {
-  background-color: #ffc107 !important;
-}
+/* frontdesk reservation status  */
 
-.hms-occupied,
 .hms-in-house {
   background-color: mediumseagreen !important;
 }
 
-.hms-dirty {
-  background-color: #fff69c !important;
-}
-
-.hms-disabled {
-  background-color: #c8c8c8 !important;
-}
-
-.hms-reserved {
+.hms-non-guaranteed {
   background-color: #97d7de !important;
 }
 
+.hms-guaranteed {
+  background-color: #97d7de !important;
+}
+
+/* frontdesk header */
+
+.ag-header-weekend {
+  background-color: orange;
+}
+
+.ag-header-holiday {
+  background-color: red;
+}
+
+.ag-header-today {
+  background-color: purple;
+}
+
+.hms-to-charge {
+  background-color: #ffc107 !important;
+}
+
 .ag-header-cell-label .ag-header-cell-text {
-  font-weight: bold;
-  color: #000000;
+  color: #666666;
 }

@@ -16,25 +16,12 @@ def get_data():
                     "description": "Reservation"
                 },
                 {
-                    # "type": "link",
-                    # "doctype": "Energy Point Log",
-                    # "label": _("Energy Point Leaderboard"),
-                    # "route": "#social/users"
-
-                    "type": "link",
+                    "name": "Frontdesk HMS",
+                    "type": "report",
                     "module_name": "hms",
                     "label": _("Frontdesk"),
-                    # "route": "#social/users"
                     "route": "#ag-report/Frontdesk HMS"
                 },
-                # {
-                #     "type": "report",
-                #     "is_query_report": True,
-                #     # "name": "Frontdesk HMS",
-                #     "label": "New Frontdesk HMS",
-                #     "doctype": "Room Folio HMS"
-                # },
-
             ]
         },
         {

@@ -3,8 +3,9 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe.utils import getdate, date_diff, add_to_date, add_days
+from frappe.utils import getdate, date_diff, add_to_date, add_days, today
 from pprint import pprint
+from erpnext import get_default_company
 
 
 def execute(filters=None):
@@ -15,10 +16,6 @@ def execute(filters=None):
 def get_data(filters=None):
     if not filters:
         filters = {}
-        filters["date_range"] = ["2020-03-09", "2020-03-09"]
-    filters["from_date"] = filters.get("date_range",)[0]
-    filters["to_date"] = filters.get("date_range",)[1]
-
     data = frappe.db.sql("""
             select d.date, r.name name, r.room_no room_no, r.room_type, c.room_status,
             case
@@ -82,19 +79,26 @@ def get_data(filters=None):
 
     columns = []
     # pinned columns
+    columns += [dict(label="Status", fieldname="room_status",
+                     fieldtype="Data", width=40, pinned='left')]
     columns += [dict(label="Room", fieldname="name",
-                     fieldtype="Link/Room HMS", width=130, pinned='left')]
+                     fieldtype="Link/Room HMS", width=130, pinned='left', hide=True)]
     columns += [dict(label="Room Type", fieldname="room_type",
                      fieldtype="Data", width=130, pinned='left')]
     columns += [dict(label="Room No", fieldname="room_no",
                      fieldtype="Data", width=130, pinned='left')]
-    columns += [dict(label="Status", fieldname="room_status",
-                     fieldtype="Data", width=100, pinned='left')]
     # dates
+    holidays = get_holidays(filters.get('from_date'), filters.get('to_date'))
+
     for d in [add_days(filters.get('from_date'), _)
               for _ in range(0, date_diff(filters.get('to_date'), filters.get('from_date'))+1)]:
-        columns += [dict(label=d, fieldname=d,
-                         fieldtype="Data", width=120, )]
+        col_date = getdate(d)
+        day_type = ""
+        if d in holidays.keys():
+            day_type = "today" if col_date == today() else "weekend" if holidays[d] == col_date.strftime(
+                "%A") else "holiday"
+        columns += [dict(label=col_date.strftime('%d-%b (%a)'), fieldname=d,
+                         fieldtype="Data", width=120, day_type=day_type)]
 
     # print(columns, results)
     return columns, results
@@ -104,3 +108,14 @@ def get_data(filters=None):
 def set_room_status(room_no, status_action):
     from hms.hms.doctype.room_status_ledger_entry_hms.room_status_ledger_entry_hms import update_room_status_ledger
     update_room_status_ledger(dict(room_no=room_no), action=status_action)
+
+
+def get_holidays(from_date, to_date):
+    holiday_list = frappe.get_cached_value(
+        'Company',  get_default_company(),  "default_holiday_list")
+    holidays = {}
+    for d in frappe.db.sql("""select date_format(holiday_date,'%%Y-%%m-%%d') holiday_date, description 
+    from tabHoliday where parent = %s
+    and holiday_date between %s and %s""", (holiday_list, from_date, to_date),):
+        holidays.setdefault(d[0], d[1])
+    return holidays
