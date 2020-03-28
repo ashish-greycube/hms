@@ -22,6 +22,13 @@ def get_data():
                     "label": _("Frontdesk"),
                     "route": "#ag-report/Frontdesk HMS"
                 },
+                {
+                    "name": "Night-Audit",
+                    "type": "report",
+                    "module_name": "hms",
+                    "label": _("Night Audit"),
+                    "route": "#ag-report/Night-Audit"
+                },
             ]
         },
         {

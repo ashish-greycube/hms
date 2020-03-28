@@ -5,13 +5,14 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
-from frappe.utils import nowdate
+from frappe.utils import nowdate, flt, cint, today
 from erpnext.accounts.party import get_party_account, get_party_bank_account
 from erpnext.accounts.utils import get_outstanding_invoices
 import json
 from hms.hms.doctype.room_ledger_entry_hms.room_ledger_entry_hms import make_room_ledger_entry
 from hms.hms.doctype.room_status_ledger_entry_hms.room_status_ledger_entry_hms import update_room_status_ledger
 from hms.hms.controllers.reservation import get_room_service_item
+import erpnext
 
 
 class RoomFolioHMS(Document):
@@ -37,7 +38,7 @@ class RoomFolioHMS(Document):
         from `tabRoom Status Ledger Entry HMS`
         where room_no = %s and docstatus <> 2""", (self.room_no), as_dict=True):
             frappe.throw(
-                f"Room {self.room} is {d.status} for {self.check_in} ")
+                f"Room {self.room_no} is {d.status} for {self.check_in} ")
 
     def after_insert(self):
         "check in"
@@ -74,7 +75,8 @@ class RoomFolioHMS(Document):
     def validate_billing(self):
         pass
 
-    def set_advances(self):
+    def get_advances(self):
+        """get unallocated advances by customer in Room Folio account"""
         pass
 
     def get_payment_entry(self):
@@ -107,5 +109,31 @@ def get_charge_and_purchase(docname):
     return frappe.db.sql("""
     select name, room_date_cf, posting_time, rounded_total, outstanding_amount
     from `tabSales Invoice` i
-    where ifnull(i.room_folio_cf,'') = %s
-    """, (docname, ), as_dict=True)
+    where ifnull(i.room_folio_cf, '') = %s""", (docname, ), as_dict=True)
+
+
+@frappe.whitelist()
+def make_transfer_jv(**args):
+    args = frappe._dict(args)
+    je = frappe.new_doc("Journal Entry")
+    je.voucher_type = "Journal Entry"
+    je.company = erpnext.get_default_company()
+    je.posting_date = today()
+    je.remark = f"Transfer of funds for {args.customer}. Folio#: {args.folio}"
+
+    je.append("accounts", {
+        "account": args.account_from,
+        "party_type": 'Customer',
+        'party': args.customer,
+        'debit_in_account_currency': 0,
+        'credit_in_account_currency': flt(args.amount_to_transfer)
+    })
+    je.append("accounts", {
+        "account": args.account_to,
+        "party_type": 'Customer',
+        'party': args.customer,
+        'debit_in_account_currency': flt(args.amount_to_transfer),
+        'credit_in_account_currency': 0
+    })
+    je.insert(ignore_permissions=True)
+    je.submit()

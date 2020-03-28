@@ -2,30 +2,6 @@
 // For license information, please see license.txt
 /* eslint-disable */
 
-function CustomTooltip() {}
-
-CustomTooltip.prototype.init = function(params) {
-  var eGui = (this.eGui = document.createElement("div"));
-  var color = params.color || "white";
-  var data = params.api.getDisplayedRowAtIndex(params.rowIndex).data;
-  eGui.classList.add("custom-tooltip");
-  // eGui.style["background-color"] = color;
-  eGui.innerHTML = "hello there";
-  // '<p><span class"name">' +
-  // data.athlete +
-  // "</span></p>" +
-  // "<p><span>Country: </span>" +
-  // data.country +
-  // "</p>" +
-  // "<p><span>Total: </span>" +
-  // data.total +
-  // "</p>";
-};
-
-CustomTooltip.prototype.getGui = function() {
-  return this.eGui;
-};
-
 frappe.query_reports["Frontdesk HMS"] = {
   filters: [
     {
@@ -82,7 +58,7 @@ frappe.query_reports["Frontdesk HMS"] = {
     };
 
     gridOptions.components = {
-      customTooltip: CustomTooltip
+      // customTooltip: CustomTooltip
     };
 
     // gridOptions.getContextMenuItems = get_context_menu;
@@ -92,8 +68,8 @@ frappe.query_reports["Frontdesk HMS"] = {
 //
 const defaultColDef = {
   sortable: true,
-  resizable: true,
-  tooltipComponent: "customTooltip"
+  resizable: true
+  // tooltipComponent: "customTooltip"
 };
 
 //
@@ -145,7 +121,10 @@ function open_reservation(params) {
   }
   // goto new reservation
   frappe.new_doc("Sales Order", {}).then(f => {
-    cur_frm.set_value("customer", "Dummy Customer");
+    cur_frm.set_value(
+      "customer",
+      frappe.defaults.get_user_default("default_ngtd_customer")
+    );
     cur_frm.set_value("check_in_cf", date);
     cur_frm.set_value("room_no_cf", data["name"]);
   });
@@ -194,25 +173,18 @@ function get_reservation_details(params) {
     },
     callback: function(r) {
       console.log(r.message);
-
-      let info = frappe.render_template(info_template, r.message);
+      if ($.isEmptyObject(r.message)) {
+        return;
+      }
+      let info = frappe.render(info_template, r.message);
+      console.log(info);
       frappe.msgprint(info, (title = r.message.customer));
     }
   });
 }
 
 const info_template = `
-<table class="table table-bordered">
-  <tbody>
-    <tr><td>Customer</td><td>{{customer}}</td></tr>
-    <tr><td>Guest</td><td>guest</td></tr>
-    <tr><td>Contact No:</td><td>mobile</td></tr>
-    <tr><td>Room #</td><td>room_no</td></tr>
-    <tr><td>R</td><td>rate</td></tr>
-    <tr><td>WNR</td><td>weekend_rate</td></tr>
-    <tr><td>Total Nights</td><td>total_nights</td></tr>
-    <tr><td>Total Stay Cost</td><td>total_stay_cost</td></tr>
-    <tr><td>Advance</td><td>advance</td></tr>
-	</tbody>
-</table>
+<div>
+   {% include "hms/templates/includes/frontdesk_hms_reservation_info.html" %}
+</div>
 `;

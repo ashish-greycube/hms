@@ -80,6 +80,9 @@ doctype_js = {"Sales Order": "public/js/sales_order.js"}
 # 	"Event": "frappe.desk.doctype.event.event.has_permission",
 # }
 
+on_session_creation = [
+    "hms.set_session_defaults"
+]
 # Document Events
 # ---------------
 # Hook on document methods and events

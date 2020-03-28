@@ -62,9 +62,10 @@ def make_room_folio(docname):
 
 @frappe.whitelist()
 def get_reservation_details(room_no, date):
-    return frappe.db.sql("""
+    data = frappe.db.sql("""
     select name, room_type, customer, '' guest, check_out, check_in, room_no,
     reservation, status, total_charges, total_advance_paid
     from `tabRoom Folio HMS`
     limit 1
-    """, as_dict=True)[0]
+    """, as_dict=True)
+    return data and data[0] or {}
