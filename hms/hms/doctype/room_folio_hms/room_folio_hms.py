@@ -121,15 +121,23 @@ def make_transfer_jv(**args):
     je.posting_date = today()
     je.remark = f"Transfer of funds for {args.customer}. Folio#: {args.folio}"
 
+    if args.get('transfer_type') == "Transfer to Room":
+        debit_account = args.desk_account
+        credit_account = args.folio_account
+    else:
+        credit_account = args.desk_account
+        debit_account = args.folio_account
+
     je.append("accounts", {
-        "account": args.account_from,
+        "account":  credit_account,
         "party_type": 'Customer',
         'party': args.customer,
         'debit_in_account_currency': 0,
         'credit_in_account_currency': flt(args.amount_to_transfer)
     })
+
     je.append("accounts", {
-        "account": args.account_to,
+        "account": debit_account,
         "party_type": 'Customer',
         'party': args.customer,
         'debit_in_account_currency': flt(args.amount_to_transfer),
@@ -137,3 +145,32 @@ def make_transfer_jv(**args):
     })
     je.insert(ignore_permissions=True)
     je.submit()
+
+
+@frappe.whitelist()
+def get_party_balance(party, company):
+    from erpnext.accounts.utils import get_balance_on
+    default_desk_account = frappe.defaults.get_user_default(
+        'default_desk_receivable_account')
+    default_folio_account = frappe.defaults.get_user_default(
+        'default_folio_receivable_account')
+
+    balance = dict()
+
+    balance["desk"] = {
+        'account': default_desk_account,
+        'balance': get_balance_on(account=default_desk_account, date=today(),
+                                  party_type="Customer", party=party,
+                                  ignore_account_permission=True,
+                                  company=erpnext.get_default_company(), ),
+    }
+    balance["folio"] = {
+        'account': default_folio_account,
+        'balance': get_balance_on(account=default_folio_account, date=today(),
+                                  party_type="Customer", party=party,
+                                  ignore_account_permission=True,
+                                  company=erpnext.get_default_company(), )
+    }
+
+    print(balance, "balance")
+    return balance

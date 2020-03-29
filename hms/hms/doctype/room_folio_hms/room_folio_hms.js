@@ -57,6 +57,32 @@ frappe.ui.form.on("Room Folio HMS", {
         fieldname: "customer",
         default: frm.doc.customer
       },
+      { fieldtype: "Section Break", label: "Party Balance" },
+      {
+        fieldtype: "Data",
+        fieldname: "desk_account",
+        hidden: 1,
+        default: desk_account
+      },
+      {
+        fieldtype: "Data",
+        fieldname: "folio_account",
+        hidden: 1,
+        default: folio_account
+      },
+      {
+        fieldtype: "Currency",
+        read_only: 1,
+        label: desk_account,
+        fieldname: "desk_account_balance"
+      },
+      { fieldtype: "Column Break" },
+      {
+        fieldtype: "Currency",
+        read_only: 1,
+        label: folio_account,
+        fieldname: "folio_account_balance"
+      },
       {
         fieldtype: "Data",
         fieldname: "folio",
@@ -71,15 +97,7 @@ frappe.ui.form.on("Room Folio HMS", {
         reqd: 1,
         options: ["Transfer to Room", "Transfer to Desk"].join("\n"),
         default: "Transfer to Room",
-        onchange: () => {
-          if (this.value == "Transfer to Room") {
-            d.fields_dict["account_from"].set_value(desk_account);
-            d.fields_dict["account_to"].set_value(folio_account);
-          } else {
-            d.fields_dict["account_from"].set_value(desk_account);
-            d.fields_dict["account_to"].set_value(folio_account);
-          }
-        }
+        onchange: () => {}
       },
       { fieldtype: "Column Break" },
       {
@@ -87,41 +105,32 @@ frappe.ui.form.on("Room Folio HMS", {
         fieldname: "amount_to_transfer",
         label: "Amount to Transfer",
         default: "0"
-      },
-      { fieldtype: "Section Break", label: "Accounts" },
-      {
-        fieldtype: "ReadOnly",
-        label: "Transfer From",
-        default: desk_account,
-        fieldname: "account_from"
-      },
-      {
-        fieldtype: "Currency",
-        fieldname: "available_from",
-        read_only: 1,
-        label: "Available Balance",
-        default: "0"
-      },
-      { fieldtype: "Column Break" },
-      {
-        fieldtype: "ReadOnly",
-        label: "Transfer To",
-        default: folio_account,
-        fieldname: "account_to"
-      },
-      {
-        fieldtype: "Currency",
-        fieldname: "available_to",
-        read_only: 1,
-        label: "Available Balance",
-        default: "0"
       }
     ];
     var d = new frappe.ui.Dialog({
       title: __("Transfer Funds"),
       fields: fields,
       primary_action: function() {
-        console.log(d.get_values());
+        let data = d.get_values();
+
+        if (data.amount_to_transfer < 0) {
+          frappe.throw("Amount to transfer should be greater than 0.");
+          return;
+        }
+
+        let is_valid = !(
+          data.amount_to_transfer >
+          0 -
+            (data.transfer_type == "Transfer to Room"
+              ? data.desk_account_balance || 0
+              : data.folio_account_balance || 0)
+        );
+        console.log(is_valid);
+
+        if (!is_valid) {
+          frappe.throw("Amount to transfer cannot exceed balanace.");
+          return;
+        }
 
         frappe.call({
           method:
@@ -136,7 +145,15 @@ frappe.ui.form.on("Room Folio HMS", {
       },
       primary_action_label: __("Submit")
     });
-    d.show();
+
+    get_party_balance(frm.doc.company, frm.doc.customer).then(r => {
+      d.balances = r.message;
+      d.set_values({
+        desk_account_balance: d.balances.desk.balance,
+        folio_account_balance: d.balances.folio.balance
+      });
+      d.show();
+    });
   },
 
   make_payment_entry: function(frm) {
@@ -181,3 +198,13 @@ frappe.ui.form.on("Room Folio HMS", {
 
   //
 });
+
+function get_party_balance(company, party) {
+  return frappe.call({
+    method: "hms.hms.doctype.room_folio_hms.room_folio_hms.get_party_balance",
+    args: {
+      company: company,
+      party: party
+    }
+  });
+}
