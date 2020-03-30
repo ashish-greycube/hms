@@ -107,9 +107,11 @@ class RoomFolioHMS(Document):
 @frappe.whitelist()
 def get_charge_and_purchase(docname):
     return frappe.db.sql("""
-    select name, room_date_cf, posting_time, rounded_total, outstanding_amount
-    from `tabSales Invoice` i
-    where ifnull(i.room_folio_cf, '') = %s""", (docname, ), as_dict=True)
+    select si.name, rf.name room_folio, rf.room_no, date_format(room_date_cf,'%%d %%b, %%y') room_date_cf, 
+    date_format(posting_time,'%%H:%%i') posting_time, rounded_total, outstanding_amount
+    from `tabRoom Folio HMS` rf
+    inner join `tabSales Invoice` si on rf.name = ifnull(si.room_folio_cf, '')
+    where rf.name = %(folio)s or rf.master_folio = %(folio)s""", dict(folio=docname, ), as_dict=True)
 
 
 @frappe.whitelist()

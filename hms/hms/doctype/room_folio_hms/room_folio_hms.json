@@ -9,6 +9,7 @@
   "naming_series",
   "reservation",
   "customer",
+  "master_folio",
   "is_split_bill",
   "room_no",
   "room_type",
@@ -188,9 +189,15 @@
    "fieldname": "room_folio_advance",
    "fieldtype": "HTML",
    "label": "room_folio_advance"
+  },
+  {
+   "fieldname": "master_folio",
+   "fieldtype": "Link",
+   "label": "Master Folio",
+   "options": "Room Folio HMS"
   }
  ],
- "modified": "2020-03-30 03:23:21.666295",
+ "modified": "2020-03-30 03:49:21.401982",
  "modified_by": "Administrator",
  "module": "HMS",
  "name": "Room Folio HMS",
