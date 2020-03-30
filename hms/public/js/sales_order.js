@@ -27,13 +27,14 @@ frappe.ui.form.on("Sales Order", {
       make_room_folio(frm);
     });
 
-    // frm.page.add_inner_button(
-    //   __("Payment"),
-    //   function() {
-    //     alert("Create Payment");
-    //   },
-    //   __("Create")
-    // );
+    if (
+      frm.doc.docstatus == 1 &&
+      flt(frm.doc.advance_paid) < flt(frm.doc.rounded_total)
+    ) {
+      frm.page.add_inner_button(__("Transfer Funds"), () => {
+        show_transfer_dialog(frm);
+      });
+    }
 
     frm.page.set_inner_btn_group_as_primary(__("Create"));
   },
@@ -134,4 +135,72 @@ function make_room_folio(frm) {
   );
   guest_detail.guest = frm.doc.guest_cf;
   frappe.set_route("Form", folio.doctype, folio.name);
+}
+
+function show_transfer_dialog(frm) {
+  var dialog = new frappe.ui.Dialog({
+    title: __("Transfer Funds"),
+    fields: [
+      {
+        label: "Customer",
+        fieldname: "customer",
+        fieldtype: "ReadOnly",
+        default: frm.doc.customer
+      },
+      {
+        label: "Desk Account Balance",
+        fieldname: "balance",
+        fieldtype: "Currency",
+        read_only: 1,
+        default: 0
+      },
+      {
+        fieldtype: "Currency",
+        fieldname: "amount_to_transfer",
+        label: "Amount to Transfer",
+        default: "0"
+      }
+    ],
+    primary_action: function() {
+      let args = dialog.get_values();
+
+      if (args.amount_to_transfer > 0 - args.balance) {
+        frappe.throw(
+          `Amount to transfer cannot be greater than ${args.balance}`
+        );
+        return;
+      }
+
+      return frappe.call({
+        method:
+          "hms.hms.controllers.reservation.make_transfer_jv_to_sales_order",
+        args: {
+          customer: frm.doc.customer,
+          docname: frm.doc.name,
+          amount_to_transfer: args.amount_to_transfer
+        },
+        callback: r => {
+          dialog.hide();
+          frm.reload_doc();
+        }
+      });
+    }
+  });
+
+  get_party_balance(frm.doc.company, frm.doc.customer).then(r => {
+    dialog.set_values({
+      balance: r.message.desk.balance
+    });
+    dialog.show();
+  });
+}
+
+function get_party_balance(company, party) {
+  return frappe.call({
+    method: "hms.hms.doctype.room_folio_hms.room_folio_hms.get_party_balance",
+    args: {
+      company: company,
+      party: party
+    }
+  });
 }

@@ -5,7 +5,9 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
-from frappe.utils import getdate, date_diff, add_to_date, add_days, cint
+from frappe.utils import (
+    getdate, date_diff, add_to_date, add_days, cint, flt, today)
+import erpnext
 
 
 def on_submit_sales_order(doc, method):
@@ -69,3 +71,36 @@ def get_reservation_details(room_no, date):
     limit 1
     """, as_dict=True)
     return data and data[0] or {}
+
+
+@frappe.whitelist()
+def make_transfer_jv_to_sales_order(customer, amount_to_transfer, docname):
+    je = frappe.new_doc("Journal Entry")
+    je.voucher_type = "Journal Entry"
+    je.company = erpnext.get_default_company()
+    je.posting_date = today()
+    je.remark = f"Advance towards reservation for {customer}. Reservation#: {docname}"
+
+    default_desk_account = frappe.defaults.get_user_default(
+        'default_desk_receivable_account')
+
+    je.append("accounts", {
+        "account":  default_desk_account,
+        "party_type": 'Customer',
+        'party': customer,
+        'reference_type': 'Sales Order',
+        'reference_name': docname,
+        'debit_in_account_currency': 0,
+        'credit_in_account_currency': flt(amount_to_transfer),
+        'is_advance': 'Yes'
+    })
+
+    je.append("accounts", {
+        "account": default_desk_account,
+        "party_type": 'Customer',
+        'party': customer,
+        'debit_in_account_currency': flt(amount_to_transfer),
+        'credit_in_account_currency': 0
+    })
+    je.insert(ignore_permissions=True)
+    je.submit()

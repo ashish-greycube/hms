@@ -146,7 +146,6 @@ frappe.ui.form.on("Room Folio HMS", {
               ? data.desk_account_balance || 0
               : data.folio_account_balance || 0)
         );
-        console.log(is_valid);
 
         if (!is_valid) {
           frappe.throw("Amount to transfer cannot exceed balanace.");

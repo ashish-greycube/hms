@@ -64,19 +64,9 @@ def delete_company_transactions(company_name="Sun Hotel"):
 
 
 def test():
-    from hms.hms.doctype.room_folio_hms.room_folio_hms import make_transfer_jv
-    args = {
-        "customer": "Tata Airlines",
-        "transfer_type": "Transfer to Desk",
-        "amount_to_transfer": "1000",
-        "desk_account": "Debtors - SH",
-        "folio_account": "Room Folio Debtors - SH",
-        "folio": "HMS-RR-20-00005",
-        # "desk_account_balance": "-15",
-        # "folio_account_balance": "-11985",
-    }
-
-    make_transfer_jv(**args)
+    from hms.hms.controllers.reservation import make_transfer_jv_to_sales_order
+    make_transfer_jv_to_sales_order(
+        customer="Vijay Malaya", amount_to_transfer=2000, docname="SAL-ORD-2020-00013")
 
 
 def delete_doctypes(doctypes=[], company_name="Sun Hotel"):
