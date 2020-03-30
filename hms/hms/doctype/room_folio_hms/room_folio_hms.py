@@ -174,3 +174,11 @@ def get_party_balance(party, company):
 
     print(balance, "balance")
     return balance
+
+
+@frappe.whitelist()
+def get_nonreconciled_payment_entries(**args):
+    doc = frappe.new_doc('Payment Reconciliation')
+    doc.update(args)
+    doc.get_nonreconciled_payment_entries()
+    return doc.payments or []

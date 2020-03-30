@@ -89,12 +89,7 @@
   {
    "fieldname": "advance_payment_section",
    "fieldtype": "Section Break",
-   "label": "Advance Payment"
-  },
-  {
-   "fieldname": "room_folio_advance",
-   "fieldtype": "Table",
-   "options": "Room Folio Advance"
+   "label": "Unallocated Advance"
   },
   {
    "fieldname": "charge_purchase_section",
@@ -188,9 +183,14 @@
    "fieldtype": "Link",
    "label": "Reservation",
    "options": "Sales Order"
+  },
+  {
+   "fieldname": "room_folio_advance",
+   "fieldtype": "HTML",
+   "label": "room_folio_advance"
   }
  ],
- "modified": "2020-03-04 00:35:36.598716",
+ "modified": "2020-03-30 03:23:21.666295",
  "modified_by": "Administrator",
  "module": "HMS",
  "name": "Room Folio HMS",

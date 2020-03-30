@@ -7,11 +7,12 @@
  "field_order": [
   "reference_type",
   "reference_name",
-  "remarks",
-  "reference_row",
+  "posting_date",
   "column_break_5",
-  "advance_amount",
-  "allocated_amount"
+  "amount",
+  "allocated_amount",
+  "remarks",
+  "reference_row"
  ],
  "fields": [
   {
@@ -46,23 +47,28 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "advance_amount",
-   "fieldtype": "Currency",
-   "in_list_view": 1,
-   "label": "Advance amount",
-   "options": "party_account_currency",
-   "read_only": 1
-  },
-  {
    "fieldname": "allocated_amount",
    "fieldtype": "Currency",
    "in_list_view": 1,
    "label": "Allocated amount",
    "options": "party_account_currency"
+  },
+  {
+   "fieldname": "amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Amount",
+   "options": "party_account_currency",
+   "read_only": 1
+  },
+  {
+   "fieldname": "posting_date",
+   "fieldtype": "Date",
+   "label": "Posting Date"
   }
  ],
  "istable": 1,
- "modified": "2020-02-03 07:55:23.213964",
+ "modified": "2020-03-30 02:39:19.674068",
  "modified_by": "Administrator",
  "module": "HMS",
  "name": "Room Folio Advance",

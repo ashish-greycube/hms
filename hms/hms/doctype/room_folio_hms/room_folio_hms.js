@@ -5,10 +5,10 @@ frappe.ui.form.on("Room Folio HMS", {
   //
   //
   refresh: function(frm) {
+    hms.make_grid_room_folio_advance(frm);
     hms.make_grid_charge_and_purchase(frm);
-
     frm.events.load_charge_and_purchase(frm);
-
+    frm.events.set_advance_payments(frm);
     frm.events.add_custom_buttons(frm);
   },
 
@@ -39,6 +39,27 @@ frappe.ui.form.on("Room Folio HMS", {
       );
     }
     frm.page.set_inner_btn_group_as_primary(__("Actions"));
+  },
+
+  set_advance_payments: function(frm) {
+    frappe
+      .call({
+        method:
+          "hms.hms.doctype.room_folio_hms.room_folio_hms.get_nonreconciled_payment_entries",
+        args: {
+          company: frm.doc.company,
+          party_type: "Customer",
+          party: frm.doc.customer,
+          receivable_payable_account: frappe.defaults.get_user_default(
+            "default_folio_receivable_account"
+          )
+        }
+      })
+      .then(r => {
+        if (!r.exc) {
+          frm.room_folio_advance_gridOptions.api.setRowData(r.message);
+        }
+      });
   },
 
   show_transfer_dialog: function(frm) {
