@@ -4,11 +4,12 @@
   background-color: mediumseagreen !important;
 }
 
-.hms-non-guaranteed {
-  background-color: #97d7de !important;
+.hms-ngtd-reservation {
+  background-color: purple !important;
+  color: white;
 }
 
-.hms-guaranteed {
+.hms-gtd-reservation {
   background-color: #97d7de !important;
 }
 
@@ -19,11 +20,11 @@
 }
 
 .ag-header-holiday {
-  background-color: red;
+  background-color: lightcoral;
 }
 
 .ag-header-today {
-  background-color: purple;
+  background-color: deepskyblue;
 }
 
 .hms-to-charge {

@@ -22,14 +22,21 @@ frappe.query_reports["Frontdesk HMS"] = {
     {
       fieldname: "room_type",
       label: __("Room Type"),
-      fieldtype: "Select",
-      options: "\nCLAS-SH\nSUPR-SH"
+      fieldtype: "Link",
+      options: "Room Type HMS",
+      get_query: () => {
+        return {
+          filters: {
+            company: frappe.defaults.get_user_default("company")
+          }
+        };
+      }
     },
     {
       fieldname: "room_status",
       label: __("Room Status"),
-      fieldtype: "Select",
-      options: "\nDirty\nCheckedIn\nAvailable\nUnavailable"
+      fieldtype: "Link",
+      options: "Room Status HMS"
     }
   ],
 
@@ -144,8 +151,6 @@ function set_room_status(params) {
       }
     ],
     data => {
-      console.log(data);
-
       return frappe.call({
         method: "hms.hms.report.frontdesk_hms.frontdesk_hms.set_room_status",
         args: {
