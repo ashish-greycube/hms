@@ -47,7 +47,7 @@ frappe.query_reports["Frontdesk HMS"] = {
     gridOptions.context = { always_recreate: true };
     gridOptions.rowSelection = "multiple";
     gridOptions.onRowDataChanged = function(params) {};
-    gridOptions.onCellClicked = get_reservation_details;
+    // gridOptions.onCellClicked = get_reservation_details;
 
     gridOptions.onCellDoubleClicked = function(params) {
       if (params.colDef.colId == "room_status") {

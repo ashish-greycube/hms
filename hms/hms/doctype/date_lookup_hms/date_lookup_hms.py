@@ -17,6 +17,7 @@ class DateLookupHMS(Document):
 
 
 def create_dates(start_date="2021-01-01", end_date="2025-12-31"):
+    # bench --site hotels execute hms.hms.doctype.date_lookup_hms.date_lookup_hms.create_dates --args "['2020-01-01','2025-01-01']"
     now = frappe.utils.today()
     user = frappe.session.user
     for d in range(date_diff(end_date, start_date)+1):

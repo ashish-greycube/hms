@@ -39,6 +39,7 @@ def get_data(filters=None):
                 -- and fo.status = 'Checked In' 
             ) a on d.date BETWEEN a.check_in and a.check_out and r.name = a.room_no
             left outer join `tabRoom Guest Detail HMS` gd on gd.name = (
+                -- guest details
                 select x.name from `tabRoom Guest Detail HMS` x 
                 where x.parent = a.name limit 1
             )
