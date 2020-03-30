@@ -16,6 +16,7 @@ class DateLookupHMS(Document):
         pass
 
 
+@frappe.whitelist()
 def create_dates(start_date="2021-01-01", end_date="2025-12-31"):
     # bench --site hotels execute hms.hms.doctype.date_lookup_hms.date_lookup_hms.create_dates --args "['2020-01-01','2025-01-01']"
     now = frappe.utils.today()
@@ -23,14 +24,18 @@ def create_dates(start_date="2021-01-01", end_date="2025-12-31"):
     for d in range(date_diff(end_date, start_date)+1):
         date = add_to_date(start_date, days=d)
         frappe.db.sql("""
-INSERT INTO sun.`tabDate Lookup HMS`
+INSERT INTO `tabDate Lookup HMS`
 (name, creation, modified, modified_by, owner, docstatus, parent, parentfield, parenttype, idx, weekday_name,
 month_name, `date`, weekday, `month`, `year`, `_user_tags`, `_comments`, `_assign`, `_liked_by`)
-VALUES(%s, %s, %s, %s, %s, 0, NULL, NULL, NULL, 0, NULL, NULL, %s, 0, 0, 0, NULL, NULL, NULL, NULL);
-        """, (date, now, now, user, user, date))
+select %s, %s, %s, %s, %s, 0, NULL, NULL, NULL, 0, NULL, NULL, %s, 0, 0, 0, NULL, NULL, NULL, NULL
+from `tabDate Lookup HMS` t
+where not exists (select 1 from `tabDate Lookup HMS` x where x.name = %s)
+limit 1
+        """, (date, now, now, user, user, date, date))
 
     frappe.db.sql("""
     update `tabDate Lookup HMS` set
     weekday = dayofweek(date), weekday_name = dayname(date),
     month = Month(date), month_name = MonthName(date), year = Year(date)
     """)
+    frappe.db.commit()

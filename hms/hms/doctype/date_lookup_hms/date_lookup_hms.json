@@ -15,6 +15,7 @@
   {
    "fieldname": "date",
    "fieldtype": "Date",
+   "in_list_view": 1,
    "label": "Date"
   },
   {
@@ -25,6 +26,7 @@
   {
    "fieldname": "weekday_name",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Weekday Name"
   },
   {
@@ -35,6 +37,7 @@
   {
    "fieldname": "month_name",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Month Name"
   },
   {
@@ -43,7 +46,7 @@
    "label": "Year"
   }
  ],
- "modified": "2020-02-18 19:12:01.954645",
+ "modified": "2020-03-30 10:15:55.840116",
  "modified_by": "Administrator",
  "module": "HMS",
  "name": "Date Lookup HMS",
