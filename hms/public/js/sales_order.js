@@ -12,6 +12,16 @@ frappe.ui.form.on("Sales Order", {
     );
   },
 
+  customer: function(frm) {
+    frappe.call({
+      method: "hms.hms.controllers.reservation.get_default_contact",
+      args: { customer: frm.doc.customer },
+      callback: function(r) {
+        frm.set_value("guest_cf", r.message);
+      }
+    });
+  },
+
   refresh: function(frm) {
     if (frm.is_new()) {
       // frm.trigger("set_defaults");

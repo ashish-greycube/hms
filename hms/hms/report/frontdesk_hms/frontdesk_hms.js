@@ -42,6 +42,7 @@ frappe.query_reports["Frontdesk HMS"] = {
 
   onload(report) {
     frappe.set_redirect_to_ag_report();
+    add_shortcuts();
   },
 
   set_gridOptions(gridOptions) {
@@ -54,7 +55,6 @@ frappe.query_reports["Frontdesk HMS"] = {
     gridOptions.context = { always_recreate: true };
     gridOptions.rowSelection = "multiple";
     gridOptions.onRowDataChanged = function(params) {};
-    // gridOptions.onCellClicked = get_reservation_details;
 
     gridOptions.onCellDoubleClicked = function(params) {
       if (params.colDef.colId == "room_status") {
@@ -96,7 +96,6 @@ function set_column_defs(gridOptions) {
     }
 
     c.headerClass = function(params) {
-      console.log(params.colDef.day_type);
       return `ag-header-${params.colDef.day_type}`;
     };
     // c.tooltip = function(params) { return `<p>305</p>`; };
@@ -165,31 +164,45 @@ function set_room_status(params) {
   );
 }
 
-function get_reservation_details(params) {
-  if (params.colDef.day_type == undefined) {
+function add_shortcuts() {
+  frappe.ui.keys.add_shortcut({
+    shortcut: "q",
+    action: () => {
+      show_booking_details();
+    },
+    page: this.page,
+    description: __("Display booking details"),
+    ignore_inputs: true,
+    condition: () => true
+  });
+}
+
+function show_booking_details() {
+  let selected_row = frappe.ag_report.gridOptions.api.getSelectedRows();
+  let cell = frappe.ag_report.gridOptions.api.getFocusedCell();
+  if (selected_row.length == 0) {
     return;
   }
+  let room_no = selected_row[0].name,
+    date = cell.column.colId;
 
   return frappe.call({
     method: "hms.hms.controllers.reservation.get_reservation_details",
     args: {
-      date: params.colDef.colId,
-      room_no: params.data.name
+      date: date,
+      room_no: room_no
     },
     callback: function(r) {
-      console.log(r.message);
       if ($.isEmptyObject(r.message)) {
         return;
       }
-      let info = frappe.render(info_template, r.message);
-      console.log(info);
+      console.log(r.message);
+
+      let info = frappe.render_template(
+        "frontdesk_reservation_info",
+        r.message
+      );
       frappe.msgprint(info, (title = r.message.customer));
     }
   });
 }
-
-const info_template = `
-<div>
-   {% include "hms/templates/includes/frontdesk_hms_reservation_info.html" %}
-</div>
-`;

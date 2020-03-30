@@ -17,7 +17,7 @@ app_license = "proprietary"
 # include js, css files in header of desk.html
 # app_include_css = "/assets/hms/css/hms.css"
 app_include_js = [
-    "/assets/hms/js/hms.js",
+    "/assets/js/hms.min.js",
     "/assets/hms/js/ag_report.js",
     "/assets/hms/js/lib/ag-grid-community.min.js"
 ]

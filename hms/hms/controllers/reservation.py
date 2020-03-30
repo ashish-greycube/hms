@@ -65,11 +65,40 @@ def make_room_folio(docname):
 @frappe.whitelist()
 def get_reservation_details(room_no, date):
     data = frappe.db.sql("""
-    select name, room_type, customer, '' guest, check_out, check_in, room_no,
-    reservation, status, total_charges, total_advance_paid
-    from `tabRoom Folio HMS`
-    limit 1
-    """, as_dict=True)
+select d.date, r.name name, r.room_no room_no, r.room_type, 
+coalesce(a.no_nights,b.no_nights) total_nights, coalesce(a.customer,b.customer) customer,
+coalesce(gd.guest, b.guest, a.customer, b.customer) guest,
+a.name `folio`, b.name `reservation`, con.email_id, con.mobile_no, con.gender,
+coalesce(a.total_advance_paid, b.advance_paid, 0) total_advance_paid,
+coalesce(a.total_charges, b.rounded_total,0) total_charges
+-- ,a.*, b.* 
+from 
+`tabDate Lookup HMS` d
+cross join `tabRoom HMS` r
+left outer join 
+(
+    -- room folio
+    select fo.room_no, fo.check_in, fo.check_out, fo.customer, fo.name, fo.status, 
+    datediff(fo.check_out, fo.check_in) no_nights, fo.total_charges, fo.total_advance_paid 
+    from `tabRoom Folio HMS` fo
+) a on d.date BETWEEN a.check_in and a.check_out and r.name = a.room_no
+left outer join `tabRoom Guest Detail HMS` gd on gd.name = (
+    select x.name from `tabRoom Guest Detail HMS` x 
+    where x.parent = a.name limit 1
+)
+left outer join
+(
+    -- reservation
+    select so.name, so.room_no_cf room_no, so.check_in_cf check_in, so.check_out_cf check_out, 
+    so.guest_cf guest, so.customer, no_of_nights_cf no_nights,
+    so.advance_paid, so.rounded_total
+    from `tabSales Order` so
+    where not not exists (select 1 from `tabRoom Folio HMS` x where x.reservation = so.name)
+) b on d.date BETWEEN b.check_in and b.check_out and r.name = b.room_no
+left outer join tabContact con on con.name = coalesce(gd.guest, b.guest,'')
+where d.date = %(date)s and r.name = %(room_no)s
+order by d.date, r.room_type, r.room_no
+    """, dict(date=date, room_no=room_no), as_dict=True)
     return data and data[0] or {}
 
 
@@ -104,3 +133,9 @@ def make_transfer_jv_to_sales_order(customer, amount_to_transfer, docname):
     })
     je.insert(ignore_permissions=True)
     je.submit()
+
+
+@frappe.whitelist()
+def get_default_contact(customer):
+    from frappe.contacts.doctype.contact.contact import get_default_contact
+    return get_default_contact('Customer', customer)
