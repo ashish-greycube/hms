@@ -5,9 +5,26 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
+from frappe import _
 from frappe.utils import (
     getdate, date_diff, add_to_date, add_days, cint, flt, today)
 import erpnext
+
+
+def validate_sales_order(doc, method):
+    for d in frappe.db.sql("""
+        select led.date, reference_type, reference_name
+        from `tabSales Order` so
+        inner join
+        (
+            select ROW_NUMBER() over (PARTITION BY date ORDER BY creation desc) rn,
+            replace(reference_type, 'Sales Order','Reservation') reference_type, reference_name, date, entry_type
+            from `tabRoom Ledger Entry HMS`
+            where room_no = %s and entry_type <> 'Room Folio Check Out'
+        ) led on led.date >= so.check_in_cf and led.date < so.check_out_cf and led.rn = 1
+        where so.name = %s""", (doc.room_no_cf, doc.name), as_dict=True, debug=True):
+        frappe.throw(_("Reservation conflicts with {} {} on {}")
+                     .format(d.reference_type, frappe.bold(d.reference_name), frappe.bold(d.date)))
 
 
 def on_submit_sales_order(doc, method):
@@ -20,15 +37,15 @@ def on_submit_sales_order(doc, method):
 
 def on_update_after_submit_sales_order(doc, method):
     frappe.db.sql(
-        """update `tabRoom Ledger HMS` set status = 'Cancelled' 
+        """update `tabRoom Ledger HMS` set status = 'Cancelled'
         where parent = %s and parenttype='Sales Order'""", (doc.name,))
     add_room_ledger_entry(doc)
 
 
 def on_cancel_sales_order(doc, method):
     frappe.db.sql("""
-    update `tabRoom Ledger Entry HMS` 
-    set status = 'Cancelled' 
+    update `tabRoom Ledger Entry HMS`
+    set status = 'Cancelled'
     where parent = %s and parenttype='Sales Order'
     """, (doc.name,))
 
@@ -65,40 +82,40 @@ def make_room_folio(docname):
 @frappe.whitelist()
 def get_reservation_details(room_no, date):
     data = frappe.db.sql("""
-select d.date, r.name name, r.room_no room_no, r.room_type, 
+select d.date, r.name name, r.room_no room_no, r.room_type,
 coalesce(a.no_nights,b.no_nights) total_nights, coalesce(a.customer,b.customer) customer,
 coalesce(gd.guest, b.guest, a.customer, b.customer) guest,
 a.name `folio`, b.name `reservation`, con.email_id, con.mobile_no, con.gender,
 coalesce(a.total_advance_paid, b.advance_paid, 0) total_advance_paid,
 coalesce(a.total_charges, b.rounded_total,0) total_charges
--- ,a.*, b.* 
-from 
+-- ,a.*, b.*
+from
 `tabDate Lookup HMS` d
 cross join `tabRoom HMS` r
-left outer join 
+left outer join
 (
     -- room folio
-    select fo.room_no, fo.check_in, fo.check_out, fo.customer, fo.name, fo.status, 
-    datediff(fo.check_out, fo.check_in) no_nights, fo.total_charges, fo.total_advance_paid 
+    select fo.room_no, fo.check_in, fo.check_out, fo.customer, fo.name, fo.status,
+    datediff(fo.check_out, fo.check_in) no_nights, fo.total_charges, fo.total_advance_paid
     from `tabRoom Folio HMS` fo
 ) a on d.date BETWEEN a.check_in and a.check_out and r.name = a.room_no
 left outer join `tabRoom Guest Detail HMS` gd on gd.name = (
-    select x.name from `tabRoom Guest Detail HMS` x 
+    select x.name from `tabRoom Guest Detail HMS` x
     where x.parent = a.name limit 1
 )
 left outer join
 (
     -- reservation
-    select so.name, so.room_no_cf room_no, so.check_in_cf check_in, so.check_out_cf check_out, 
+    select so.name, so.room_no_cf room_no, so.check_in_cf check_in, so.check_out_cf check_out,
     so.guest_cf guest, so.customer, no_of_nights_cf no_nights,
     so.advance_paid, so.rounded_total
     from `tabSales Order` so
-    where not not exists (select 1 from `tabRoom Folio HMS` x where x.reservation = so.name)
+    where not exists (select 1 from `tabRoom Folio HMS` x where x.reservation = so.name)
 ) b on d.date BETWEEN b.check_in and b.check_out and r.name = b.room_no
 left outer join tabContact con on con.name = coalesce(gd.guest, b.guest,'')
 where d.date = %(date)s and r.name = %(room_no)s
 order by d.date, r.room_type, r.room_no
-    """, dict(date=date, room_no=room_no), as_dict=True)
+    """, dict(date=date, room_no=room_no), as_dict=True, debug=True)
     return data and data[0] or {}
 
 
