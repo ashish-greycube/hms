@@ -13,29 +13,28 @@ frappe.ui.form.on("Sales Order", {
   },
 
   customer: function(frm) {
-    frappe.call({
-      method: "hms.hms.controllers.reservation.get_default_contact",
-      args: { customer: frm.doc.customer },
-      callback: function(r) {
-        frm.set_value("guest_cf", r.message);
-      }
-    });
+    if (frm.doc.customer) {
+      frappe.call({
+        method: "hms.hms.controllers.reservation.get_default_contact",
+        args: { customer: frm.doc.customer },
+        callback: function(r) {
+          frm.set_value("guest_cf", r.message);
+        }
+      });
+    }
   },
 
   refresh: function(frm) {
     if (frm.is_new()) {
       // frm.trigger("set_defaults");
     }
+    remove_so_buttons(frm);
 
-    // toolbar buttons
-    // frm.page.inner_toolbar.addClass("hide");
-    // setTimeout(() => {
-    //   cur_frm.page.remove_inner_button('')
-    // }, 400);
-
-    frm.page.add_inner_button("Check In", function(params) {
-      make_room_folio(frm);
-    });
+    if (frm.doc.docstatus == 1) {
+      frm.page.add_inner_button("Check In", function(params) {
+        make_room_folio(frm);
+      });
+    }
 
     if (
       frm.doc.docstatus == 1 &&
@@ -213,4 +212,26 @@ function get_party_balance(company, party) {
       party: party
     }
   });
+}
+
+function remove_so_buttons(frm) {
+  setTimeout(() => {
+    frm.page.remove_inner_button("Update Items");
+    frm.page.remove_inner_button("Quotation", "Get items from");
+    frm.page.remove_inner_button("Hold", "Status");
+    frm.page.remove_inner_button("Close", "Status");
+    for (let btn of [
+      "Pick List",
+      "Delivery Note",
+      "Work Order",
+      "Material Request",
+      "Request for Raw Materials",
+      "Purchase Order",
+      "Project",
+      "Subscription"
+      // "Payment Request"
+    ]) {
+      frm.page.remove_inner_button(btn, "Create");
+    }
+  }, 300);
 }

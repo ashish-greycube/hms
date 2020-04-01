@@ -13,16 +13,15 @@ import erpnext
 
 def validate_sales_order(doc, method):
     for d in frappe.db.sql("""
-        select led.date, reference_type, reference_name
-        from `tabSales Order` so
-        inner join
-        (
-            select ROW_NUMBER() over (PARTITION BY date ORDER BY creation desc) rn,
-            replace(reference_type, 'Sales Order','Reservation') reference_type, reference_name, date, entry_type
-            from `tabRoom Ledger Entry HMS`
-            where room_no = %s and entry_type <> 'Room Folio Check Out'
-        ) led on led.date >= so.check_in_cf and led.date < so.check_out_cf and led.rn = 1
-        where so.name = %s""", (doc.room_no_cf, doc.name), as_dict=True, debug=True):
+select led.date, reference_type, reference_name
+from
+(
+    select ROW_NUMBER() over (PARTITION BY date ORDER BY creation desc) rn,
+    replace(reference_type, 'Sales Order','Reservation') reference_type, reference_name, date, entry_type
+    from `tabRoom Ledger Entry HMS`
+    where room_no = %s and entry_type <> 'Room Folio Check Out'
+) led where led.rn = 1 and led.date >= %s  and led.date < %s""",
+                           (doc.room_no_cf, doc.check_in_cf, doc.check_out_cf), as_dict=True,):
         frappe.throw(_("Reservation conflicts with {} {} on {}")
                      .format(d.reference_type, frappe.bold(d.reference_name), frappe.bold(d.date)))
 

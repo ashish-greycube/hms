@@ -21,6 +21,8 @@ def get_data(filters=None):
     where_clause.append("d.date BETWEEN %(from_date)s and %(to_date)s")
     if filters.get('room_type'):
         where_clause.append('r.room_type = %(room_type)s')
+    if filters.get('company'):
+        where_clause.append('r.company = %(company)s')
     if filters.get('room_status'):
         if filters.get('room_status') == 'Available':
             where_clause.append('c.room_status is null')

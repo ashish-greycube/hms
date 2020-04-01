@@ -34,3 +34,31 @@
 .ag-header-cell-label .ag-header-cell-text {
   color: #666666;
 }
+
+/* frontdesk legend */
+
+/* basic positioning */
+.legend {
+  list-style: none;
+}
+.legend li {
+  float: left;
+  margin-right: 10px;
+}
+.legend span {
+  border: 1px solid #ccc;
+  float: left;
+  width: 10px;
+  height: 14px;
+  margin: 2px;
+  padding: 0px 20px;
+}
+
+.legend i {
+  margin: 0px 5px;
+}
+
+.legend .title {
+  font-weight: bold;
+  color: #666666;
+}

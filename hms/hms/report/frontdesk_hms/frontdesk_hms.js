@@ -37,12 +37,24 @@ frappe.query_reports["Frontdesk HMS"] = {
       label: __("Room Status"),
       fieldtype: "Link",
       options: "Room Status HMS"
+    },
+    {
+      fieldname: "company",
+      label: __("Company"),
+      fieldtype: "Link",
+      options: "Company",
+      default: frappe.defaults.get_user_default("company")
     }
   ],
 
   onload(report) {
     frappe.set_redirect_to_ag_report();
     add_shortcuts();
+  },
+
+  update_footer() {
+    // $(legend).prependTo(".layout-main-section-wrapper");
+    $(legend).insertAfter(".layout-footer");
   },
 
   set_gridOptions(gridOptions) {
@@ -206,3 +218,37 @@ function show_booking_details() {
     }
   });
 }
+
+const legend = `
+<div class="row" style="padding-top:50px">
+  <div class="col-md-12">
+    <ul class="legend">
+        <li class="title">  Booking Status </li>
+        <li><span class="hms-in-house"></span> In House</li>
+        <li><span class="hms-gtd-reservation"></span>Deposit Reservation</li>
+        <li><span class="hms-ngtd-reservation"></span>Ngtd Reservation</li>
+    </ul>
+  </div>
+</div>
+<div class="row">
+  <div class="col-md-12">
+    <ul class="legend">
+      <li class="title"> Room Status</li>
+      <li class="p-5"><i class='p-5 fa fa-suitcase'></i>Occupied</li>
+      <li><i class='fa fa-paint-brush'></i>Dirty</li>
+      <li><i class='fa fa-genderless'></i> &nbsp;Available</li>
+    </ul>
+  </div>
+</div>
+<div class="row">
+  <div class="col-md-12">
+    <ul class="legend">
+      <li class="title"> Shortcuts</li>
+      <li>'q' Display Booking Details</li>
+      <li>'Dbl-Click' Open Reservation/Room Folio</li>
+    </ul>
+  </div>
+</div>
+    
+    
+`;
