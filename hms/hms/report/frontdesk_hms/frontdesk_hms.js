@@ -226,7 +226,7 @@ const legend = `
         <li class="title">  Booking Status </li>
         <li><span class="hms-in-house"></span> In House</li>
         <li><span class="hms-gtd-reservation"></span>Deposit Reservation</li>
-        <li><span class="hms-ngtd-reservation"></span>Ngtd Reservation</li>
+        <li><span class="hms-ngtd-reservation"></span>NGTD Reservation</li>
     </ul>
   </div>
 </div>
@@ -244,8 +244,8 @@ const legend = `
   <div class="col-md-12">
     <ul class="legend">
       <li class="title"> Shortcuts</li>
-      <li>'q' Display Booking Details</li>
-      <li>'Dbl-Click' Open Reservation/Room Folio</li>
+      <li>'Q' Display Booking Details</li>
+      <li>'Double-Click' Open Reservation/Room Folio</li>
     </ul>
   </div>
 </div>
