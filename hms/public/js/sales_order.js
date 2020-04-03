@@ -1,9 +1,9 @@
 frappe.ui.form.on("Sales Order", {
-  onload_post_render: function(frm) {},
+  onload_post_render: function (frm) {},
 
-  onload: function(frm) {},
+  onload: function (frm) {},
 
-  set_defaults: function(frm) {
+  set_defaults: function (frm) {
     frm.set_value("no_of_nights_cf", 1);
     frm.set_value("check_in_cf", frappe.datetime.get_today());
     frm.set_value(
@@ -12,26 +12,26 @@ frappe.ui.form.on("Sales Order", {
     );
   },
 
-  customer: function(frm) {
+  customer: function (frm) {
     if (frm.doc.customer) {
       frappe.call({
         method: "hms.hms.controllers.reservation.get_default_contact",
         args: { customer: frm.doc.customer },
-        callback: function(r) {
+        callback: function (r) {
           frm.set_value("guest_cf", r.message);
-        }
+        },
       });
     }
   },
 
-  refresh: function(frm) {
+  refresh: function (frm) {
     if (frm.is_new()) {
       // frm.trigger("set_defaults");
     }
     remove_so_buttons(frm);
 
     if (frm.doc.docstatus == 1) {
-      frm.page.add_inner_button("Check In", function(params) {
+      frm.page.add_inner_button("Check In", function (params) {
         make_room_folio(frm);
       });
     }
@@ -48,19 +48,37 @@ frappe.ui.form.on("Sales Order", {
     frm.page.set_inner_btn_group_as_primary(__("Create"));
   },
 
-  no_of_nights_cf: function(frm) {
-    frm.trigger("set_items");
+  no_of_nights_cf: function (frm) {
+    if (frm.doc.no_of_nights_cf) {
+      frm.doc.check_out_cf = frappe.datetime.add_days(
+        frm.doc.check_in_cf,
+        frm.doc.no_of_nights_cf
+      );
+      frm.trigger("_room_no_cf");
+    }
   },
 
-  check_out_cf: function(frm) {
-    frm.trigger("set_items");
+  check_in_cf: function (frm) {
+    frm.doc.no_of_nights_cf = 0;
+    frm.doc.check_out_cf = "";
+    frm.trigger("_room_no_cf");
   },
 
-  room_no_cf: function(frm) {
-    frm.trigger("set_items");
+  check_out_cf: function (frm) {
+    if (frm.doc.check_out_cf) {
+      frm.doc.no_of_nights_cf = frappe.datetime.get_diff(
+        frm.doc.check_out_cf,
+        frm.doc.check_in_cf
+      );
+      frm.trigger("_room_no_cf");
+    }
   },
 
-  validate: function(frm) {
+  room_no_cf: function (frm) {
+    frm.trigger("_room_no_cf");
+  },
+
+  validate: function (frm) {
     if (frm.doc.no_of_nights_cf < 1) {
       frappe.throw(__("One night is the minimum stay period allowed."));
     }
@@ -73,53 +91,47 @@ frappe.ui.form.on("Sales Order", {
     }
   },
 
-  set_items: function(frm) {
-    let field = event.srcElement.dataset && event.srcElement.dataset.fieldname;
-
-    if (field == "no_of_nights_cf") {
-      frm.set_value(
-        "check_out_cf",
-        frappe.datetime.add_days(frm.doc.check_in_cf, frm.doc.no_of_nights_cf)
-      );
-    } else if (field == "check_out_cf") {
-      frm.set_value(
-        "no_of_nights_cf",
-        frappe.datetime.get_diff(d.check_out_cf, d.check_in_cf)
-      );
-    }
-    frm.trigger("room_no_cf");
-  },
-
-  room_no_cf: function(frm) {
-    if (frm.doc.room_no_cf) {
+  _room_no_cf: function (frm) {
+    frm.set_value("items", []);
+    if (
+      frm.doc.room_no_cf &&
+      frm.doc.check_in_cf &&
+      frm.doc.no_of_nights_cf > 0
+    ) {
       frappe.call({
-        method: "hms.hms.controllers.reservation.get_room_service_item",
+        method: "hms.hms.controllers.reservation.get_holidays",
         args: {
-          room: frm.doc.room_no_cf
+          company: frm.doc.company,
+          check_in: frm.doc.check_in_cf,
+          check_out: frm.doc.check_out_cf,
         },
-        callback: function(r) {
-          if (r.message) {
-            frm.doc.items = [];
+        callback: (r) => {
+          //
+          frappe.dom.freeze();
+          for (let i = 0; i < frm.doc.no_of_nights_cf; i++) {
             let new_row = frm.add_child("items");
-            new_row.item_code = r.message;
-            new_row.qty = frm.doc.no_of_nights_cf;
+            new_row.item_code = frm.doc.service_item_cf;
+            new_row.qty = 1;
+            let cur_date = frappe.datetime.add_days(frm.doc.check_in_cf, i);
+            new_row.reservation_date_cf = cur_date;
+            new_row.is_holiday_cf = r.message.holidays.includes(cur_date)
+              ? 1
+              : 0;
             frm.script_manager.trigger(
               "item_code",
               new_row.doctype,
               new_row.name
             );
-            frm.refresh_field("items");
           }
-        }
+          frm.refresh_fields();
+          setTimeout(() => {
+            apply_holiday_pricing_list(r.message.holiday_price_list);
+          }, 50);
+          //
+        },
       });
     }
-  }
-
-  //
-  //   set_weekend_rate: function(frm) {
-  //     // frappe.model.with_doc("")
-  //   },
-  //
+  },
 });
 
 function make_room_folio(frm) {
@@ -134,7 +146,7 @@ function make_room_folio(frm) {
     company: frm.doc.company,
     room_no: frm.doc.room_no_cf,
     naming_series: "HMS-RR-.YY.-",
-    status: "Checked In"
+    status: "Checked In",
   });
 
   let guest_detail = frappe.model.add_child(
@@ -154,23 +166,23 @@ function show_transfer_dialog(frm) {
         label: "Customer",
         fieldname: "customer",
         fieldtype: "ReadOnly",
-        default: frm.doc.customer
+        default: frm.doc.customer,
       },
       {
         label: "Desk Account Balance",
         fieldname: "balance",
         fieldtype: "Currency",
         read_only: 1,
-        default: 0
+        default: 0,
       },
       {
         fieldtype: "Currency",
         fieldname: "amount_to_transfer",
         label: "Amount to Transfer",
-        default: "0"
-      }
+        default: "0",
+      },
     ],
-    primary_action: function() {
+    primary_action: function () {
       let args = dialog.get_values();
 
       if (args.amount_to_transfer > 0 - args.balance) {
@@ -186,19 +198,19 @@ function show_transfer_dialog(frm) {
         args: {
           customer: frm.doc.customer,
           docname: frm.doc.name,
-          amount_to_transfer: args.amount_to_transfer
+          amount_to_transfer: args.amount_to_transfer,
         },
-        callback: r => {
+        callback: (r) => {
           dialog.hide();
           frm.reload_doc();
-        }
+        },
       });
-    }
+    },
   });
 
-  get_party_balance(frm.doc.company, frm.doc.customer).then(r => {
+  get_party_balance(frm.doc.company, frm.doc.customer).then((r) => {
     dialog.set_values({
-      balance: r.message.desk.balance
+      balance: r.message.desk.balance,
     });
     dialog.show();
   });
@@ -209,8 +221,8 @@ function get_party_balance(company, party) {
     method: "hms.hms.doctype.room_folio_hms.room_folio_hms.get_party_balance",
     args: {
       company: company,
-      party: party
-    }
+      party: party,
+    },
   });
 }
 
@@ -228,10 +240,73 @@ function remove_so_buttons(frm) {
       "Request for Raw Materials",
       "Purchase Order",
       "Project",
-      "Subscription"
+      "Subscription",
       // "Payment Request"
     ]) {
       frm.page.remove_inner_button(btn, "Create");
     }
   }, 300);
 }
+
+function apply_holiday_pricing_list(price_list, reset_plc_conversion) {
+  var me = cur_frm.cscript;
+  // We need to reset plc_conversion_rate sometimes because the call to
+  // `erpnext.stock.get_item_details.apply_price_list` is sensitive to its value
+  if (!reset_plc_conversion) {
+    me.frm.set_value("plc_conversion_rate", "");
+  }
+  var args = me._get_args();
+  let holidays = [];
+  for (let i of cur_frm.doc.items.filter((i) => i.is_holiday_cf == 1)) {
+    holidays.push.apply(
+      holidays,
+      args.items.filter((t) => t.name == i.name)
+    );
+  }
+
+  args.items = holidays;
+  args.price_list = price_list;
+  if (!((args.items && args.items.length) || args.price_list)) {
+    return;
+  }
+
+  if (me.in_apply_price_list == true) return;
+
+  me.in_apply_price_list = true;
+  return me.frm
+    .call({
+      method: "erpnext.stock.get_item_details.apply_price_list",
+      args: { args: args },
+      callback: function (r) {
+        if (!r.exc) {
+          frappe.run_serially([
+            () =>
+              me.frm.set_value(
+                "price_list_currency",
+                r.message.parent.price_list_currency
+              ),
+            () =>
+              me.frm.set_value(
+                "plc_conversion_rate",
+                r.message.parent.plc_conversion_rate
+              ),
+            () => {
+              if (args.items.length) {
+                me._set_values_for_item_list(r.message.children);
+              }
+            },
+            () => {
+              me.in_apply_price_list = false;
+            },
+          ]);
+        } else {
+          me.in_apply_price_list = false;
+        }
+      },
+    })
+    .always(() => {
+      me.in_apply_price_list = false;
+      frappe.dom.unfreeze();
+    });
+}
+window.apply_holiday_pricing_list = apply_holiday_pricing_list;

@@ -51,6 +51,20 @@ def on_cancel_sales_order(doc, method):
 
 
 @frappe.whitelist()
+def get_holidays(company, check_in, check_out):
+    holidays = frappe.db.sql("""select date_format(d.date,'%%Y-%%m-%%d')
+        from `tabDate Lookup HMS` d
+        inner join tabHoliday h on h.holiday_date = d.date and h.holiday_date BETWEEN %s and %s
+        and EXISTS (select 1 from tabCompany where default_holiday_list = h.parent)
+        """, (check_in, add_days(check_out, -1)), as_list=True)
+
+    holiday_price_list = frappe.db.get_value(
+        'Company', company, 'default_holiday_price_list_cf')
+
+    return dict(holidays=[d[0] for d in holidays], holiday_price_list=holiday_price_list)
+
+
+@frappe.whitelist()
 def get_room_service_item(room):
     docs = frappe.db.sql_list("""select rt.service_item
 from `tabRoom Type HMS` rt
