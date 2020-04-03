@@ -50,11 +50,13 @@ frappe.query_reports["Frontdesk HMS"] = {
   onload(report) {
     frappe.set_redirect_to_ag_report();
     add_shortcuts();
+    report.page.clear_menu();
   },
 
   update_footer() {
-    // $(legend).prependTo(".layout-main-section-wrapper");
-    $(legend).insertAfter(".layout-footer");
+    setTimeout(() => {
+      frappe.ag_report.page.footer.append($(legend));
+    }, 500);
   },
 
   set_gridOptions(gridOptions) {
@@ -220,7 +222,7 @@ function show_booking_details() {
 }
 
 const legend = `
-<div class="row" style="padding-top:50px">
+<div class="row">
   <div class="col-md-12">
     <ul class="legend">
         <li class="title">  Booking Status </li>
@@ -234,7 +236,7 @@ const legend = `
   <div class="col-md-12">
     <ul class="legend">
       <li class="title"> Room Status</li>
-      <li class="p-5"><i class='p-5 fa fa-suitcase'></i>Occupied</li>
+      <li><i class='fa fa-suitcase'></i>Occupied</li>
       <li><i class='fa fa-paint-brush'></i>Dirty</li>
       <li><i class='fa fa-genderless'></i> &nbsp;Available</li>
     </ul>

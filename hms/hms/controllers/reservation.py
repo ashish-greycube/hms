@@ -6,8 +6,8 @@ from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 from frappe import _
-from frappe.utils import (
-    getdate, date_diff, add_to_date, add_days, cint, flt, today)
+from frappe.utils import (formatdate, get_link_to_form,
+                          getdate, date_diff, add_to_date, add_days, cint, flt, today)
 import erpnext
 
 
@@ -17,13 +17,14 @@ select led.date, reference_type, reference_name
 from
 (
     select ROW_NUMBER() over (PARTITION BY date ORDER BY creation desc) rn,
-    replace(reference_type, 'Sales Order','Reservation') reference_type, reference_name, date, entry_type
+    reference_type, reference_name, date, entry_type
     from `tabRoom Ledger Entry HMS`
     where room_no = %s and entry_type <> 'Room Folio Check Out'
 ) led where led.rn = 1 and led.date >= %s  and led.date < %s""",
                            (doc.room_no_cf, doc.check_in_cf, doc.check_out_cf), as_dict=True,):
-        frappe.throw(_("Reservation conflicts with {} {} on {}")
-                     .format(d.reference_type, frappe.bold(d.reference_name), frappe.bold(d.date)))
+        doctype = 'Reservation' if d.reference_type == 'Sales Order' else d.reference_type
+        frappe.throw(_("Reservation conflicts with {} on {}")
+                     .format(get_link_to_form(d.reference_type, d.reference_name), frappe.bold(formatdate(d.date))))
 
 
 def on_submit_sales_order(doc, method):
