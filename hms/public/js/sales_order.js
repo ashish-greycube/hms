@@ -76,11 +76,42 @@ frappe.ui.form.on("Sales Order", {
 
   room_no_cf: function (frm) {
     frm.trigger("_room_no_cf");
+  },
+
+  service_item_cf: function (frm) {
     frm.events.set_rates(frm);
   },
 
-  set_rates: function (frm) {
+  room_rate_cf: function (frm) {
+    frm.doc.items.forEach((item) => {
+      if (item.is_holiday_cf == 0) {
+        frappe.model.set_value(
+          item.doctype,
+          item.name,
+          "rate",
+          frm.doc.room_rate_cf
+        );
+      }
+    });
+    frm.refresh_field("items");
+  },
+
+  weekend_rate_cf: function (frm) {
     debugger;
+    frm.doc.items.forEach((item) => {
+      if (item.is_holiday_cf == 1) {
+        frappe.model.set_value(
+          item.doctype,
+          item.name,
+          "rate",
+          frm.doc.weekend_rate_cf
+        );
+      }
+    });
+    frm.refresh_field("items");
+  },
+
+  set_rates: function (frm) {
     frappe.call({
       method: "hms.hms.controllers.reservation.get_item_rates",
       args: {
@@ -91,8 +122,20 @@ frappe.ui.form.on("Sales Order", {
       },
       callback: (r) => {
         if (!r.exc) {
-          frm.set_value("room_rate_cf", r.message.rate);
-          frm.set_value("weekend_rate_cf", r.message.weekend_rate);
+          // frm.set_value("room_rate_cf", r.message.rate);
+          // frm.set_value("weekend_rate_cf", r.message.weekend_rate);
+          frappe.model.set_value(
+            "Sales Order",
+            frm.doc.name,
+            "room_rate_cf",
+            r.message.rate
+          );
+          frappe.model.set_value(
+            "Sales Order",
+            frm.doc.name,
+            "weekend_rate_cf",
+            r.message.weekend_rate
+          );
         }
       },
     });
@@ -145,7 +188,9 @@ frappe.ui.form.on("Sales Order", {
           }
           frm.refresh_fields();
           setTimeout(() => {
-            apply_holiday_pricing_list(r.message.holiday_price_list);
+            apply_holiday_pricing_list(
+              r.message.holiday_price_list || frm.doc.selling_price_list
+            );
           }, 50);
           //
         },

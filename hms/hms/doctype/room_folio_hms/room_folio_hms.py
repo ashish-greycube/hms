@@ -4,8 +4,9 @@
 
 from __future__ import unicode_literals
 import frappe
+from frappe import _
 from frappe.model.document import Document
-from frappe.utils import nowdate, flt, cint, today
+from frappe.utils import nowdate, flt, cint, today, getdate
 from erpnext.accounts.party import get_party_account, get_party_bank_account
 from erpnext.accounts.utils import get_outstanding_invoices
 import json
@@ -49,19 +50,29 @@ class RoomFolioHMS(Document):
 
     def create_charge_purchase(self, room_date):
         """create sales invoice for room_date date"""
-        if not frappe.db.sql("""
-        select 1 from `tabSales Invoice` where room_folio_cf = %s and room_date_cf = %s limit 1
-        """, (self.name, room_date), debug=True):
-            si_doc = frappe.new_doc('Sales Invoice')
-            si_doc.room_folio_cf = self.name
-            si_doc.customer = self.customer
-            si_doc.due_date = self.check_out
-            si_doc.room_date_cf = room_date
-            item = si_doc.append("items")
-            item.set('item_code', get_room_service_item(self.room_no))
-            item.set("qty", 1)
-            si_doc.save()
-            return si_doc.name
+        if frappe.db.exists("Sales Invoice", {'room_folio_cf': self.name, 'room_date_cf': room_date}):
+            frappe.throw(
+                _("Sales Invoice already created for %s") % (room_date,))
+            return
+
+        from erpnext.selling.doctype.sales_order.sales_order import make_sales_invoice
+        out = make_sales_invoice(source_name=self.reservation)
+        out.room_folio_cf = self.name
+        out.due_date = self.check_out
+        out.room_date_cf = room_date
+
+        # remove lines for other dates in Sales Invoice, only bill for room_date
+        so_detail = frappe.db.sql("""
+        select soi.name from `tabRoom Folio HMS` f
+        inner join `tabSales Order Item` soi on soi.parent = f.reservation 
+        and ifnull(soi.reservation_date_cf,'') = %s
+        where f.name = %s""", (getdate(room_date), self.name, ), debug=True)
+        so_detail = so_detail and so_detail[0][0] or None
+        for d in out.items:
+            if not d.so_detail == so_detail:
+                out.remove(d)
+        out.save()
+        return out.name
 
     def make_check_out(self):
         self.validate_billing()

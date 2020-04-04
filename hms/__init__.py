@@ -72,8 +72,8 @@ def test():
     # items = get_reservation_items(
     #     room_no="301-SH", check_in="2020-04-04", check_out="2020-04-06", customer='NGTD Customer')
     # print(items)
-
-    return get_item_rates("Classic Room Charge", "Standard Selling", "Sun Hotel", "Tata Airlines",)
+    doc = frappe.get_doc("Room Folio HMS", "HMS-RR-20-00010")
+    doc.create_charge_purchase("2020-04-04")
 
 
 def delete_doctypes(doctypes=[], company_name="Sun Hotel"):

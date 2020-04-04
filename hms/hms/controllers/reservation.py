@@ -173,7 +173,10 @@ def get_default_contact(customer):
 
 
 @frappe.whitelist()
-def get_item_rates(item_code, price_list, company, customer):
+def get_item_rates(item_code=None, price_list=None, company=None, customer=None):
+    if not item_code or not price_list or not company or not customer:
+        return {"weekend_rate": 0, "rate": 0}
+
     from erpnext.stock.get_item_details import apply_price_list
     out = {}
     args = {
@@ -190,7 +193,7 @@ def get_item_rates(item_code, price_list, company, customer):
         "transaction_date": today(),
         "company": company,
         "customer": customer,
-        "price_list": frappe.db.get_value("Company", erpnext.get_default_company(), 'default_holiday_price_list_cf'),
+        "price_list": frappe.db.get_value("Company", company, 'default_holiday_price_list_cf'),
         "conversion_rate": 1,
     }
 # weekend rate
