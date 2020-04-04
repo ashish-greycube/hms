@@ -64,14 +64,16 @@ def delete_company_transactions(company_name="Sun Hotel"):
 
 
 def test():
-    from hms.hms.controllers.reservation import make_transfer_jv_to_sales_order, get_reservation_details
-    # make_transfer_jv_to_sales_order(
-    #     customer="Vijay Malaya", amount_to_transfer=2000, docname="SAL-ORD-2020-00013")
-    # return get_reservation_details("301-SH", "2020-03-29")
-    from hms.hms.controllers.reservation import get_reservation_items
-    items = get_reservation_items(
-        room_no="301-SH", check_in="2020-04-04", check_out="2020-04-06", customer='NGTD Customer')
-    print(items)
+    # from hms.hms.controllers.reservation import make_transfer_jv_to_sales_order, get_reservation_details
+    # # make_transfer_jv_to_sales_order(
+    # #     customer="Vijay Malaya", amount_to_transfer=2000, docname="SAL-ORD-2020-00013")
+    # # return get_reservation_details("301-SH", "2020-03-29")
+    # from hms.hms.controllers.reservation import get_reservation_items
+    # items = get_reservation_items(
+    #     room_no="301-SH", check_in="2020-04-04", check_out="2020-04-06", customer='NGTD Customer')
+    # print(items)
+
+    return get_item_rates("Classic Room Charge", "Standard Selling", "Sun Hotel", "Tata Airlines",)
 
 
 def delete_doctypes(doctypes=[], company_name="Sun Hotel"):

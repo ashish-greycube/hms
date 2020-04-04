@@ -76,6 +76,26 @@ frappe.ui.form.on("Sales Order", {
 
   room_no_cf: function (frm) {
     frm.trigger("_room_no_cf");
+    frm.events.set_rates(frm);
+  },
+
+  set_rates: function (frm) {
+    debugger;
+    frappe.call({
+      method: "hms.hms.controllers.reservation.get_item_rates",
+      args: {
+        item_code: frm.doc.service_item_cf,
+        price_list: frm.doc.selling_price_list,
+        company: frm.doc.company,
+        customer: frm.doc.customer,
+      },
+      callback: (r) => {
+        if (!r.exc) {
+          frm.set_value("room_rate_cf", r.message.rate);
+          frm.set_value("weekend_rate_cf", r.message.weekend_rate);
+        }
+      },
+    });
   },
 
   validate: function (frm) {

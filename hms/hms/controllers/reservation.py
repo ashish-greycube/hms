@@ -170,3 +170,36 @@ def make_transfer_jv_to_sales_order(customer, amount_to_transfer, docname):
 def get_default_contact(customer):
     from frappe.contacts.doctype.contact.contact import get_default_contact
     return get_default_contact('Customer', customer)
+
+
+@frappe.whitelist()
+def get_item_rates(item_code, price_list, company, customer):
+    from erpnext.stock.get_item_details import apply_price_list
+    out = {}
+    args = {
+        "items": [
+            {
+                "parenttype": "Sales Order",
+                "doctype": "Sales Order Item",
+                "item_code": item_code,
+                "qty": 1,
+                "stock_uom": "Nos",
+            }
+        ],
+        "doctype": "Sales Order",
+        "transaction_date": today(),
+        "company": company,
+        "customer": customer,
+        "price_list": frappe.db.get_value("Company", erpnext.get_default_company(), 'default_holiday_price_list_cf'),
+        "conversion_rate": 1,
+    }
+# weekend rate
+    _dict = apply_price_list(args)
+    out.setdefault('weekend_rate', _dict.get(
+        'children', [{}])[0].get("price_list_rate", 0))
+# standard rate
+    args["price_list"] = price_list
+    _dict = apply_price_list(args)
+    out.setdefault('rate', _dict.get(
+        'children', [{}])[0].get("price_list_rate", 0))
+    return out
