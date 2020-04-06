@@ -89,7 +89,7 @@ frappe.ui.form.on("Sales Order", {
 
   room_rate_cf: function (frm) {
     frm.doc.items.forEach((item) => {
-      if (item.is_holiday_cf == 0) {
+      if (!(item.is_holiday_cf == 1 || item.is_weekend_cf == 1)) {
         frappe.model.set_value(
           item.doctype,
           item.name,
@@ -104,7 +104,7 @@ frappe.ui.form.on("Sales Order", {
   weekend_rate_cf: function (frm) {
     debugger;
     frm.doc.items.forEach((item) => {
-      if (item.is_holiday_cf == 1) {
+      if (item.is_holiday_cf == 1 || item.is_weekend_cf == 1) {
         frappe.model.set_value(
           item.doctype,
           item.name,
@@ -160,6 +160,7 @@ frappe.ui.form.on("Sales Order", {
   },
 
   _room_no_cf: function (frm) {
+    debugger;
     frm.set_value("items", []);
     if (
       frm.doc.room_no_cf &&
@@ -175,6 +176,8 @@ frappe.ui.form.on("Sales Order", {
         },
         callback: (r) => {
           //
+          console.log(r);
+
           frappe.dom.freeze();
           for (let i = 0; i < frm.doc.no_of_nights_cf; i++) {
             let new_row = frm.add_child("items");
@@ -183,6 +186,9 @@ frappe.ui.form.on("Sales Order", {
             let cur_date = frappe.datetime.add_days(frm.doc.check_in_cf, i);
             new_row.reservation_date_cf = cur_date;
             new_row.is_holiday_cf = r.message.holidays.includes(cur_date)
+              ? 1
+              : 0;
+            new_row.is_weekend_cf = r.message.weekends.includes(cur_date)
               ? 1
               : 0;
             frm.script_manager.trigger(
@@ -341,7 +347,9 @@ function apply_holiday_pricing_list(price_list, reset_plc_conversion) {
   }
   var args = me._get_args();
   let holidays = [];
-  for (let i of cur_frm.doc.items.filter((i) => i.is_holiday_cf == 1)) {
+  for (let i of cur_frm.doc.items.filter(
+    (i) => i.is_holiday_cf == 1 || i.is_weekend_cf == 1
+  )) {
     holidays.push.apply(
       holidays,
       args.items.filter((t) => t.name == i.name)
