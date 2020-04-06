@@ -14,6 +14,8 @@ frappe.ui.form.on("Sales Order", {
 
   customer: function (frm) {
     if (frm.doc.customer) {
+      frm.trigger("_room_no_cf");
+
       frappe.call({
         method: "hms.hms.controllers.reservation.get_default_contact",
         args: { customer: frm.doc.customer },
@@ -28,7 +30,9 @@ frappe.ui.form.on("Sales Order", {
     if (frm.is_new()) {
       // frm.trigger("set_defaults");
     }
+    frm.dashboard.hide();
     remove_so_buttons(frm);
+    set_holiday_rows(frm);
 
     if (frm.doc.docstatus == 1) {
       frm.page.add_inner_button("Check In", function (params) {
@@ -61,6 +65,7 @@ frappe.ui.form.on("Sales Order", {
   check_in_cf: function (frm) {
     frm.doc.no_of_nights_cf = 0;
     frm.doc.check_out_cf = "";
+    frm.refresh_fields();
     frm.trigger("_room_no_cf");
   },
 
@@ -191,7 +196,7 @@ frappe.ui.form.on("Sales Order", {
             apply_holiday_pricing_list(
               r.message.holiday_price_list || frm.doc.selling_price_list
             );
-          }, 50);
+          }, 250);
           //
         },
       });
@@ -278,6 +283,20 @@ function show_transfer_dialog(frm) {
       balance: r.message.desk.balance,
     });
     dialog.show();
+  });
+}
+
+function set_holiday_rows(frm) {
+  frm.doc.items.forEach((item, idx) => {
+    if (item.is_holiday_cf) {
+      frm.fields_dict["items"].grid.grid_rows[idx].row.addClass(
+        "ag-header-holiday"
+      );
+    } else if (item.is_weekend_cf) {
+      frm.fields_dict["items"].grid.grid_rows[idx].row.addClass(
+        "ag-header-weekend"
+      );
+    }
   });
 }
 
@@ -371,6 +390,7 @@ function apply_holiday_pricing_list(price_list, reset_plc_conversion) {
     })
     .always(() => {
       me.in_apply_price_list = false;
+      set_holiday_rows(me.frm);
       frappe.dom.unfreeze();
     });
 }

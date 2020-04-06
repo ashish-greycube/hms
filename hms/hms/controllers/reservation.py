@@ -101,7 +101,8 @@ coalesce(a.no_nights,b.no_nights) total_nights, coalesce(a.customer,b.customer) 
 coalesce(gd.guest, b.guest, a.customer, b.customer) guest,
 a.name `folio`, b.name `reservation`, con.email_id, con.mobile_no, con.gender,
 coalesce(a.total_advance_paid, b.advance_paid, 0) total_advance_paid,
-coalesce(a.total_charges, b.rounded_total,0) total_charges
+coalesce(a.total_charges, b.rounded_total,0) total_charges, coalesce(b.room_rate_cf,0) rate,
+coalesce(b.weekend_rate_cf,0) as weekend_rate
 -- ,a.*, b.*
 from
 `tabDate Lookup HMS` d
@@ -121,7 +122,7 @@ left outer join
 (
     -- reservation
     select so.name, so.room_no_cf room_no, so.check_in_cf check_in, so.check_out_cf check_out,
-    so.guest_cf guest, so.customer, no_of_nights_cf no_nights,
+    so.guest_cf guest, so.customer, no_of_nights_cf no_nights, room_rate_cf, weekend_rate_cf, 
     so.advance_paid, so.rounded_total
     from `tabSales Order` so
     where not exists (select 1 from `tabRoom Folio HMS` x where x.reservation = so.name)
