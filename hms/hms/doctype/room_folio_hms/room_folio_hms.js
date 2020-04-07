@@ -4,18 +4,37 @@
 frappe.ui.form.on("Room Folio HMS", {
   //
   //
-  refresh: function(frm) {
+  refresh: function (frm) {
     hms.make_grid_room_folio_advance(frm);
     hms.make_grid_charge_and_purchase(frm);
     frm.events.load_charge_and_purchase(frm);
     frm.events.set_advance_payments(frm);
     frm.events.add_custom_buttons(frm);
+    frm.events.validate_folio_checklist(frm);
   },
 
-  add_custom_buttons: function(frm) {
+  validate_folio_checklist: function (frm) {
+    let messages = [];
+    if (flt(frm.doc.total_advance_paid) == 0.0) {
+      messages.push("Please make an advance payment for this folio");
+    }
+    if (frm.doc.sign_in_sheet) {
+      messages.push("Please complete sign in sheet for check in");
+    }
+    if (messages.length) {
+      let message = messages.join("<br>");
+      frappe.msgprint(message);
+      /*       $(
+        `<div class='flex justify-center align-center' style='padding:10px;height: 5vh;'>${message}</div>`
+      ).prependTo(frm.page.main);
+ */
+    }
+  },
+
+  add_custom_buttons: function (frm) {
     frm.page.add_inner_button(
       __("Transfer Funds"),
-      function() {
+      function () {
         frm.events.show_transfer_dialog(frm);
       },
       __("Actions")
@@ -23,7 +42,7 @@ frappe.ui.form.on("Room Folio HMS", {
 
     frm.page.add_inner_button(
       __("Create Payment"),
-      function() {
+      function () {
         frm.events.make_payment_entry(frm);
       },
       __("Actions")
@@ -32,7 +51,7 @@ frappe.ui.form.on("Room Folio HMS", {
     if (true || frm.doc.status == "Checked In") {
       frm.page.add_inner_button(
         __("Check Out"),
-        function() {
+        function () {
           frm.events.make_check_out(frm);
         },
         __("Actions")
@@ -41,7 +60,7 @@ frappe.ui.form.on("Room Folio HMS", {
     frm.page.set_inner_btn_group_as_primary(__("Actions"));
   },
 
-  set_advance_payments: function(frm) {
+  set_advance_payments: function (frm) {
     frappe
       .call({
         method:
@@ -52,17 +71,17 @@ frappe.ui.form.on("Room Folio HMS", {
           party: frm.doc.customer,
           receivable_payable_account: frappe.defaults.get_user_default(
             "default_folio_receivable_account"
-          )
-        }
+          ),
+        },
       })
-      .then(r => {
+      .then((r) => {
         if (!r.exc) {
           frm.room_folio_advance_gridOptions.api.setRowData(r.message);
         }
       });
   },
 
-  show_transfer_dialog: function(frm) {
+  show_transfer_dialog: function (frm) {
     let desk_account = frappe.defaults.get_user_default(
       "default_desk_receivable_account"
     );
@@ -76,39 +95,39 @@ frappe.ui.form.on("Room Folio HMS", {
         read_only: 1,
         label: "Customer",
         fieldname: "customer",
-        default: frm.doc.customer
+        default: frm.doc.customer,
       },
       { fieldtype: "Section Break", label: "Party Balance" },
       {
         fieldtype: "Data",
         fieldname: "desk_account",
         hidden: 1,
-        default: desk_account
+        default: desk_account,
       },
       {
         fieldtype: "Data",
         fieldname: "folio_account",
         hidden: 1,
-        default: folio_account
+        default: folio_account,
       },
       {
         fieldtype: "Currency",
         read_only: 1,
         label: desk_account,
-        fieldname: "desk_account_balance"
+        fieldname: "desk_account_balance",
       },
       { fieldtype: "Column Break" },
       {
         fieldtype: "Currency",
         read_only: 1,
         label: folio_account,
-        fieldname: "folio_account_balance"
+        fieldname: "folio_account_balance",
       },
       {
         fieldtype: "Data",
         fieldname: "folio",
         hidden: 1,
-        default: frm.doc.name
+        default: frm.doc.name,
       },
       { fieldtype: "Section Break", label: "" },
       {
@@ -118,20 +137,20 @@ frappe.ui.form.on("Room Folio HMS", {
         reqd: 1,
         options: ["Transfer to Room", "Transfer to Desk"].join("\n"),
         default: "Transfer to Room",
-        onchange: () => {}
+        onchange: () => {},
       },
       { fieldtype: "Column Break" },
       {
         fieldtype: "Currency",
         fieldname: "amount_to_transfer",
         label: "Amount to Transfer",
-        default: "0"
-      }
+        default: "0",
+      },
     ];
     var d = new frappe.ui.Dialog({
       title: __("Transfer Funds"),
       fields: fields,
-      primary_action: function() {
+      primary_action: function () {
         let data = d.get_values();
 
         if (data.amount_to_transfer < 0) {
@@ -156,65 +175,65 @@ frappe.ui.form.on("Room Folio HMS", {
           method:
             "hms.hms.doctype.room_folio_hms.room_folio_hms.make_transfer_jv",
           args: d.get_values(),
-          callback: function(r) {
+          callback: function (r) {
             if (!r.exc) {
               d.hide();
             }
-          }
+          },
         });
       },
-      primary_action_label: __("Submit")
+      primary_action_label: __("Submit"),
     });
 
-    get_party_balance(frm.doc.company, frm.doc.customer).then(r => {
+    get_party_balance(frm.doc.company, frm.doc.customer).then((r) => {
       d.balances = r.message;
       d.set_values({
         desk_account_balance: d.balances.desk.balance,
-        folio_account_balance: d.balances.folio.balance
+        folio_account_balance: d.balances.folio.balance,
       });
       d.show();
     });
   },
 
-  make_payment_entry: function(frm) {
+  make_payment_entry: function (frm) {
     return frappe.call({
       doc: frm.doc,
       method: "get_payment_entry",
-      callback: function(r) {
+      callback: function (r) {
         if (r.message) {
           console.log(r.message);
           var doc = frappe.model.sync(r.message)[0];
           frappe.set_route("Form", doc.doctype, doc.name);
         }
-      }
+      },
     });
   },
 
-  make_check_out: function(frm) {
+  make_check_out: function (frm) {
     return frappe.call({
       doc: frm.doc,
       method: "make_check_out",
-      callback: function(r) {
+      callback: function (r) {
         if (r.message) {
           // frappe.model.sync(r.message)[0];
           frm.reload_doc();
         }
-      }
+      },
     });
   },
 
-  load_charge_and_purchase: function(frm) {
+  load_charge_and_purchase: function (frm) {
     return frappe.call({
       method:
         "hms.hms.doctype.room_folio_hms.room_folio_hms.get_charge_and_purchase",
       args: { docname: frm.doc.name },
-      callback: function(r) {
+      callback: function (r) {
         if (r.message) {
           frm.gridOptions.api.setRowData(r.message);
         }
-      }
+      },
     });
-  }
+  },
 
   //
 });
@@ -224,7 +243,7 @@ function get_party_balance(company, party) {
     method: "hms.hms.doctype.room_folio_hms.room_folio_hms.get_party_balance",
     args: {
       company: company,
-      party: party
-    }
+      party: party,
+    },
   });
 }

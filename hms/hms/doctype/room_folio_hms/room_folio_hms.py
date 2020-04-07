@@ -18,9 +18,28 @@ import erpnext
 
 class RoomFolioHMS(Document):
     def validate(self):
+        if not self.sign_in_sheet:
+            self.make_sign_in_sheet()
+
         if self.is_new() and self.status == "Checked In":
             self.validate_room_reservation()
             self.validate_room_status()
+
+    def make_sign_in_sheet(self, no_letterhead=False):
+        from bs4 import BeautifulSoup
+
+        html = frappe.get_print(self.doctype, self.name, print_format="Folio Sign In",
+                                doc=self, no_letterhead=no_letterhead)
+        soup = BeautifulSoup(html, 'lxml')
+        for s in soup.select('script'):
+            s.extract()
+        html = soup.prettify()
+
+        doc = frappe.new_doc("Sign In Sheet HMS")
+        doc.name = self.name
+        doc.content = html
+        doc.save()
+        self.sign_in_sheet = doc.name
 
     def validate_room_reservation(self):
         """WHERE NOT (From_date > @RangeTill OR To_date < @RangeFrom)"""

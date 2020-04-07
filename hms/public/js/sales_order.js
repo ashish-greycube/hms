@@ -39,7 +39,7 @@ frappe.ui.form.on("Sales Order", {
         make_room_folio(frm);
       });
     }
-
+    /* 
     if (
       frm.doc.docstatus == 1 &&
       flt(frm.doc.advance_paid) < flt(frm.doc.rounded_total)
@@ -48,7 +48,7 @@ frappe.ui.form.on("Sales Order", {
         show_transfer_dialog(frm);
       });
     }
-
+ */
     frm.page.set_inner_btn_group_as_primary(__("Create"));
   },
 
