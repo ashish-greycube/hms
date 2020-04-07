@@ -215,3 +215,20 @@ def get_item_rates(item_code=None, price_list=None, company=None, customer=None)
     out.setdefault('rate', _dict.get(
         'children', [{}])[0].get("price_list_rate", 0))
     return out
+
+
+@frappe.whitelist()
+def attach_contact_id(docname, date, data_url):
+    from six.moves.urllib.request import urlopen
+    attachment = urlopen(data_url).read()
+    file_name = f"{docname}_{date}.jpg"
+    _file = frappe.get_doc({
+        "doctype": "File",
+        "file_name": file_name,
+        "attached_to_doctype": "Contact",
+        "attached_to_name": docname,
+        "is_private": True,
+        "content": attachment
+    })
+    _file.save()
+    return _file.name
