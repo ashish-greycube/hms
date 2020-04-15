@@ -218,6 +218,11 @@ def get_item_rates(item_code=None, price_list=None, company=None, customer=None)
 
 
 @frappe.whitelist()
+def check_guest_id(contact):
+    return frappe.db.get_value('Contact', contact, 'image') or ""
+
+
+@frappe.whitelist()
 def attach_contact_id(docname, date, data_url):
     from six.moves.urllib.request import urlopen
     attachment = urlopen(data_url).read()
@@ -231,4 +236,6 @@ def attach_contact_id(docname, date, data_url):
         "content": attachment
     })
     _file.save()
+    frappe.db.set_value('Contact', docname, 'image', _file.file_url)
     return _file.name
+

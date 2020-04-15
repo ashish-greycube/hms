@@ -4,34 +4,61 @@
 frappe.ui.form.on("Room Folio HMS", {
   //
   //
+  after_save: function (frm) {},
+
   refresh: function (frm) {
     hms.make_grid_room_folio_advance(frm);
     hms.make_grid_charge_and_purchase(frm);
     frm.events.load_charge_and_purchase(frm);
     frm.events.set_advance_payments(frm);
     frm.events.add_custom_buttons(frm);
-    frm.events.validate_folio_checklist(frm);
+    // frm.events.validate_folio_checklist(frm);
   },
 
   validate_folio_checklist: function (frm) {
-    let messages = [];
-    if (flt(frm.doc.total_advance_paid) == 0.0) {
-      messages.push("Please make an advance payment for this folio");
-    }
-    if (frm.doc.sign_in_sheet) {
-      messages.push("Please complete sign in sheet for check in");
-    }
-    if (messages.length) {
-      let message = messages.join("<br>");
-      frappe.msgprint(message);
-      /*       $(
+    return new Promise((resolve, reject) => {
+      frappe.model.with_doc(
+        "Sign In Sheet HMS",
+        frm.doc.sign_in_sheet,
+        function () {
+          let messages = [];
+          let sis = frappe.get_doc("Sign In Sheet HMS", frm.doc.sign_in_sheet);
+          if (!sis.signature) {
+            messages.push("Please complete sign in sheet for check in");
+          }
+          if (flt(frm.doc.total_advance_paid) == 0.0) {
+            messages.push("Please make an advance payment for this folio");
+          }
+          if (messages.length) {
+            let message = messages.join("<br>");
+            frappe.msgprint(message);
+          }
+          resolve(messages.length == 0);
+        }
+      );
+    });
+    /*       $(
         `<div class='flex justify-center align-center' style='padding:10px;height: 5vh;'>${message}</div>`
       ).prependTo(frm.page.main);
  */
-    }
   },
 
   add_custom_buttons: function (frm) {
+    if (!frm.is_new() && frm.doc.status == "Pre-Check In") {
+      frm.events.validate_folio_checklist(frm).then((r) => {
+        if (r) {
+          frm.page.add_inner_button(
+            __("Check In"),
+            function () {
+              frm.doc.status = "Checked In";
+              frm.save();
+            },
+            __("Actions")
+          );
+        }
+      });
+    }
+
     frm.page.add_inner_button(
       __("Transfer Funds"),
       function () {
@@ -178,6 +205,7 @@ frappe.ui.form.on("Room Folio HMS", {
           callback: function (r) {
             if (!r.exc) {
               d.hide();
+              frm.reload_doc();
             }
           },
         });
@@ -201,7 +229,6 @@ frappe.ui.form.on("Room Folio HMS", {
       method: "get_payment_entry",
       callback: function (r) {
         if (r.message) {
-          console.log(r.message);
           var doc = frappe.model.sync(r.message)[0];
           frappe.set_route("Form", doc.doctype, doc.name);
         }

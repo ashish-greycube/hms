@@ -34,9 +34,23 @@ frappe.ui.form.on("Sales Order", {
     remove_so_buttons(frm);
     set_holiday_rows(frm);
 
-    if (frm.doc.docstatus == 1) {
-      frm.page.add_inner_button("Check In", function (params) {
-        make_room_folio(frm);
+    if (frm.doc.docstatus == 1 && flt(frm.doc.advance_paid) > 0) {
+      frappe.call({
+        method: "hms.hms.controllers.reservation.check_guest_id",
+        args: {
+          contact: frm.doc.guest_cf,
+        },
+        callback: (r) => {
+          if (!r.exc) {
+            if (!r.message != "") {
+              frm.page.add_inner_button("Check In", function (params) {
+                make_room_folio(frm);
+              });
+            } else {
+              frappe.show_alert("Please attach ID for Guest.", 30);
+            }
+          }
+        },
       });
     }
     /* 
@@ -176,8 +190,6 @@ frappe.ui.form.on("Sales Order", {
         },
         callback: (r) => {
           //
-          console.log(r);
-
           frappe.dom.freeze();
           for (let i = 0; i < frm.doc.no_of_nights_cf; i++) {
             let new_row = frm.add_child("items");
@@ -222,7 +234,7 @@ function make_room_folio(frm) {
     company: frm.doc.company,
     room_no: frm.doc.room_no_cf,
     naming_series: "HMS-RR-.YY.-",
-    status: "Checked In",
+    status: "Pre-Check In",
   });
 
   let guest_detail = frappe.model.add_child(

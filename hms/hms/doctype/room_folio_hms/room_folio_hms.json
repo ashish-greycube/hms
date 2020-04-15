@@ -32,7 +32,10 @@
   "total_advance_paid",
   "total_charges",
   "balance",
-  "amended_from"
+  "amended_from",
+  "terms_section_break",
+  "tc_name",
+  "terms"
  ],
  "fields": [
   {
@@ -203,9 +206,28 @@
    "label": "Sign In Sheet",
    "options": "Sign In Sheet HMS",
    "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "terms_section_break",
+   "fieldtype": "Section Break",
+   "label": "Terms and Conditions",
+   "options": "fa fa-legal"
+  },
+  {
+   "fieldname": "tc_name",
+   "fieldtype": "Link",
+   "label": "Terms",
+   "options": "Terms and Conditions"
+  },
+  {
+   "fetch_from": "tc_name.terms",
+   "fieldname": "terms",
+   "fieldtype": "Text Editor",
+   "label": "Terms and Conditions Details"
   }
  ],
- "modified": "2020-04-07 13:37:53.646165",
+ "modified": "2020-04-14 06:51:39.023125",
  "modified_by": "Administrator",
  "module": "HMS",
  "name": "Room Folio HMS",

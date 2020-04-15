@@ -5,118 +5,193 @@
         {%- if not doc.get("print_heading") and not doc.get("select_print_heading") 
         and doc.set("select_print_heading", _("Sign In Form")) -%}{%- endif -%}
         {{ add_header(0, 1, doc, letter_head, no_letterhead) }}
-
-
-        <div class="row">
-            <!-- col 1 -->
-            <div class="col-xs-6">
-                <div class="row">
-                    <div class="col-xs-12">
-                        Guest Information
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-xs-12">
-                        Full Name
-                        <br>{{ doc.customer }}
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-xs-12">
-                        Address
-                        <br>{{ doc.address or "" }}
-                    </div>
-                </div>
-            </div>
-            <!-- col 2 -->
-            <div class="col-xs-6">
-                <div class="row">
-                    <div class="col-xs-12">
-                        Stay Information
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-xs-4">
-                        Check In
-                        <br>{{ frappe.utils.formatdate(doc.check_in) }}
-                    </div>
-                    <div class="col-xs-4">
-                        Check Out
-                        <br>{{ frappe.utils.formatdate(doc.check_out) }}
-                    </div>
-                    <div class="col-xs-4">
-                        Adult/Child
-                        <br>{{ doc.adult_child or "" }}
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-xs-4">
-                        Week Day
-                        <br>{{ doc.get_formatted("total_charges") }}
-                    </div>
-                    <div class="col-xs-4">
-                        Week End
-                        <br>{{ doc.get_formatted("total_charges") }}
-                    </div>
-                    <div class="col-xs-4">
-                        Tax Exempt
-                        <br>No
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-xs-4">
-                        Conf
-                        <br># {{ doc.name[-5:] }}
-                    </div>
-                    <div class="col-xs-4">
-                        Room
-                        <br>{{ doc.room_no }}
-                    </div>
-                    <div class="col-xs-4">
-                        Room Type
-                        <br> {{ doc.room_type }}
-                    </div>
-                </div>
-
-            </div>
-        </div>
-
-
-        <div class="row">
-            <!-- col 1 -->
-            <div class="col-xs-6">
-                <div class="row">
-                    <div class="col-xs-12">
-                        Other Information
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-xs-6">
-                        Payment Method<br>
-                        Cash
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-xs-6">
-                        Email
-                    </div>
-                    <div class="col-xs-6">
-                        Phone Number
-                    </div>
-                </div>
-
-            </div>
-            <!-- col 2 -->
-            <div class="col-xs-6">
-                <div class="col-xs-12">
-                    Total Stay Information
-                </div>
-
-            </div>
-        </div>
     </div>
+</div>
+<style type="text/css">
+    .tg {
+        border-collapse: collapse;
+        border-spacing: 0;
+    }
+
+    .tg td {
+        font-family: Arial, sans-serif;
+        font-size: 14px;
+        padding: 10px 5px;
+        border-style: solid;
+        border-width: 1px;
+        overflow: hidden;
+        word-break: normal;
+        border-color: black;
+    }
+
+    .tg th {
+        font-family: Arial, sans-serif;
+        font-size: 14px;
+        font-weight: normal;
+        padding: 10px 5px;
+        border-style: solid;
+        border-width: 1px;
+        overflow: hidden;
+        word-break: normal;
+        border-color: black;
+    }
+
+    .tg .tg-y6fn {
+        background-color: #c0c0c0;
+        text-align: left;
+        vertical-align: top
+    }
+
+    .tg .tg-0lax {
+        text-align: left;
+        vertical-align: top
+    }
+
+    .tg .tg-qika {
+        background-color: #c0c0c0;
+        color: #efefef;
+        text-align: left;
+        vertical-align: top
+    }
+</style>
+<table class="tg" style="undefined;table-layout: fixed; width: 690px">
+    <colgroup>
+        <col style="width: 161px">
+        <col style="width: 25px">
+        <col style="width: 25px">
+        <col style="width: 91px">
+        <col style="width: 21px">
+        <col style="width: 106px">
+        <col style="width: 120px">
+        <col style="width: 141px">
+    </colgroup>
+    <tr>
+        <th class="tg-y6fn" colspan="4">GUEST INFORMATION</th>
+        <th class="tg-0lax" rowspan="7"></th>
+        <th class="tg-qika" colspan="3"><span style="color:rgb(51, 51, 51)">STAY INFORMATION</span><br></th>
+    </tr>
+    <tr>
+        <td class="tg-0lax" colspan="4">Full Name : </td>
+        <td class="tg-0lax">Check In</td>
+        <td class="tg-0lax">Check Out</td>
+        <td class="tg-0lax">Adults/Child</td>
+    </tr>
+    <tr>
+        <td class="tg-0lax" colspan="4">{doc.guest_full_name}</td>
+        <td class="tg-0lax">{{doc.check_in}}</td>
+        <td class="tg-0lax">{{doc.check_out}}</td>
+        <td class="tg-0lax">{doc.total_guest}</td>
+    </tr>
+    <tr>
+        <td class="tg-0lax" colspan="4">Address :</td>
+        <td class="tg-0lax">Weekday</td>
+        <td class="tg-0lax">Weekend</td>
+        <td class="tg-0lax">Tax Exempt</td>
+    </tr>
+    <tr>
+        <td class="tg-0lax" colspan="4" rowspan="3">{doc.guest_address_display}</td>
+        <td class="tg-0lax">{doc.total_amount_weekdays}</td>
+        <td class="tg-0lax">{doc.total_amount_weekends}</td>
+        <td class="tg-0lax">NO</td>
+    </tr>
+    <tr>
+        <td class="tg-0lax">Conf#</td>
+        <td class="tg-0lax" colspan="2">Room/Room Type</td>
+    </tr>
+    <tr>
+        <td class="tg-0lax">{{doc.name}}</td>
+        <td class="tg-0lax" colspan="2">{{doc.room_no}}/{{doc.room_type}}</td>
+    </tr>
+    <tr>
+        <td class="tg-y6fn" colspan="5">OTHER INFORMATION</td>
+        <td class="tg-0lax"></td>
+        <td class="tg-y6fn" colspan="2">TOTAL STAY INFORMATION</td>
+    </tr>
+    <tr>
+        <td class="tg-0lax" colspan="3">Car Make/Model</td>
+        <td class="tg-0lax" colspan="2">Plate</td>
+        <td class="tg-0lax"></td>
+        <td class="tg-0lax">Total Room:</td>
+        <td class="tg-0lax">{doc.total_room_charges}</td>
+    </tr>
+    <tr>
+        <td class="tg-0lax" colspan="3"></td>
+        <td class="tg-0lax" colspan="2"></td>
+        <td class="tg-0lax"></td>
+        <td class="tg-0lax">Other Charges:</td>
+        <td class="tg-0lax">{doc.total_other_charges}</td>
+    </tr>
+    <tr>
+        <td class="tg-0lax" colspan="5">Payment Information</td>
+        <td class="tg-0lax"></td>
+        <td class="tg-0lax">Total Tax:</td>
+        <td class="tg-0lax">{doc.total_taxes_and_charges}</td>
+    </tr>
+    <tr>
+        <td class="tg-0lax" colspan="5">{doc.mode_of_payment}</td>
+        <td class="tg-0lax"></td>
+        <td class="tg-0lax">Total Stay:</td>
+        <td class="tg-0lax">{doc.total_charges}</td>
+    </tr>
+    <tr>
+        <td class="tg-0lax" colspan="3">Email Addresses:</td>
+        <td class="tg-0lax" colspan="2">Phone No</td>
+        <td class="tg-0lax"></td>
+        <td class="tg-0lax">Payments:</td>
+        <td class="tg-0lax">{doc.total_advance_paid}</td>
+    </tr>
+    <tr>
+        <td class="tg-0lax" colspan="3">{doc.guest_email}</td>
+        <td class="tg-0lax" colspan="2">{doc.guest_mobile}</td>
+        <td class="tg-0lax"></td>
+        <td class="tg-0lax"><span style="font-weight:bold">Balance Due:</span></td>
+        <td class="tg-0lax">{doc.balance}</td>
+    </tr>
+</table>
+<div>
+    <h4 style="text-align: center;">PLEASE READ AND SIGN</h4>
+
+    <br><br>
+    <p>
+    </p>
+    <ul>
+        <li>
+            All Lugages must be checked before check-in for security reasons.
+        </li>
+        <li>
+            Safe is available at reception
+        </li>
+        <li>
+            All Lugages must be checked before check-in for security reasons.
+        </li>
+        <li>
+            Safe is available at reception
+        </li>
+        <li>
+            All Lugages must be checked before check-in for security reasons.
+        </li>
+        <li>
+            Safe is available at reception
+        </li>
+
+    </ul>
+    <p><br></p>
+    <br>
+
+
+    <h6><strong>Management wishes to advice following</strong></h6>
+
+
+    <p>
+        The law controlling the movement of aliens in the country stipulates the foreigners without valid resident
+        permit (or str) must resgister as non-resident during their stay in any hotel in the country.
+    </p>
+    <br>
+    <h6><strong>COMPLIMENTARY BREAKFAST -YES NO </strong></h6><br>
+    <strong> *** BREAKFAST BUFFET IAS AVAILABLE FROM 6:00 AM TO 10:00 AM *** </strong>
+    <br>
+    <br>
+    x
+    <hr><br>
+    Siignature
 </div>

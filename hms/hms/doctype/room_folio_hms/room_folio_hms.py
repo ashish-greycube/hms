@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import nowdate, flt, cint, today, getdate
+from frappe.utils import nowdate, flt, cint, today, getdate, cstr
 from erpnext.accounts.party import get_party_account, get_party_bank_account
 from erpnext.accounts.utils import get_outstanding_invoices
 import json
@@ -14,6 +14,7 @@ from hms.hms.doctype.room_ledger_entry_hms.room_ledger_entry_hms import make_roo
 from hms.hms.doctype.room_status_ledger_entry_hms.room_status_ledger_entry_hms import update_room_status_ledger
 from hms.hms.controllers.reservation import get_room_service_item
 import erpnext
+from frappe.contacts.doctype.address.address import get_address_display
 
 
 class RoomFolioHMS(Document):
@@ -30,10 +31,67 @@ class RoomFolioHMS(Document):
 
         html = frappe.get_print(self.doctype, self.name, print_format="Folio Sign In",
                                 doc=self, no_letterhead=no_letterhead)
+
         soup = BeautifulSoup(html, 'lxml')
         for s in soup.select('script'):
             s.extract()
         html = soup.prettify()
+
+        print_dict = {}
+        # custom_fields = ["sub_heading",
+        #                  "guest_full_name",
+        #                  "total_guest",
+        #                  "guest_address_display",
+        #                  "total_amount_weekdays",
+        #                  "total_amount_weekends",
+        #                  "total_room_charges",
+        #                  "total_other_charges",
+        #                  "mode_of_payment",
+        #                  "guest_mobile",
+        #                  "guest_email",
+        #                  "total_taxes_and_charges", ]
+        for d in frappe.db.sql("""
+            select reservation, terms, gu.*
+            from `tabRoom Folio HMS` f
+            left outer join  
+            (
+                select gd.mobile guest_mobile, gd.email guest_email, gd.guest guest_full_name,
+                gd.parent, co.address address_name
+                from `tabRoom Guest Detail HMS` gd
+                inner join tabContact co on co.name = gd.guest
+                where gd.parent = %s
+                limit 1
+            ) gu on gu.parent = f.name
+            where f.name = %s
+        """, (self.name, self.name), as_dict=True):
+            print_dict.update(d)
+
+        for d in frappe.db.sql("""
+            select 
+            
+            max(so.rounded_total) total_charges,
+            max(so.rounded_total) total_room_charges,
+            0 total_other_charges,
+            max(so.advance_paid) total_advance_paid,
+            max(so.rounded_total - so.advance_paid) balance,
+            coalesce(max(so.no_of_guest_cf),1) total_guest,
+            max(total_taxes_and_charges) total_taxes_and_charges, 
+            sum(if(is_holiday_cf=1 or is_weekend_cf=1,0,1)) total_amount_weekdays,
+            sum(if(is_holiday_cf=1 or is_weekend_cf=1,1,0)) total_amount_weekends
+            from `tabSales Order` so
+            inner join `tabSales Order Item` soi on soi.parent = so.name 
+            where so.name = %s
+        """, (print_dict['reservation']), as_dict=True):
+            print_dict.update(d)
+
+        print_dict.setdefault('guest_address_display', "-")
+
+        if print_dict['address_name']:
+            print_dict.setdefault(
+                'guest_address_display', get_address_display(print_dict['address_name']))
+
+        for k, v in print_dict.items():
+            html = html.replace("{doc.%s}" % k, cstr(v))
 
         doc = frappe.new_doc("Sign In Sheet HMS")
         doc.name = self.name
@@ -132,6 +190,10 @@ class RoomFolioHMS(Document):
         pe.setup_party_account_field()
         pe.set_missing_values()
         return pe
+
+    def update_charges_and_amounts(self):
+        # TODO: set totals from charge purchase and advances
+        pass
 
 
 @frappe.whitelist()
