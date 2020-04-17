@@ -127,8 +127,17 @@
         <td class="tg-0lax">Total Tax:</td>
         <td class="tg-0lax">{doc.total_taxes_and_charges}</td>
     </tr>
+    {% if frappe.utils.cint(doc.discount_amount) %}
     <tr>
         <td class="tg-0lax" colspan="5">{doc.mode_of_payment}</td>
+        <td class="tg-0lax"></td>
+        <td class="tg-0lax">Total Discount:</td>
+        <td class="tg-0lax">{doc.discount_amount}</td>
+    </tr>
+    {% endif %}
+    <tr>
+        <td class="tg-0lax" colspan="5">{% if not frappe.utils.cint(doc.discount_amount) %} {doc.mode_of_payment}
+            {% endif %}</td>
         <td class="tg-0lax"></td>
         <td class="tg-0lax">Total Stay:</td>
         <td class="tg-0lax">{doc.total_charges}</td>
@@ -149,49 +158,5 @@
     </tr>
 </table>
 <div>
-    <h4 style="text-align: center;">PLEASE READ AND SIGN</h4>
-
-    <br><br>
-    <p>
-    </p>
-    <ul>
-        <li>
-            All Lugages must be checked before check-in for security reasons.
-        </li>
-        <li>
-            Safe is available at reception
-        </li>
-        <li>
-            All Lugages must be checked before check-in for security reasons.
-        </li>
-        <li>
-            Safe is available at reception
-        </li>
-        <li>
-            All Lugages must be checked before check-in for security reasons.
-        </li>
-        <li>
-            Safe is available at reception
-        </li>
-
-    </ul>
-    <p><br></p>
-    <br>
-
-
-    <h6><strong>Management wishes to advice following</strong></h6>
-
-
-    <p>
-        The law controlling the movement of aliens in the country stipulates the foreigners without valid resident
-        permit (or str) must resgister as non-resident during their stay in any hotel in the country.
-    </p>
-    <br>
-    <h6><strong>COMPLIMENTARY BREAKFAST -YES NO </strong></h6><br>
-    <strong> *** BREAKFAST BUFFET IAS AVAILABLE FROM 6:00 AM TO 10:00 AM *** </strong>
-    <br>
-    <br>
-    x
-    <hr><br>
-    Siignature
+    {{doc.terms or "<h1>Terms and Conditions</h1>"}}
 </div>

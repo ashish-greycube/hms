@@ -12,51 +12,32 @@ frappe.ui.form.on("Room Folio HMS", {
     frm.events.load_charge_and_purchase(frm);
     frm.events.set_advance_payments(frm);
     frm.events.add_custom_buttons(frm);
-    // frm.events.validate_folio_checklist(frm);
-  },
 
-  validate_folio_checklist: function (frm) {
-    return new Promise((resolve, reject) => {
-      frappe.model.with_doc(
-        "Sign In Sheet HMS",
-        frm.doc.sign_in_sheet,
-        function () {
-          let messages = [];
-          let sis = frappe.get_doc("Sign In Sheet HMS", frm.doc.sign_in_sheet);
-          if (!sis.signature) {
-            messages.push("Please complete sign in sheet for check in");
-          }
-          if (flt(frm.doc.total_advance_paid) == 0.0) {
-            messages.push("Please make an advance payment for this folio");
-          }
-          if (messages.length) {
-            let message = messages.join("<br>");
-            frappe.msgprint(message);
-          }
-          resolve(messages.length == 0);
-        }
-      );
-    });
-    /*       $(
-        `<div class='flex justify-center align-center' style='padding:10px;height: 5vh;'>${message}</div>`
-      ).prependTo(frm.page.main);
- */
+    if (!frm.is_new() && !cint(frm.doc.is_checklist_done)) {
+      frm.events.validate_room_folio_checklist(frm);
+    }
   },
 
   add_custom_buttons: function (frm) {
-    if (!frm.is_new() && frm.doc.status == "Pre-Check In") {
-      frm.events.validate_folio_checklist(frm).then((r) => {
-        if (r) {
-          frm.page.add_inner_button(
-            __("Check In"),
-            function () {
-              frm.doc.status = "Checked In";
-              frm.save();
-            },
-            __("Actions")
-          );
-        }
-      });
+    if (frm.doc.status == "Pre-Check In" && frm.doc.is_checklist_done) {
+      frm.page.add_inner_button(
+        __("Check In"),
+        function () {
+          frm.doc.status = "Checked In";
+          frm.save();
+        },
+        __("Actions")
+      );
+    }
+
+    if (!frm.doc.sign_in_sheet && flt(frm.doc.total_advance_paid) > 0) {
+      frm.page.add_inner_button(
+        __("Make Sign In Sheet"),
+        function () {
+          frm.events.make_sign_in_sheet(frm);
+        },
+        __("Actions")
+      );
     }
 
     frm.page.add_inner_button(
@@ -231,6 +212,33 @@ frappe.ui.form.on("Room Folio HMS", {
         if (r.message) {
           var doc = frappe.model.sync(r.message)[0];
           frappe.set_route("Form", doc.doctype, doc.name);
+        }
+      },
+    });
+  },
+
+  validate_room_folio_checklist: function (frm) {
+    return frappe.call({
+      doc: frm.doc,
+      method: "validate_checklist",
+      callback: function (r) {
+        if (!r.exc) {
+          frm.set_intro(null);
+          frm.set_intro(r.message, "yellow");
+        }
+      },
+    });
+  },
+
+  make_sign_in_sheet: function (frm) {
+    return frappe.call({
+      doc: frm.doc,
+      method: "make_sign_in_sheet",
+      callback: function (r) {
+        if (r.message) {
+          var new_doc = frappe.model.sync(r.message)[0];
+          frm.reload_doc();
+          frappe.set_route("Form", new_doc.doctype, new_doc.name);
         }
       },
     });

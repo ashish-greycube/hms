@@ -12,6 +12,7 @@ import erpnext
 
 
 def validate_sales_order(doc, method):
+    messages = []
     for d in frappe.db.sql("""
 select led.date, reference_type, reference_name
 from
@@ -23,8 +24,13 @@ from
 ) led where led.rn = 1 and led.date >= %s  and led.date < %s""",
                            (doc.room_no_cf, doc.check_in_cf, doc.check_out_cf), as_dict=True,):
         doctype = 'Reservation' if d.reference_type == 'Sales Order' else d.reference_type
-        frappe.throw(_("Reservation conflicts with {} on {}")
-                     .format(get_link_to_form(d.reference_type, d.reference_name), frappe.bold(formatdate(d.date))))
+        messages.append(_("Reservation conflicts with {} on {}")
+                        .format(get_link_to_form(d.reference_type, d.reference_name), frappe.bold(formatdate(d.date))))
+    if not doc.guest_cf:
+        messages.append("Please select guest for Reservation.")
+    if messages:
+        frappe.throw(
+            "<ol>{}</ol>".format("".join([f"<li>d</li>" for d in messages])))
 
 
 def on_submit_sales_order(doc, method):
@@ -238,4 +244,3 @@ def attach_contact_id(docname, date, data_url):
     _file.save()
     frappe.db.set_value('Contact', docname, 'image', _file.file_url)
     return _file.name
-

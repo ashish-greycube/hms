@@ -14,90 +14,17 @@ from hms.hms.doctype.room_ledger_entry_hms.room_ledger_entry_hms import make_roo
 from hms.hms.doctype.room_status_ledger_entry_hms.room_status_ledger_entry_hms import update_room_status_ledger
 from hms.hms.controllers.reservation import get_room_service_item
 import erpnext
-from frappe.contacts.doctype.address.address import get_address_display
 
 
 class RoomFolioHMS(Document):
     def validate(self):
-        if not self.sign_in_sheet:
-            self.make_sign_in_sheet()
-
         if self.is_new() and self.status == "Checked In":
             self.validate_room_reservation()
             self.validate_room_status()
 
-    def make_sign_in_sheet(self, no_letterhead=False):
-        from bs4 import BeautifulSoup
-
-        html = frappe.get_print(self.doctype, self.name, print_format="Folio Sign In",
-                                doc=self, no_letterhead=no_letterhead)
-
-        soup = BeautifulSoup(html, 'lxml')
-        for s in soup.select('script'):
-            s.extract()
-        html = soup.prettify()
-
-        print_dict = {}
-        # custom_fields = ["sub_heading",
-        #                  "guest_full_name",
-        #                  "total_guest",
-        #                  "guest_address_display",
-        #                  "total_amount_weekdays",
-        #                  "total_amount_weekends",
-        #                  "total_room_charges",
-        #                  "total_other_charges",
-        #                  "mode_of_payment",
-        #                  "guest_mobile",
-        #                  "guest_email",
-        #                  "total_taxes_and_charges", ]
-        for d in frappe.db.sql("""
-            select reservation, terms, gu.*
-            from `tabRoom Folio HMS` f
-            left outer join  
-            (
-                select gd.mobile guest_mobile, gd.email guest_email, gd.guest guest_full_name,
-                gd.parent, co.address address_name
-                from `tabRoom Guest Detail HMS` gd
-                inner join tabContact co on co.name = gd.guest
-                where gd.parent = %s
-                limit 1
-            ) gu on gu.parent = f.name
-            where f.name = %s
-        """, (self.name, self.name), as_dict=True):
-            print_dict.update(d)
-
-        for d in frappe.db.sql("""
-            select 
-            
-            max(so.rounded_total) total_charges,
-            max(so.rounded_total) total_room_charges,
-            0 total_other_charges,
-            max(so.advance_paid) total_advance_paid,
-            max(so.rounded_total - so.advance_paid) balance,
-            coalesce(max(so.no_of_guest_cf),1) total_guest,
-            max(total_taxes_and_charges) total_taxes_and_charges, 
-            sum(if(is_holiday_cf=1 or is_weekend_cf=1,0,1)) total_amount_weekdays,
-            sum(if(is_holiday_cf=1 or is_weekend_cf=1,1,0)) total_amount_weekends
-            from `tabSales Order` so
-            inner join `tabSales Order Item` soi on soi.parent = so.name 
-            where so.name = %s
-        """, (print_dict['reservation']), as_dict=True):
-            print_dict.update(d)
-
-        print_dict.setdefault('guest_address_display', "-")
-
-        if print_dict['address_name']:
-            print_dict.setdefault(
-                'guest_address_display', get_address_display(print_dict['address_name']))
-
-        for k, v in print_dict.items():
-            html = html.replace("{doc.%s}" % k, cstr(v))
-
-        doc = frappe.new_doc("Sign In Sheet HMS")
-        doc.name = self.name
-        doc.content = html
-        doc.save()
-        self.sign_in_sheet = doc.name
+    def make_sign_in_sheet(self):
+        from hms.hms.doctype.sign_in_sheet_hms.sign_in_sheet_hms import make_sign_in_sheet
+        return make_sign_in_sheet(self.name)
 
     def validate_room_reservation(self):
         """WHERE NOT (From_date > @RangeTill OR To_date < @RangeFrom)"""
@@ -117,6 +44,27 @@ class RoomFolioHMS(Document):
         where room_no = %s and docstatus <> 2""", (self.room_no), as_dict=True):
             frappe.throw(
                 f"Room {self.room_no} is {d.status} for {self.check_in} ")
+
+    def validate_checklist(self):
+        '''
+        1. Guest ID
+        2. advance paid
+        3. Sign In Sheet signed'''
+        checklist = []
+        valid = frappe.db.sql("""
+            select 
+            if(f.total_advance_paid>0,1,0) advance_amount,
+            if(con.name is not null,1,0) guest_id,
+            if(sg.name is not null,1,0) sign_in_sheet
+            from `tabRoom Folio HMS` f
+            inner join `tabSales Order` so on so.name = f.reservation
+            left outer join tabContact con on con.name = so.guest_cf and con.image is not null
+            left outer join `tabSign In Sheet HMS` sg on sg.name = f.sign_in_sheet and sg.signature is not null
+            where f.name = %s limit 1""", (self.name,), as_dict=True)[0]
+        for k, v in valid.items():
+            if not cint(v):
+                checklist.append(folio_checklist[k])
+        return checklist and "<br>".join(checklist) or ""
 
     def after_insert(self):
         "check in"
@@ -276,3 +224,10 @@ def get_nonreconciled_payment_entries(**args):
     doc.update(args)
     doc.get_nonreconciled_payment_entries()
     return doc.payments or []
+
+
+folio_checklist = {
+    "guest_id": _("Please attach Identification for guest"),
+    "advance_amount": _("Please make an advance payment for the folio."),
+    "sign_in_sheet": "Please complete Sign In Sheet for guest"
+}
