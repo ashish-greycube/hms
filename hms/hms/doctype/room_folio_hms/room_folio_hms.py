@@ -85,6 +85,8 @@ class RoomFolioHMS(Document):
         out.room_folio_cf = self.name
         out.due_date = self.check_out
         out.room_date_cf = room_date
+        out.debit_to = frappe.defaults.get_user_default(
+            'default_folio_receivable_account')
 
         # remove lines for other dates in Sales Invoice, only bill for room_date
         so_detail = frappe.db.sql("""
