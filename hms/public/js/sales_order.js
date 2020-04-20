@@ -42,7 +42,7 @@ frappe.ui.form.on("Sales Order", {
         },
         callback: (r) => {
           if (!r.exc) {
-            if (!r.message != "") {
+            if (r.message != "") {
               frm.page.add_inner_button("Check In", function (params) {
                 make_room_folio(frm);
               });
