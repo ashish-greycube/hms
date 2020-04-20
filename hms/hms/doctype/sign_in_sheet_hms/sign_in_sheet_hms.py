@@ -32,7 +32,7 @@ def make_sign_in_sheet(room_folio, no_letterhead=False):
     # custom_fields = ["sub_heading", "guest_full_name", "total_guest", "guest_address_display", "total_amount_weekdays", "total_amount_weekends",
     #                  "total_room_charges", "total_other_charges", "mode_of_payment", "guest_mobile", "guest_email", "total_taxes_and_charges", ]
     for d in frappe.db.sql("""
-            select reservation, terms, gu.*
+            select reservation, gu.*
             from `tabRoom Folio HMS` f
             left outer join  
             (
@@ -49,6 +49,7 @@ def make_sign_in_sheet(room_folio, no_letterhead=False):
 
     for d in frappe.db.sql("""
             select 
+            terms,
             so.customer_address address_name,
             max(so.rounded_total) total_charges,
             max(so.rounded_total) total_room_charges,
