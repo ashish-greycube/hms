@@ -56,13 +56,7 @@ class update_room_status_ledger(object):
         where docstatus = 0 and status = 'Occupied' and room_no = %(room_no)s
         """, self.args)
 
-        # create Dirty entry
-        doc = frappe.get_doc({
-            "doctype": "Room Status Ledger Entry HMS",
-        })
-        doc.update(self.args)
-        doc.update({"status": "Dirty"})
-        doc.insert(ignore_permissions=True)
+        self.set_dirty()
 
     def set_dirty(self):
         # create Dirty entry
@@ -73,7 +67,7 @@ class update_room_status_ledger(object):
         doc.update({"status": "Dirty"})
         doc.insert(ignore_permissions=True)
 
-    def cleaned(self):
+    def remove_dirty(self):
         # cancel Dirty entry
         frappe.db.sql("""
         update `tabRoom Status Ledger Entry HMS`
@@ -91,11 +85,29 @@ class update_room_status_ledger(object):
         doc.update({"status": "To Service"})
         doc.insert(ignore_permissions=True)
 
-    def serviced(self):
+    def remove_to_service(self):
         # cancel To Service entry
         frappe.db.sql("""
         update `tabRoom Status Ledger Entry HMS`
         set docstatus = 2, modified = %(modified)s, modified_by = %(modified_by)s
         where docstatus = 0 and status = 'To Service' and room_no = %(room_no)s
+        """, self.args)
+        frappe.db.commit()
+
+    def set_out_of_order(self):
+        # create Dirty entry
+        doc = frappe.get_doc({
+            "doctype": "Room Status Ledger Entry HMS",
+        })
+        doc.update(self.args)
+        doc.update({"status": "Out Of Order"})
+        doc.insert(ignore_permissions=True)
+        frappe.db.commit()
+
+    def remove_out_of_order(self):
+        frappe.db.sql("""
+        update `tabRoom Status Ledger Entry HMS`
+        set docstatus = 2, modified = %(modified)s, modified_by = %(modified_by)s
+        where docstatus = 0 and status = 'Out Of Order' and room_no = %(room_no)s
         """, self.args)
         frappe.db.commit()

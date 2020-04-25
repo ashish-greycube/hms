@@ -104,6 +104,7 @@ function set_column_defs(gridOptions) {
             dirty: "paint-brush",
             available: "check",
             unavailable: "minus-circle",
+            out_of_order: "wrench",
           }[frappe.scrub(params.value || "")] || "genderless";
         return `<i class="fa fa-${icon}"></i>`;
       };
@@ -159,7 +160,9 @@ function set_room_status(params) {
         fieldtype: "Select",
         options: [
           { label: __("Dirty"), value: "set_dirty" },
-          { label: __("Clean"), value: "cleaned" },
+          { label: __("Clean"), value: "remove_dirty" },
+          { label: __("Out Of Order"), value: "set_out_of_order" },
+          { label: __("Available"), value: "remove_out_of_order" },
         ],
       },
     ],
@@ -232,6 +235,7 @@ const legend = `
       <li><i class='fa fa-suitcase'></i>Occupied</li>
       <li><i class='fa fa-paint-brush'></i>Dirty</li>
       <li><i class='fa fa-genderless'></i> &nbsp;Available</li>
+      <li><i class='fa fa-wrench'></i> Out Of Order</li>
     </ul>
   </div>
 </div>
