@@ -10,14 +10,14 @@ frappe.query_reports["Frontdesk HMS"] = {
       fieldtype: "Date",
       default: frappe.datetime.add_days(frappe.datetime.get_today(), -1),
 
-      reqd: 1
+      reqd: 1,
     },
     {
       fieldname: "to_date",
       label: __("To Date"),
       fieldtype: "Date",
       default: frappe.datetime.add_days(frappe.datetime.get_today(), 10),
-      reqd: 1
+      reqd: 1,
     },
     {
       fieldname: "room_type",
@@ -27,24 +27,24 @@ frappe.query_reports["Frontdesk HMS"] = {
       get_query: () => {
         return {
           filters: {
-            company: frappe.defaults.get_user_default("company")
-          }
+            company: frappe.defaults.get_user_default("company"),
+          },
         };
-      }
+      },
     },
     {
       fieldname: "room_status",
       label: __("Room Status"),
       fieldtype: "Link",
-      options: "Room Status HMS"
+      options: "Room Status HMS",
     },
     {
       fieldname: "company",
       label: __("Company"),
       fieldtype: "Link",
       options: "Company",
-      default: frappe.defaults.get_user_default("company")
-    }
+      default: frappe.defaults.get_user_default("company"),
+    },
   ],
 
   onload(report) {
@@ -68,9 +68,9 @@ frappe.query_reports["Frontdesk HMS"] = {
     gridOptions.defaultColDef = defaultColDef;
     gridOptions.context = { always_recreate: true };
     gridOptions.rowSelection = "multiple";
-    gridOptions.onRowDataChanged = function(params) {};
+    gridOptions.onRowDataChanged = function (params) {};
 
-    gridOptions.onCellDoubleClicked = function(params) {
+    gridOptions.onCellDoubleClicked = function (params) {
       if (params.colDef.colId == "room_status") {
         set_room_status(params);
       } else {
@@ -83,13 +83,13 @@ frappe.query_reports["Frontdesk HMS"] = {
     };
 
     // gridOptions.getContextMenuItems = get_context_menu;
-  }
+  },
 };
 
 //
 const defaultColDef = {
   sortable: true,
-  resizable: true
+  resizable: true,
   // tooltipComponent: "customTooltip"
 };
 
@@ -97,23 +97,23 @@ const defaultColDef = {
 function set_column_defs(gridOptions) {
   for (let c of gridOptions.columnDefs) {
     if (c.colId == "room_status") {
-      c.cellRenderer = function(params) {
+      c.cellRenderer = function (params) {
         let icon =
           {
             occupied: "suitcase",
             dirty: "paint-brush",
             available: "check",
-            unavailable: "minus-circle"
+            unavailable: "minus-circle",
           }[frappe.scrub(params.value || "")] || "genderless";
         return `<i class="fa fa-${icon}"></i>`;
       };
     }
 
-    c.headerClass = function(params) {
+    c.headerClass = function (params) {
       return `ag-header-${params.colDef.day_type}`;
     };
     // c.tooltip = function(params) { return `<p>305</p>`; };
-    c.cellClass = function(params) {
+    c.cellClass = function (params) {
       return (
         (moment().diff(c.colId, "days") > 0 ? "hms-disabled " : "") +
         (params.data[`${c.field}_css`] || "")
@@ -140,7 +140,7 @@ function open_reservation(params) {
     return;
   }
   // goto new reservation
-  frappe.new_doc("Sales Order", {}).then(f => {
+  frappe.new_doc("Sales Order", {}).then((f) => {
     cur_frm.set_value(
       "customer",
       frappe.defaults.get_user_default("default_ngtd_customer")
@@ -159,35 +159,28 @@ function set_room_status(params) {
         fieldtype: "Select",
         options: [
           { label: __("Dirty"), value: "set_dirty" },
-          { label: __("Clean"), value: "cleaned" }
-        ]
-      }
+          { label: __("Clean"), value: "cleaned" },
+        ],
+      },
     ],
-    data => {
+    (data) => {
       return frappe.call({
         method: "hms.hms.report.frontdesk_hms.frontdesk_hms.set_room_status",
         args: {
           room_no: params.data.name,
-          status_action: data.status_action
+          status_action: data.status_action,
         },
-        callback: function(r) {
+        callback: function (r) {
           frappe.ag_report.refresh();
-        }
+        },
       });
     }
   );
 }
 
 function add_shortcuts() {
-  frappe.ui.keys.add_shortcut({
-    shortcut: "q",
-    action: () => {
-      show_booking_details();
-    },
-    page: this.page,
-    description: __("Display booking details"),
-    ignore_inputs: true,
-    condition: () => true
+  Mousetrap.bind("q", function (e) {
+    show_booking_details();
   });
 }
 
@@ -204,9 +197,9 @@ function show_booking_details() {
     method: "hms.hms.controllers.reservation.get_reservation_details",
     args: {
       date: date,
-      room_no: room_no
+      room_no: room_no,
     },
-    callback: function(r) {
+    callback: function (r) {
       if ($.isEmptyObject(r.message)) {
         return;
       }
@@ -217,7 +210,7 @@ function show_booking_details() {
         r.message
       );
       frappe.msgprint(info, (title = r.message.customer));
-    }
+    },
   });
 }
 

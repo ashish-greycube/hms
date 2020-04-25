@@ -19,7 +19,8 @@ app_license = "proprietary"
 app_include_js = [
     "/assets/js/hms.min.js",
     "/assets/hms/js/ag_report.js",
-    "/assets/hms/js/lib/ag-grid-community.min.js"
+    "/assets/hms/js/lib/ag-grid-community.min.js",
+    "/assets/hms/js/lib/mousetrap.min.js"
 ]
 app_include_css = "/assets/hms/css/hms.css"
 

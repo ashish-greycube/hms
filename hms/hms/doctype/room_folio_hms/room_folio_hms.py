@@ -149,7 +149,7 @@ class RoomFolioHMS(Document):
         select COALESCE(sum(si.rounded_total),0) from `tabSales Invoice` si where NULLIF(si.room_folio_cf, '') = %s
         """, (self.name))
         self.total_charges = charges[0][0] or 0
-        self.balance = self.total_charges - self.total_advance_paid
+        self.balance = flt(self.total_charges) - flt(self.total_advance_paid)
 
 
 @frappe.whitelist()
