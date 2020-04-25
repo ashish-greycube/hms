@@ -22,6 +22,8 @@ class RoomFolioHMS(Document):
             self.validate_room_reservation()
             self.validate_room_status()
 
+        self.update_charges_and_amounts()
+
     def make_sign_in_sheet(self):
         from hms.hms.doctype.sign_in_sheet_hms.sign_in_sheet_hms import make_sign_in_sheet
         return make_sign_in_sheet(self.name)
@@ -142,8 +144,12 @@ class RoomFolioHMS(Document):
         return pe
 
     def update_charges_and_amounts(self):
-        # TODO: set totals from charge purchase and advances
-        pass
+        # set totals from charge purchase and advances
+        charges = frappe.db.sql("""
+        select COALESCE(sum(si.rounded_total),0) from `tabSales Invoice` si where NULLIF(si.room_folio_cf, '') = %s
+        """, (self.name))
+        self.total_charges = charges[0][0] or 0
+        self.balance = self.total_charges - self.total_advance_paid
 
 
 @frappe.whitelist()
@@ -177,7 +183,8 @@ def make_transfer_jv(**args):
         "party_type": 'Customer',
         'party': args.customer,
         'debit_in_account_currency': 0,
-        'credit_in_account_currency': flt(args.amount_to_transfer)
+        'credit_in_account_currency': flt(args.amount_to_transfer),
+        'is_advance': 'Yes'
     })
 
     je.append("accounts", {
@@ -189,6 +196,11 @@ def make_transfer_jv(**args):
     })
     je.insert(ignore_permissions=True)
     je.submit()
+    # update folio total_advance_paid, amounts
+    folio = frappe.get_doc('Room Folio HMS', args.folio)
+    folio.total_advance_paid = folio.total_advance_paid + \
+        flt(args.amount_to_transfer)
+    folio.save()
 
 
 @frappe.whitelist()

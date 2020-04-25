@@ -16,6 +16,12 @@ frappe.ui.form.on("Room Folio HMS", {
     if (!frm.is_new() && !cint(frm.doc.is_checklist_done)) {
       frm.events.validate_room_folio_checklist(frm);
     }
+    frm.events.set_css(frm);
+  },
+
+  set_css: function (frm) {
+    let color = frm.doc.balance < 0 ? "mistyrose" : "lightgreen";
+    frm.fields_dict["balance"].$input.css("background-color", color);
   },
 
   add_custom_buttons: function (frm) {
