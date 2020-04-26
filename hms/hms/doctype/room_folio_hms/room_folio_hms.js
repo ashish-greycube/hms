@@ -20,7 +20,7 @@ frappe.ui.form.on("Room Folio HMS", {
   },
 
   set_css: function (frm) {
-    let color = frm.doc.balance < 0 ? "mistyrose" : "lightgreen";
+    let color = frm.doc.balance > 0 ? "mistyrose" : "lightgreen";
     frm.fields_dict["balance"].$input.css("background-color", color);
   },
 

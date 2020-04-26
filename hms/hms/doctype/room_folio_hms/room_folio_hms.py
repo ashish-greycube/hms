@@ -23,6 +23,7 @@ class RoomFolioHMS(Document):
             self.validate_room_status()
 
         self.update_charges_and_amounts()
+        self.validate_checklist()
 
     def make_sign_in_sheet(self):
         from hms.hms.doctype.sign_in_sheet_hms.sign_in_sheet_hms import make_sign_in_sheet
@@ -52,6 +53,9 @@ class RoomFolioHMS(Document):
         1. Guest ID
         2. advance paid
         3. Sign In Sheet signed'''
+        if cint(self.is_checklist_done):
+            return ""
+
         checklist = []
         valid = frappe.db.sql("""
             select 
@@ -66,6 +70,9 @@ class RoomFolioHMS(Document):
         for k, v in valid.items():
             if not cint(v):
                 checklist.append(folio_checklist[k])
+        if not checklist:
+            self.db_set('is_checklist_done', 1)
+
         return checklist and "<br>".join(checklist) or ""
 
     def after_insert(self):
@@ -245,3 +252,10 @@ folio_checklist = {
     "advance_amount": _("Please make an advance payment for the folio."),
     "sign_in_sheet": "Please complete Sign In Sheet for guest"
 }
+
+
+def update_checklist_status(sign_in_sheet=None):
+    if sign_in_sheet:
+        for d in frappe.db.sql("""select name 
+        from `tabRoom Folio HMS` where sign_in_sheet = %s""", (sign_in_sheet)):
+            frappe.get_doc('Room Folio HMS', d[0]).validate_checklist()
