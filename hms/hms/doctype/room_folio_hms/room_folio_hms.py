@@ -66,7 +66,9 @@ class RoomFolioHMS(Document):
             inner join `tabSales Order` so on so.name = f.reservation
             left outer join tabContact con on con.name = so.guest_cf and con.image is not null
             left outer join `tabSign In Sheet HMS` sg on sg.name = f.sign_in_sheet and sg.signature is not null
-            where f.name = %s limit 1""", (self.name,), as_dict=True)[0]
+            where f.name = %s limit 1""", (self.name,), as_dict=True)
+        valid = valid and valid[0] or {
+            'advance_amount': 0, "guest_id": 0, 'sign_in_sheet': 0}
         for k, v in valid.items():
             if not cint(v):
                 checklist.append(folio_checklist[k])
