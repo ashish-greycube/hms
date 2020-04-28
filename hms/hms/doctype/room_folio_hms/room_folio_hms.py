@@ -6,7 +6,8 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import nowdate, flt, cint, today, getdate, cstr
+from frappe.utils import (nowdate, flt, cint, today,
+                          getdate, cstr, now, get_link_to_form)
 from erpnext.accounts.party import get_party_account, get_party_bank_account
 from erpnext.accounts.utils import get_outstanding_invoices
 import json
@@ -24,6 +25,15 @@ class RoomFolioHMS(Document):
 
         self.update_charges_and_amounts()
         self.validate_checklist()
+        self.validate_duplicate_checkin()
+
+    def validate_duplicate_checkin(self):
+        for d in frappe.db.sql("""select name from `tabRoom Folio HMS`
+        where reservation = %s and name <> %s limit 1""", (self.reservation, self.name)):
+            rf_link = get_link_to_form("Room Folio HMS", d[0])
+            so_link = get_link_to_form("Sales Order", self.reservation)
+            frappe.throw(_("Room Folio {} already created for reservation {}.").format(
+                rf_link, so_link))
 
     def make_sign_in_sheet(self):
         from hms.hms.doctype.sign_in_sheet_hms.sign_in_sheet_hms import make_sign_in_sheet
@@ -58,7 +68,7 @@ class RoomFolioHMS(Document):
 
         checklist = []
         valid = frappe.db.sql("""
-            select 
+            select
             if(f.total_advance_paid>0,1,0) advance_amount,
             if(con.name is not null,1,0) guest_id,
             if(sg.name is not null,1,0) sign_in_sheet
@@ -94,7 +104,7 @@ class RoomFolioHMS(Document):
         from erpnext.selling.doctype.sales_order.sales_order import make_sales_invoice
         out = make_sales_invoice(source_name=self.reservation)
         out.room_folio_cf = self.name
-        out.due_date = self.check_out
+        out.due_date = max(getdate(self.check_out), getdate(now()))
         out.room_date_cf = room_date
         out.debit_to = frappe.defaults.get_user_default(
             'default_folio_receivable_account')
@@ -102,7 +112,7 @@ class RoomFolioHMS(Document):
         # remove lines for other dates in Sales Invoice, only bill for room_date
         so_detail = frappe.db.sql("""
         select soi.name from `tabRoom Folio HMS` f
-        inner join `tabSales Order Item` soi on soi.parent = f.reservation 
+        inner join `tabSales Order Item` soi on soi.parent = f.reservation
         and ifnull(soi.reservation_date_cf,'') = %s
         where f.name = %s""", (getdate(room_date), self.name, ), debug=True)
         so_detail = so_detail and so_detail[0][0] or None
@@ -110,10 +120,11 @@ class RoomFolioHMS(Document):
             if not d.so_detail == so_detail:
                 out.remove(d)
         out.save()
+        out.submit()
         return out.name
 
     def make_check_out(self):
-        self.validate_billing()
+        self.validate_room_folio_balance()
         self.status = "Checked Out"
         self.save()
         make_room_ledger_entry(date=self.check_out, room_no=self.room_no, reference_type=self.doctype,
@@ -121,8 +132,15 @@ class RoomFolioHMS(Document):
         update_room_status_ledger(self.as_dict(), action="check_out")
         return self.as_dict()
 
-    def validate_billing(self):
-        pass
+    def validate_room_folio_balance(self):
+        # frappe.db.sql("""
+        #     select debit,  voucher_type, voucher_no,  against_voucher_type, against_voucher, party, against, account, credit, debit
+        #     from `tabGL Entry`
+        #     where creation > '2020-04-27'
+        # """)
+        if False:
+            frappe.throw(
+                _('Balance is not settled in folio {}').format(self.name))
 
     def get_advances(self):
         """get unallocated advances by customer in Room Folio account"""
@@ -135,10 +153,14 @@ class RoomFolioHMS(Document):
         pe.posting_date = nowdate()
         pe.company = self.company
         pe.party = self.customer
-        pe.paid_to = "Bank Of Nigeria - SH"
+        paid_to = frappe.get_cached_value(
+            'Company',  self.company,  "default_cash_account")
+        pe.paid_to = paid_to
         pe.paid_amount = self.balance
-
-        for doc in get_outstanding_invoices("Customer", self.customer, account="Debtors - SH"):
+        #
+        default_desk_account = frappe.defaults.get_user_default(
+            'default_desk_receivable_account')
+        for doc in get_outstanding_invoices("Customer", self.customer, account=default_desk_account):
             pe.append("references", {
                 'reference_doctype': doc["voucher_type"],
                 'reference_name': doc["voucher_no"],
@@ -164,7 +186,7 @@ class RoomFolioHMS(Document):
 @frappe.whitelist()
 def get_charge_and_purchase(docname):
     return frappe.db.sql("""
-    select si.name, rf.name room_folio, rf.room_no, date_format(room_date_cf,'%%d %%b, %%y') room_date_cf, 
+    select si.name, rf.name room_folio, rf.room_no, date_format(room_date_cf,'%%d %%b, %%y') room_date_cf,
     date_format(posting_time,'%%H:%%i') posting_time, rounded_total, outstanding_amount
     from `tabRoom Folio HMS` rf
     inner join `tabSales Invoice` si on rf.name = ifnull(si.room_folio_cf, '')
@@ -253,11 +275,20 @@ folio_checklist = {
     "guest_id": _("Please attach Identification for guest"),
     "advance_amount": _("Please make an advance payment for the folio."),
     "sign_in_sheet": "Please complete Sign In Sheet for guest"
+
+
 }
 
 
 def update_checklist_status(sign_in_sheet=None):
     if sign_in_sheet:
-        for d in frappe.db.sql("""select name 
+        for d in frappe.db.sql("""select name
         from `tabRoom Folio HMS` where sign_in_sheet = %s""", (sign_in_sheet)):
             frappe.get_doc('Room Folio HMS', d[0]).validate_checklist()
+
+
+def update_charges_and_amounts(doc, method):
+    if doc.room_folio_cf:
+        rf = frappe.get_doc("Room Folio HMS", doc.room_folio_cf)
+        if rf.docstatus < 2:
+            rf.save()

@@ -34,7 +34,7 @@ def get_data(filters=None):
     data = frappe.db.sql("""
             select d.date, r.name name, r.room_no room_no, r.room_type, c.room_status,
             case
-            when a.name is not null  and a.status='Checked In' then 'hms-in-house'
+            when a.name is not null  and (a.status='Checked In' or a.status='Pre-Check In') then 'hms-in-house'
             when a.name is null and b.name is not null 
                 then case when b.advance_paid > 0 then 'hms-gtd-reservation' else 'hms-ngtd-reservation' end
             when d.date = curdate() then concat('hms-',coalesce(lower(c.room_status),''))
@@ -42,7 +42,6 @@ def get_data(filters=None):
             coalesce(a.customer,b.customer) customer,
             coalesce(gd.guest, b.guest, a.customer, b.customer) guest,
             a.name folio, b.name `reservation`
-            -- ,a.*, b.* 
             from 
             `tabDate Lookup HMS` d
             cross join `tabRoom HMS` r
@@ -52,7 +51,7 @@ def get_data(filters=None):
                 select fo.room_no, fo.check_in, fo.check_out, fo.customer, fo.name, fo.status
                 from `tabRoom Folio HMS` fo
                 where not (fo.check_in >= %(to_date)s OR fo.check_out <= %(from_date)s)
-                and fo.status = 'Checked In' 
+                and (fo.status = 'Checked In' or fo.status = 'Pre-Check In') 
             ) a on d.date BETWEEN a.check_in and date_sub(a.check_out, INTERVAL 1 DAY) and r.name = a.room_no
             left outer join `tabRoom Guest Detail HMS` gd on gd.name = (
                 -- guest details

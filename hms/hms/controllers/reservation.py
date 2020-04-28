@@ -139,12 +139,12 @@ left outer join
     so.guest_cf guest, so.customer, no_of_nights_cf no_nights, room_rate_cf, weekend_rate_cf, 
     so.advance_paid, so.rounded_total
     from `tabSales Order` so
-    where not exists (select 1 from `tabRoom Folio HMS` x where x.reservation = so.name)
+    -- where not exists (select 1 from `tabRoom Folio HMS` x where x.reservation = so.name)
 ) b on d.date BETWEEN b.check_in and b.check_out and r.name = b.room_no
 left outer join tabContact con on con.name = coalesce(gd.guest, b.guest,'')
 where d.date = %(date)s and r.name = %(room_no)s
 order by d.date, r.room_type, r.room_no
-    """, dict(date=date, room_no=room_no), as_dict=True, debug=True)
+    """, dict(date=date, room_no=room_no), as_dict=True, debug=0)
     return data and data[0] or {}
 
 

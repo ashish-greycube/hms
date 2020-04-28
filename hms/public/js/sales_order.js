@@ -26,6 +26,30 @@ frappe.ui.form.on("Sales Order", {
     }
   },
 
+  validate_checklist(frm) {
+    frappe.db.get_value("Contact", frm.doc.guest_cf, "image", (r) => {
+      let _msg = [];
+      if (r.image) {
+        _msg.push("Please capture ID Card of guest.");
+      }
+      if (frm.doc.advance_paid == 0) {
+        _msg.push("Please make payment against this Reservation.");
+      }
+      frm.set_intro(null);
+      if (_msg.length) {
+        frm.set_intro(_msg.join("<br>"), "yellow");
+      } else if (frm.doc.docstatus == 1) {
+        frm.trigger("add_checkin");
+      }
+    });
+  },
+
+  add_checkin(frm) {
+    frm.page.add_inner_button("Check In", function (params) {
+      make_room_folio(frm);
+    });
+  },
+
   refresh: function (frm) {
     if (frm.is_new()) {
       // frm.trigger("set_defaults");
@@ -33,26 +57,8 @@ frappe.ui.form.on("Sales Order", {
     frm.dashboard.hide();
     remove_so_buttons(frm);
     set_holiday_rows(frm);
+    frm.trigger("validate_checklist");
 
-    if (frm.doc.docstatus == 1 && flt(frm.doc.advance_paid) > 0) {
-      frappe.call({
-        method: "hms.hms.controllers.reservation.check_guest_id",
-        args: {
-          contact: frm.doc.guest_cf,
-        },
-        callback: (r) => {
-          if (!r.exc) {
-            if (r.message != "") {
-              frm.page.add_inner_button("Check In", function (params) {
-                make_room_folio(frm);
-              });
-            } else {
-              frappe.show_alert("Please attach ID for Guest.", 30);
-            }
-          }
-        },
-      });
-    }
     /* 
     if (
       frm.doc.docstatus == 1 &&

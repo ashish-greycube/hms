@@ -104,6 +104,9 @@ doc_events = {
         "validate": "hms.hms.controllers.reservation.validate_sales_order",
         "on_submit": "hms.hms.controllers.reservation.on_submit_sales_order",
         "on_update_after_submit": "hms.hms.controllers.reservation.on_update_after_submit_sales_order"
+    },
+    "Sales Invoice": {
+        "on_submit": "hms.hms.doctype.room_folio_hms.room_folio_hms.update_charges_and_amounts",
     }
 }
 

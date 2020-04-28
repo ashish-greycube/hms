@@ -1,4 +1,7 @@
 /* frontdesk reservation status  */
+.hms-pre-check-in {
+  background-color: lightseagreen !important;
+}
 
 .hms-in-house {
   background-color: mediumseagreen !important;
