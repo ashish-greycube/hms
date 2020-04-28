@@ -29,16 +29,17 @@ def get_data():
                     "label": _("Night Audit"),
                     "route": "#ag-report/Night-Audit"
                 },
-            ]
-        },
-        {
-            "label": _("Setup"),
-            "items": [{
+                {
                 "type": "doctype",
                 "name": "Room Folio HMS",
                 "label": "Room Folio",
                 "description": "Room Folio"
-            },
+            }
+            ]
+        },
+        {
+            "label": _("Setup"),
+            "items": [
                 {
                 "type": "doctype",
                 "name": "Room HMS",
@@ -46,6 +47,19 @@ def get_data():
                 "description": "Rooms"
                 # "condition": frappe.utils.has_common(["EDMS_Admin", "System Manager"], frappe.get_roles())
             },
+            {
+                "type": "doctype",
+                "name": "Room Type HMS",
+                "label": "Room Type",
+                "description": "Room Type"
+              
+            },
+            {
+                "type": "doctype",
+                "name": "Date Lookup HMS",
+                "label": "Date Lookup",
+                "description": "Date Lookup"
+            }
             ]
         },
         {

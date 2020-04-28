@@ -115,8 +115,8 @@
         <td class="tg-0lax">{doc.total_room_charges}</td>
     </tr>
     <tr>
-        <td class="tg-0lax" colspan="3"></td>
-        <td class="tg-0lax" colspan="2"></td>
+        <td class="tg-0lax" colspan="3">{{doc.car_make_model}}</td>
+        <td class="tg-0lax" colspan="2">{{doc.registration_plate_no}}</td>
         <td class="tg-0lax"></td>
         <td class="tg-0lax">Other Charges:</td>
         <td class="tg-0lax">{doc.total_other_charges}</td>
@@ -129,7 +129,7 @@
     </tr>
     {% if frappe.utils.cint(doc.discount_amount) %}
     <tr>
-        <td class="tg-0lax" colspan="5">{doc.mode_of_payment}</td>
+        <td class="tg-0lax" colspan="5">Cash/Bank Transfer/Credit</td>
         <td class="tg-0lax"></td>
         <td class="tg-0lax">Total Discount:</td>
         <td class="tg-0lax">{doc.discount_amount}</td>

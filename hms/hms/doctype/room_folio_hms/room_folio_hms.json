@@ -33,9 +33,10 @@
   "total_charges",
   "balance",
   "amended_from",
-  "terms_section_break",
-  "tc_name",
-  "terms",
+  "vi_sb",
+  "car_make_model",
+  "vi_s_cb1",
+  "registration_plate_no",
   "is_checklist_done"
  ],
  "fields": [
@@ -209,34 +210,34 @@
    "read_only": 1
   },
   {
-   "collapsible": 1,
-   "fieldname": "terms_section_break",
-   "fieldtype": "Section Break",
-   "label": "Terms and Conditions",
-   "options": "fa fa-legal"
-  },
-  {
-   "fieldname": "tc_name",
-   "fieldtype": "Link",
-   "label": "Terms",
-   "options": "Terms and Conditions"
-  },
-  {
-   "fetch_from": "tc_name.terms",
-   "fieldname": "terms",
-   "fieldtype": "Text Editor",
-   "label": "Terms and Conditions Details"
-  },
-  {
    "default": "0",
    "fieldname": "is_checklist_done",
    "fieldtype": "Check",
    "hidden": 1,
    "label": "Is Checklist Done",
    "read_only": 1
+  },
+  {
+   "fieldname": "vi_sb",
+   "fieldtype": "Section Break",
+   "label": "Vehicle Information"
+  },
+  {
+   "fieldname": "car_make_model",
+   "fieldtype": "Data",
+   "label": "Car Make Model"
+  },
+  {
+   "fieldname": "vi_s_cb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "registration_plate_no",
+   "fieldtype": "Data",
+   "label": "Registration Plate No"
   }
  ],
- "modified": "2020-04-17 14:30:20.129198",
+ "modified": "2020-04-28 07:08:25.863871",
  "modified_by": "Administrator",
  "module": "HMS",
  "name": "Room Folio HMS",
