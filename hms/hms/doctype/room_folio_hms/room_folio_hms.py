@@ -202,9 +202,13 @@ def make_transfer_jv(**args):
     je.posting_date = today()
     je.remark = f"Transfer of funds for {args.customer}. Folio#: {args.folio}"
 
+    against_voucher, against_voucher_type = "", ""
+
     if args.get('transfer_type') == "Transfer to Room":
         debit_account = args.desk_account
         credit_account = args.folio_account
+        against_voucher = args.folio
+        against_voucher_type = 'Room Folio HMS'
     else:
         credit_account = args.desk_account
         debit_account = args.folio_account
@@ -215,7 +219,9 @@ def make_transfer_jv(**args):
         'party': args.customer,
         'debit_in_account_currency': 0,
         'credit_in_account_currency': flt(args.amount_to_transfer),
-        'is_advance': 'Yes'
+        'is_advance': 'Yes',
+        'reference_name': against_voucher,
+        'reference_type': against_voucher_type
     })
 
     je.append("accounts", {

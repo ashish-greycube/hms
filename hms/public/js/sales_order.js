@@ -29,7 +29,7 @@ frappe.ui.form.on("Sales Order", {
   validate_checklist(frm) {
     frappe.db.get_value("Contact", frm.doc.guest_cf, "image", (r) => {
       let _msg = [];
-      if (r.image) {
+      if (!r.image) {
         _msg.push("Please capture ID Card of guest.");
       }
       if (frm.doc.advance_paid == 0) {
@@ -51,13 +51,13 @@ frappe.ui.form.on("Sales Order", {
   },
 
   refresh: function (frm) {
-    if (frm.is_new()) {
-      // frm.trigger("set_defaults");
-    }
     frm.dashboard.hide();
     remove_so_buttons(frm);
     set_holiday_rows(frm);
-    frm.trigger("validate_checklist");
+
+    if (frm.doc.docstatus == 1) {
+      frm.trigger("validate_checklist");
+    }
 
     /* 
     if (
