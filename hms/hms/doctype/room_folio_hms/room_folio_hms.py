@@ -14,6 +14,7 @@ import json
 from hms.hms.doctype.room_ledger_entry_hms.room_ledger_entry_hms import make_room_ledger_entry
 from hms.hms.doctype.room_status_ledger_entry_hms.room_status_ledger_entry_hms import update_room_status_ledger
 from hms.hms.controllers.reservation import get_room_service_item
+from erpnext.accounts.doctype.journal_entry.journal_entry import get_default_bank_cash_account
 import erpnext
 
 
@@ -145,6 +146,38 @@ class RoomFolioHMS(Document):
     def get_advances(self):
         """get unallocated advances by customer in Room Folio account"""
         pass
+
+    def make_folio_advance_entry(self):
+        mode_of_payment = "Cash"
+        payment_account = get_default_bank_cash_account(self.company, account_type="Cash",
+                                                        mode_of_payment=mode_of_payment)
+        je = frappe.new_doc("Journal Entry")
+        je.posting_date = nowdate()
+        je.voucher_type = 'Journal Entry'
+        je.company = self.company
+        je.remark = 'Room Folio advance against: ' + self.name
+
+        je.append("accounts", {
+            "account":  frappe.defaults.get_user_default(
+                'default_folio_receivable_account'),
+            "credit_in_account_currency": flt(self.balance),
+            "reference_type": self.doctype,
+            "reference_name": self.name,
+            "party_type": "Customer",
+            "party": self.customer,
+            "is_advance": "Yes"
+        })
+
+        je.append("accounts", {
+            "account": payment_account.account,
+            "debit_in_account_currency": flt(self.balance),
+            "account_currency": payment_account.account_currency,
+            "account_type": payment_account.account_type
+        })
+
+        je.insert(ignore_permissions=True)
+        je.submit()
+        self.save()
 
     def get_payment_entry(self):
         pe = frappe.new_doc("Payment Entry")

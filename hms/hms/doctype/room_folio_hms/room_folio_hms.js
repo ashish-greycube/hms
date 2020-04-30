@@ -227,14 +227,23 @@ frappe.ui.form.on("Room Folio HMS", {
   make_payment_entry: function (frm) {
     return frappe.call({
       doc: frm.doc,
-      method: "get_payment_entry",
+      method: "make_folio_advance_entry",
       callback: function (r) {
-        if (r.message) {
-          var doc = frappe.model.sync(r.message)[0];
-          frappe.set_route("Form", doc.doctype, doc.name);
+        if (!r.exc) {
+          frm.refresh();
         }
       },
     });
+    // return frappe.call({
+    //   doc: frm.doc,
+    //   method: "get_payment_entry",
+    //   callback: function (r) {
+    //     if (r.message) {
+    //       var doc = frappe.model.sync(r.message)[0];
+    //       frappe.set_route("Form", doc.doctype, doc.name);
+    //     }
+    //   },
+    // });
   },
 
   validate_room_folio_checklist: function (frm) {
