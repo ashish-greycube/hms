@@ -52,7 +52,7 @@ def get_data(filters=None):
                 from `tabRoom Folio HMS` fo
                 where not (fo.check_in >= %(to_date)s OR fo.check_out <= %(from_date)s)
                 and (fo.status = 'Checked In' or fo.status = 'Pre-Check In') 
-            ) a on d.date BETWEEN a.check_in and date_sub(a.check_out, INTERVAL 1 DAY) and r.name = a.room_no
+            ) a on d.date BETWEEN date(a.check_in) and date_sub(date(a.check_out), INTERVAL 1 DAY) and r.name = a.room_no
             left outer join `tabRoom Guest Detail HMS` gd on gd.name = (
                 -- guest details
                 select x.name from `tabRoom Guest Detail HMS` x 
@@ -66,14 +66,14 @@ def get_data(filters=None):
                 from `tabSales Order` so
                 where not (so.check_in_cf >= %(to_date)s OR so.check_out_cf <= %(from_date)s)
                 and not exists (select 1 from `tabRoom Folio HMS` x where x.reservation = so.name)
-            ) b on d.date BETWEEN b.check_in and date_sub(b.check_out, INTERVAL 1 DAY) and r.name = b.room_no
+            ) b on d.date BETWEEN date(b.check_in) and date_sub(date(b.check_out), INTERVAL 1 DAY) and r.name = b.room_no
             left outer join 
             (
                 -- room status ledger: Dirty/Occupied/OOO/OOS
                 select room_no, status, reference_type, reference_name, status room_status
                 from `tabRoom Status Ledger Entry HMS`
                 where docstatus <> 2
-            ) c on c.room_no = r.name -- and d.date = curdate()
+            ) c on c.room_no = r.name 
             where {where_clause}
             order by d.date, r.room_type, r.room_no
     """.format(where_clause=where_clause), filters, as_dict=True, debug=1)

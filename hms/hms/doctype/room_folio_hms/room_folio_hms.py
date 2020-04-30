@@ -216,14 +216,14 @@ class RoomFolioHMS(Document):
         and against_voucher = %s""", (self.name,)):
             total_advance_paid = d[0]
 
-        if total_charges:
-            self.db_set('total_charges', total_charges, update_modified=False)
-        if total_advance_paid:
-            self.db_set('total_advance_paid', total_advance_paid,
-                        update_modified=False)
-        if total_advance_paid or total_charges:
-            self.db_set('balance',
-                        flt(total_advance_paid)-flt(total_charges), update_modified=False)
+        total_charges = total_charges or 0
+        total_advance_paid = total_advance_paid or 0
+
+        self.db_set('total_charges', total_charges, update_modified=False)
+        self.db_set('total_advance_paid', total_advance_paid,
+                    update_modified=False)
+        self.db_set('balance', total_advance_paid -
+                    total_charges, update_modified=False)
 
 
 @frappe.whitelist()
