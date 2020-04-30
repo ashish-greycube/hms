@@ -157,18 +157,23 @@ class RoomFolioHMS(Document):
             'Company',  self.company,  "default_cash_account")
         pe.paid_to = paid_to
         pe.paid_amount = self.balance
+        pe.received_amount = self.balance
+        pe.room_folio_cf = self.name
         #
         default_desk_account = frappe.defaults.get_user_default(
             'default_desk_receivable_account')
-        for doc in get_outstanding_invoices("Customer", self.customer, account=default_desk_account):
-            pe.append("references", {
-                'reference_doctype': doc["voucher_type"],
-                'reference_name': doc["voucher_no"],
-                "due_date": doc.get("due_date"),
-                'total_amount': doc.get('invoice_amount'),
-                'outstanding_amount': doc.get('outstanding_amount'),
-                'allocated_amount': doc.get('outstanding_amount'),
-            })
+
+        # Payment Reconciliation is used to set off invoice-payments at the time of checkout
+        # uncomment below to show invoices to adjust payment against, if above workflow changes
+        # for doc in get_outstanding_invoices("Customer", self.customer, account=default_desk_account):
+        #     pe.append("references", {
+        #         'reference_doctype': doc["voucher_type"],
+        #         'reference_name': doc["voucher_no"],
+        #         "due_date": doc.get("due_date"),
+        #         'total_amount': doc.get('invoice_amount'),
+        #         'outstanding_amount': doc.get('outstanding_amount'),
+        #         'allocated_amount': doc.get('outstanding_amount'),
+        #     })
 
         pe.setup_party_account_field()
         pe.set_missing_values()
@@ -298,3 +303,9 @@ def update_charges_and_amounts(doc, method):
         rf = frappe.get_doc("Room Folio HMS", doc.room_folio_cf)
         if rf.docstatus < 2:
             rf.save()
+
+
+def on_submit_payment_entry(doc, method):
+    pass
+    # if doc.room_folio_cf and doc.payment_type == 'Receive':
+    #     for d in doc.

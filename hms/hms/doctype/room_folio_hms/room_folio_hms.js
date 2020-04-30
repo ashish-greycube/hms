@@ -71,6 +71,11 @@ frappe.ui.form.on("Room Folio HMS", {
         __("Actions")
       );
     }
+
+    frm.page.add_inner_button(__("Frontdesk"), () => {
+      frappe.set_route("ag-report/Frontdesk HMS");
+    });
+
     frm.page.set_inner_btn_group_as_primary(__("Actions"));
   },
 
@@ -129,6 +134,7 @@ frappe.ui.form.on("Room Folio HMS", {
         read_only: 1,
         label: desk_account,
         fieldname: "desk_account_balance",
+        formatter: cr_df_formatter,
       },
       { fieldtype: "Column Break" },
       {
@@ -136,6 +142,7 @@ frappe.ui.form.on("Room Folio HMS", {
         read_only: 1,
         label: folio_account,
         fieldname: "folio_account_balance",
+        formatter: cr_df_formatter,
       },
       {
         fieldtype: "Data",
@@ -206,7 +213,14 @@ frappe.ui.form.on("Room Folio HMS", {
         desk_account_balance: d.balances.desk.balance,
         folio_account_balance: d.balances.folio.balance,
       });
+
+      // d.get_field("desk_account_balance").disp_area.innerText +=
+      //   d.balances.desk.balance > 0 ? " Dr" : " Cr";
+      // d.get_field("folio_account_balance").set_description(
+      //   d.balances.folio.balance > 0 ? "Dr" : "Cr"
+      // );
       d.show();
+      window.d = d;
     });
   },
 
@@ -287,4 +301,20 @@ function get_party_balance(company, party) {
       party: party,
     },
   });
+}
+
+function cr_df_formatter(value, df, options, doc) {
+  var currency = frappe.meta.get_field_currency(df, doc);
+  var dr_or_cr = value
+    ? "<label>" + (value > 0.0 ? __("Dr") : __("Cr")) + "</label>"
+    : "";
+  return (
+    "<div style='text-align: right'>" +
+    (value == null || value === ""
+      ? ""
+      : format_currency(Math.abs(value), currency)) +
+    " " +
+    dr_or_cr +
+    "</div>"
+  );
 }

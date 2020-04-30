@@ -3,15 +3,6 @@ frappe.ui.form.on("Sales Order", {
 
   onload: function (frm) {},
 
-  set_defaults: function (frm) {
-    frm.set_value("no_of_nights_cf", 1);
-    frm.set_value("check_in_cf", frappe.datetime.get_today());
-    frm.set_value(
-      "check_out_cf",
-      frappe.datetime.add_days(frappe.datetime.get_today(), 1)
-    );
-  },
-
   customer: function (frm) {
     if (frm.doc.customer) {
       frm.trigger("_room_no_cf");
@@ -46,7 +37,7 @@ frappe.ui.form.on("Sales Order", {
 
   add_checkin(frm) {
     frm.page.add_inner_button("Check In", function (params) {
-      make_room_folio(frm);
+      on_checkin(frm);
     });
   },
 
@@ -70,6 +61,9 @@ frappe.ui.form.on("Sales Order", {
     }
  */
     frm.page.set_inner_btn_group_as_primary(__("Create"));
+    frm.page.add_inner_button(__("Frontdesk"), () => {
+      frappe.set_route("ag-report/Frontdesk HMS");
+    });
   },
 
   no_of_nights_cf: function (frm) {
@@ -228,13 +222,28 @@ frappe.ui.form.on("Sales Order", {
   },
 });
 
-function make_room_folio(frm) {
+function on_checkin(frm) {
+  frappe.db
+    .get_value("Room Folio HMS", { reservation: frm.doc.name }, "name")
+    .then((r) => {
+      _make_room_folio(
+        frm,
+        r.message && r.message.name ? r.message.name : null
+      );
+    });
+}
+
+function _make_room_folio(frm, docname) {
+  if (docname) {
+    frappe.set_route("Form", "Room Folio HMS", docname);
+    return;
+  }
   var folio = frappe.model.make_new_doc_and_get_name("Room Folio HMS");
   folio = locals["Room Folio HMS"][folio];
 
   $.extend(folio, {
     reservation: frm.doc.name,
-    check_in: frm.doc.check_in_cf,
+    check_in: frappe.datetime.get_datetime_as_string(),
     check_out: frm.doc.check_out_cf,
     customer: frm.doc.customer,
     company: frm.doc.company,
