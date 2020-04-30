@@ -16,6 +16,8 @@ from hms.hms.doctype.room_status_ledger_entry_hms.room_status_ledger_entry_hms i
 from hms.hms.controllers.reservation import get_room_service_item
 from erpnext.accounts.doctype.journal_entry.journal_entry import get_default_bank_cash_account
 import erpnext
+from six import iteritems, string_types
+from frappe.utils.formatters import format_value
 
 
 class RoomFolioHMS(Document):
@@ -24,7 +26,6 @@ class RoomFolioHMS(Document):
             self.validate_room_reservation()
             self.validate_room_status()
 
-        self.update_charges_and_amounts()
         self.validate_checklist()
         self.validate_duplicate_checkin()
 
@@ -134,20 +135,38 @@ class RoomFolioHMS(Document):
         return self.as_dict()
 
     def validate_room_folio_balance(self):
-        # frappe.db.sql("""
-        #     select debit,  voucher_type, voucher_no,  against_voucher_type, against_voucher, party, against, account, credit, debit
-        #     from `tabGL Entry`
-        #     where creation > '2020-04-27'
-        # """)
-        if False:
-            frappe.throw(
-                _('Balance is not settled in folio {}').format(self.name))
-
-    def get_advances(self):
-        """get unallocated advances by customer in Room Folio account"""
-        pass
+        for d in frappe.db.sql("""
+        select sum(debit) debit, sum(credit) credit, sum(debit-credit) balance
+        from
+        (
+            select sum(tge.debit) debit, 0 credit
+            from `tabGL Entry` tge
+            INNER JOIN `tabSales Invoice` si
+            on tge.voucher_no = si.name
+            and tge.voucher_type='Sales Invoice'
+            and tge.account = 'Room Folio Debtors - SH'
+            where si.room_folio_cf = %s
+            union all
+            -- Credit -
+            select
+            0 debit , sum(tge.credit) credit
+            from `tabGL Entry` tge
+            where
+            tge.account = 'Room Folio Debtors - SH'
+            and against_voucher_type = 'Room Folio HMS'
+            and against_voucher = %s
+        ) t
+        """, (self.name, self.name), as_dict=True):
+            if d['balance']:
+                frappe.throw(
+                    _('Unsettled balance {} exists in folio. Please settle balance before checkout.').format(
+                        format_value(d['balance'], df="Currency")))
 
     def make_folio_advance_entry(self):
+        args = json.loads(frappe.local.form_dict['args'] or "{}")
+        mode_of_payment = args.get('mode_of_payment')
+        amount = flt(args.get('paid_amount', 0))
+
         mode_of_payment = "Cash"
         payment_account = get_default_bank_cash_account(self.company, account_type="Cash",
                                                         mode_of_payment=mode_of_payment)
@@ -156,11 +175,10 @@ class RoomFolioHMS(Document):
         je.voucher_type = 'Journal Entry'
         je.company = self.company
         je.remark = 'Room Folio advance against: ' + self.name
-
         je.append("accounts", {
             "account":  frappe.defaults.get_user_default(
                 'default_folio_receivable_account'),
-            "credit_in_account_currency": flt(self.balance),
+            "credit_in_account_currency": amount,
             "reference_type": self.doctype,
             "reference_name": self.name,
             "party_type": "Customer",
@@ -170,55 +188,42 @@ class RoomFolioHMS(Document):
 
         je.append("accounts", {
             "account": payment_account.account,
-            "debit_in_account_currency": flt(self.balance),
+            "debit_in_account_currency": amount,
             "account_currency": payment_account.account_currency,
             "account_type": payment_account.account_type
         })
 
         je.insert(ignore_permissions=True)
         je.submit()
-        self.save()
-
-    def get_payment_entry(self):
-        pe = frappe.new_doc("Payment Entry")
-        pe.party_type = "Customer"
-        pe.payment_type = "Receive"
-        pe.posting_date = nowdate()
-        pe.company = self.company
-        pe.party = self.customer
-        paid_to = frappe.get_cached_value(
-            'Company',  self.company,  "default_cash_account")
-        pe.paid_to = paid_to
-        pe.paid_amount = self.balance
-        pe.received_amount = self.balance
-        pe.room_folio_cf = self.name
-        #
-        default_desk_account = frappe.defaults.get_user_default(
-            'default_desk_receivable_account')
-
-        # Payment Reconciliation is used to set off invoice-payments at the time of checkout
-        # uncomment below to show invoices to adjust payment against, if above workflow changes
-        # for doc in get_outstanding_invoices("Customer", self.customer, account=default_desk_account):
-        #     pe.append("references", {
-        #         'reference_doctype': doc["voucher_type"],
-        #         'reference_name': doc["voucher_no"],
-        #         "due_date": doc.get("due_date"),
-        #         'total_amount': doc.get('invoice_amount'),
-        #         'outstanding_amount': doc.get('outstanding_amount'),
-        #         'allocated_amount': doc.get('outstanding_amount'),
-        #     })
-
-        pe.setup_party_account_field()
-        pe.set_missing_values()
-        return pe
+        self.update_charges_and_amounts()
+        frappe.msgprint(_("Payment created."), alert=True)
 
     def update_charges_and_amounts(self):
+        total_charges, total_advance_paid = 0, 0
         # set totals from charge purchase and advances
-        charges = frappe.db.sql("""
-        select COALESCE(sum(si.rounded_total),0) from `tabSales Invoice` si where NULLIF(si.room_folio_cf, '') = %s
-        """, (self.name))
-        self.total_charges = charges[0][0] or 0
-        self.balance = flt(self.total_charges) - flt(self.total_advance_paid)
+        for d in frappe.db.sql("""
+        select sum(si.rounded_total)
+        from `tabSales Invoice` si
+        where NULLIF(si.room_folio_cf, '') = %s""", (self.name)):
+            total_charges = d[0]
+
+        for d in frappe.db.sql("""
+        select sum(tge.credit)
+        from `tabGL Entry` tge
+        where
+        tge.account = 'Room Folio Debtors - SH'
+        and against_voucher_type = 'Room Folio HMS'
+        and against_voucher = %s""", (self.name,)):
+            total_advance_paid = d[0]
+
+        if total_charges:
+            self.db_set('total_charges', total_charges, update_modified=False)
+        if total_advance_paid:
+            self.db_set('total_advance_paid', total_advance_paid,
+                        update_modified=False)
+        if total_advance_paid or total_charges:
+            self.db_set('balance',
+                        flt(total_advance_paid)-flt(total_charges), update_modified=False)
 
 
 @frappe.whitelist()
@@ -240,7 +245,7 @@ def make_transfer_jv(**args):
     je.posting_date = today()
     je.remark = f"Transfer of funds for {args.customer}. Folio#: {args.folio}"
 
-    against_voucher, against_voucher_type = "", ""
+    against_voucher, against_voucher_type = None, None
 
     if args.get('transfer_type') == "Transfer to Room":
         debit_account = args.desk_account
@@ -271,11 +276,7 @@ def make_transfer_jv(**args):
     })
     je.insert(ignore_permissions=True)
     je.submit()
-    # update folio total_advance_paid, amounts
-    folio = frappe.get_doc('Room Folio HMS', args.folio)
-    folio.total_advance_paid = folio.total_advance_paid + \
-        flt(args.amount_to_transfer)
-    folio.save()
+    frappe.get_doc("Room Folio HMS", args.folio).update_charges_and_amounts()
 
 
 @frappe.whitelist()
@@ -309,18 +310,33 @@ def get_party_balance(party, company):
 
 @frappe.whitelist()
 def get_nonreconciled_payment_entries(**args):
-    doc = frappe.new_doc('Payment Reconciliation')
-    doc.update(args)
-    doc.get_nonreconciled_payment_entries()
-    return doc.payments or []
+    '''Only JVs against this room folio.
+    Does not consider Payment Entries, other party advances without reference of this room_folio '''
+
+    dr_or_cr = "credit_in_account_currency"
+    journal_entries = frappe.db.sql("""
+        select
+            "Journal Entry" as reference_type, t1.name as reference_name,
+            t1.posting_date, t1.remark as remarks, t2.name as reference_row,
+            {dr_or_cr} as amount, t2.is_advance
+        from
+            `tabJournal Entry` t1, `tabJournal Entry Account` t2
+        where
+            t1.name = t2.parent and t1.docstatus = 1 and t2.docstatus = 1
+            and t2.party_type = %(party_type)s and t2.party = %(party)s
+            and t2.account = %(account)s and {dr_or_cr} > 0
+            and t2.reference_type = 'Room Folio HMS' and t2.reference_name = %(room_folio)s
+        order by t1.posting_date
+        """.format(**{
+        "dr_or_cr": dr_or_cr,
+    }), args, as_dict=1,)
+    return list(journal_entries)
 
 
 folio_checklist = {
     "guest_id": _("Please attach Identification for guest"),
     "advance_amount": _("Please make an advance payment for the folio."),
     "sign_in_sheet": "Please complete Sign In Sheet for guest"
-
-
 }
 
 
@@ -331,14 +347,7 @@ def update_checklist_status(sign_in_sheet=None):
             frappe.get_doc('Room Folio HMS', d[0]).validate_checklist()
 
 
-def update_charges_and_amounts(doc, method):
+def on_submit_sales_invoice(doc, method=None):
     if doc.room_folio_cf:
-        rf = frappe.get_doc("Room Folio HMS", doc.room_folio_cf)
-        if rf.docstatus < 2:
-            rf.save()
-
-
-def on_submit_payment_entry(doc, method):
-    pass
-    # if doc.room_folio_cf and doc.payment_type == 'Receive':
-    #     for d in doc.
+        frappe.get_doc("Room Folio HMS",
+                       doc.room_folio_cf).update_charges_and_amounts()

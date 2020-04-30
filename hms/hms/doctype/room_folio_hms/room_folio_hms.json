@@ -237,7 +237,8 @@
    "label": "Registration Plate No"
   }
  ],
- "modified": "2020-04-28 07:08:25.863871",
+ "is_submittable": 1,
+ "modified": "2020-04-30 15:45:34.074945",
  "modified_by": "Administrator",
  "module": "HMS",
  "name": "Room Folio HMS",

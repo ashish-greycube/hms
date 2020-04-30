@@ -20,7 +20,7 @@ frappe.ui.form.on("Room Folio HMS", {
   },
 
   set_css: function (frm) {
-    let color = frm.doc.balance > 0 ? "mistyrose" : "lightgreen";
+    let color = frm.doc.balance < 0 ? "mistyrose" : "lightgreen";
     frm.fields_dict["balance"].$input.css("background-color", color);
   },
 
@@ -55,7 +55,7 @@ frappe.ui.form.on("Room Folio HMS", {
     );
 
     frm.page.add_inner_button(
-      __("Create Payment"),
+      __("Make Payment"),
       function () {
         frm.events.make_payment_entry(frm);
       },
@@ -85,10 +85,11 @@ frappe.ui.form.on("Room Folio HMS", {
         method:
           "hms.hms.doctype.room_folio_hms.room_folio_hms.get_nonreconciled_payment_entries",
         args: {
+          room_folio: frm.doc.name,
           company: frm.doc.company,
           party_type: "Customer",
           party: frm.doc.customer,
-          receivable_payable_account: frappe.defaults.get_user_default(
+          account: frappe.defaults.get_user_default(
             "default_folio_receivable_account"
           ),
         },
@@ -220,20 +221,47 @@ frappe.ui.form.on("Room Folio HMS", {
       //   d.balances.folio.balance > 0 ? "Dr" : "Cr"
       // );
       d.show();
-      window.d = d;
     });
   },
 
   make_payment_entry: function (frm) {
-    return frappe.call({
-      doc: frm.doc,
-      method: "make_folio_advance_entry",
-      callback: function (r) {
-        if (!r.exc) {
-          frm.refresh();
-        }
+    const fields = [
+      {
+        label: "Mode of Payment",
+        fieldtype: "Link",
+        fieldname: "mode_of_payment",
+        options: "Mode of Payment",
+        reqd: 1,
+      },
+      { fieldtype: "Column Break" },
+      {
+        label: "Paid Amount",
+        fieldtype: "Currency",
+        fieldname: "paid_amount",
+        default: frm.doc.balance < 0 ? 0 - frm.doc.balance : 0,
+        reqd: 1,
+      },
+    ];
+    var dlg = new frappe.ui.Dialog({
+      title: __("Folio Payment"),
+      fields: fields,
+      primary_action: function () {
+        let data = dlg.get_values();
+        return frappe.call({
+          doc: frm.doc,
+          args: data,
+          method: "make_folio_advance_entry",
+          callback: function (r) {
+            if (!r.exc) {
+              dlg.hide();
+              frm.reload_doc();
+            }
+          },
+        });
       },
     });
+    dlg.show();
+
     // return frappe.call({
     //   doc: frm.doc,
     //   method: "get_payment_entry",

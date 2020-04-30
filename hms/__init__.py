@@ -26,7 +26,7 @@ def clear():
             print(f"Deleting {doctype} {d.name}")
             if d.docstatus == 1:
                 frappe.get_doc(doctype, d.name).cancel()
-            frappe.delete_doc(doctype, d.name)
+            frappe.delete_doc(doctype, d.name, force=1)
 
     for d in ["Room Ledger Entry HMS", "Room Status Ledger Entry HMS"]:
         print(f"Deleting {d}")
