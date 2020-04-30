@@ -206,13 +206,28 @@ function show_booking_details() {
       if ($.isEmptyObject(r.message)) {
         return;
       }
-      console.log(r.message);
-
       let info = frappe.render_template(
         "frontdesk_reservation_info",
         r.message
       );
-      frappe.msgprint(info, (title = r.message.customer));
+      let dlg = frappe.confirm(info, () => {});
+      if (r.message.folio) {
+        dlg.set_title(
+          frappe.utils.get_form_link(
+            __("Room Folio HMS"),
+            r.message.folio,
+            true
+          )
+        );
+      } else {
+        dlg.set_title(
+          frappe.utils.get_form_link(
+            __("Sales Order"),
+            r.message.reservation,
+            true
+          )
+        );
+      }
     },
   });
 }
