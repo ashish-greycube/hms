@@ -208,30 +208,43 @@ frappe.ui.form.on("Room Folio HMS", {
       primary_action_label: __("Submit"),
     });
 
-    get_party_balance(frm.doc.company, frm.doc.customer).then((r) => {
-      d.balances = r.message;
-      d.set_values({
-        desk_account_balance: d.balances.desk.balance,
-        folio_account_balance: d.balances.folio.balance,
-      });
+    get_folio_balance(frm.doc.name, frm.doc.company, frm.doc.customer).then(
+      (r) => {
+        d.balances = r.message;
+        d.set_values({
+          desk_account_balance: d.balances.desk.balance,
+          folio_account_balance: d.balances.folio.balance,
+        });
 
-      // d.get_field("desk_account_balance").disp_area.innerText +=
-      //   d.balances.desk.balance > 0 ? " Dr" : " Cr";
-      // d.get_field("folio_account_balance").set_description(
-      //   d.balances.folio.balance > 0 ? "Dr" : "Cr"
-      // );
-      d.show();
-    });
+        d.show();
+      }
+    );
   },
 
   make_payment_entry: function (frm) {
     const fields = [
       {
+        label: "Payment Type",
+        fieldtype: "Select",
+        fieldname: "payment_type",
+        options: "Receive\nPay",
+        default: "Receive",
+        reqd: 1,
+      },
+      { fieldtype: "Column Break" },
+      { fieldtype: "Section Break", label: "Amount" },
+      {
         label: "Mode of Payment",
         fieldtype: "Link",
         fieldname: "mode_of_payment",
         options: "Mode of Payment",
+        default: "Cash",
         reqd: 1,
+      },
+      {
+        label: "Cheque/Reference No",
+        fieldtype: "Data",
+        fieldname: "reference_no",
       },
       { fieldtype: "Column Break" },
       {
@@ -241,12 +254,27 @@ frappe.ui.form.on("Room Folio HMS", {
         default: frm.doc.balance < 0 ? 0 - frm.doc.balance : 0,
         reqd: 1,
       },
+      {
+        label: "Cheque/Reference Date",
+        fieldtype: "Date",
+        fieldname: "reference_date",
+      },
     ];
     var dlg = new frappe.ui.Dialog({
       title: __("Folio Payment"),
       fields: fields,
       primary_action: function () {
         let data = dlg.get_values();
+
+        if (data.mode_of_payment != "Cash") {
+          if (!data.reference_no || !data.reference_date) {
+            frappe.throw(
+              `Reference number, date required for ${data.mode_of_payment} payment.`
+            );
+            return;
+          }
+        }
+
         return frappe.call({
           doc: frm.doc,
           args: data,
@@ -330,10 +358,11 @@ frappe.ui.form.on("Room Folio HMS", {
   //
 });
 
-function get_party_balance(company, party) {
+function get_folio_balance(folio, company, party) {
   return frappe.call({
-    method: "hms.hms.doctype.room_folio_hms.room_folio_hms.get_party_balance",
+    method: "hms.hms.doctype.room_folio_hms.room_folio_hms.get_folio_balance",
     args: {
+      folio: folio,
       company: company,
       party: party,
     },

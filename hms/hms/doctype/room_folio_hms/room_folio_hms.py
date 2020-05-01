@@ -166,15 +166,16 @@ class RoomFolioHMS(Document):
         args = json.loads(frappe.local.form_dict['args'] or "{}")
         mode_of_payment = args.get('mode_of_payment')
         amount = flt(args.get('paid_amount', 0))
-
-        mode_of_payment = "Cash"
-        payment_account = get_default_bank_cash_account(self.company, account_type="Cash",
-                                                        mode_of_payment=mode_of_payment)
+        payment_account = get_default_bank_cash_account(
+            self.company, mode_of_payment=mode_of_payment)
         je = frappe.new_doc("Journal Entry")
         je.posting_date = nowdate()
         je.voucher_type = 'Journal Entry'
         je.company = self.company
         je.remark = 'Room Folio advance against: ' + self.name
+        if not mode_of_payment == "Cash":
+            je.cheque_no = args.get('reference_no')
+            je.cheque_date = args.get('reference_date')
         je.append("accounts", {
             "account":  frappe.defaults.get_user_default(
                 'default_folio_receivable_account'),
@@ -250,11 +251,12 @@ def make_transfer_jv(**args):
     if args.get('transfer_type') == "Transfer to Room":
         debit_account = args.desk_account
         credit_account = args.folio_account
-        against_voucher = args.folio
-        against_voucher_type = 'Room Folio HMS'
     else:
         credit_account = args.desk_account
         debit_account = args.folio_account
+
+    against_voucher = args.folio
+    against_voucher_type = 'Room Folio HMS'
 
     je.append("accounts", {
         "account":  credit_account,
@@ -280,30 +282,40 @@ def make_transfer_jv(**args):
 
 
 @frappe.whitelist()
-def get_party_balance(party, company):
+def get_folio_balance(party, company=None, folio=None):
     from erpnext.accounts.utils import get_balance_on
     default_desk_account = frappe.defaults.get_user_default(
         'default_desk_receivable_account')
     default_folio_account = frappe.defaults.get_user_default(
         'default_folio_receivable_account')
 
-    balance = dict()
+    company = company or erpnext.get_default_company()
+    folio_balance, balance = None, dict()
 
+    if folio:
+        for d in frappe.db.sql("""
+        select sum(debit - credit) balance
+        from `tabGL Entry`
+        where company = %(company)s
+        and against_voucher_type = 'Room Folio HMS'
+        and account = %(account)s
+        and party =%(party)s
+        and against_voucher = %(voucher)s""",
+                               dict(account=default_folio_account,
+                                    company=company, voucher=folio, party=party)):
+            folio_balance = d[0]
+
+    balance["folio"] = {
+        'account': default_folio_account,
+        'balance': flt(folio_balance)
+    }
     balance["desk"] = {
         'account': default_desk_account,
         'balance': get_balance_on(account=default_desk_account, date=today(),
                                   party_type="Customer", party=party,
                                   ignore_account_permission=True,
-                                  company=erpnext.get_default_company(), ),
+                                  company=company),
     }
-    balance["folio"] = {
-        'account': default_folio_account,
-        'balance': get_balance_on(account=default_folio_account, date=today(),
-                                  party_type="Customer", party=party,
-                                  ignore_account_permission=True,
-                                  company=erpnext.get_default_company(), )
-    }
-
     print(balance, "balance")
     return balance
 
