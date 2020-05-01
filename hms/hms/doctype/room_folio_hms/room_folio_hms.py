@@ -166,8 +166,6 @@ class RoomFolioHMS(Document):
         args = json.loads(frappe.local.form_dict['args'] or "{}")
         mode_of_payment = args.get('mode_of_payment')
         amount = flt(args.get('paid_amount', 0))
-        payment_account = get_default_bank_cash_account(
-            self.company, mode_of_payment=mode_of_payment)
         je = frappe.new_doc("Journal Entry")
         je.posting_date = nowdate()
         je.voucher_type = 'Journal Entry'
@@ -176,23 +174,46 @@ class RoomFolioHMS(Document):
         if not mode_of_payment == "Cash":
             je.cheque_no = args.get('reference_no')
             je.cheque_date = args.get('reference_date')
-        je.append("accounts", {
-            "account":  frappe.defaults.get_user_default(
-                'default_folio_receivable_account'),
-            "credit_in_account_currency": amount,
-            "reference_type": self.doctype,
-            "reference_name": self.name,
-            "party_type": "Customer",
-            "party": self.customer,
-            "is_advance": "Yes"
-        })
 
-        je.append("accounts", {
-            "account": payment_account.account,
-            "debit_in_account_currency": amount,
-            "account_currency": payment_account.account_currency,
-            "account_type": payment_account.account_type
-        })
+        cash_bank_account = get_default_bank_cash_account(
+            self.company, mode_of_payment=mode_of_payment)
+
+        folio_account = frappe.defaults.get_user_default(
+            'default_folio_receivable_account')
+
+        if args.get('payment_type') == "Receive":
+            je.append("accounts", {
+                "account":  folio_account,
+                "party_type": "Customer",
+                "party": self.customer,
+                "reference_type": self.doctype,
+                "reference_name": self.name,
+                "is_advance": "Yes",
+                "credit_in_account_currency": amount,
+            })
+
+            je.append("accounts", {
+                "account": cash_bank_account.account,
+                "account_currency": cash_bank_account.account_currency,
+                "account_type": cash_bank_account.account_type,
+                "debit_in_account_currency": amount,
+            })
+        else:
+            je.append("accounts", {
+                "account":  cash_bank_account.account,
+                "account_currency": cash_bank_account.account_currency,
+                "account_type": cash_bank_account.account_type,
+                "credit_in_account_currency": amount,
+            })
+
+            je.append("accounts", {
+                "account": folio_account,
+                "party_type": "Customer",
+                "party": self.customer,
+                "reference_type": self.doctype,
+                "reference_name": self.name,
+                "debit_in_account_currency": amount,
+            })
 
         je.insert(ignore_permissions=True)
         je.submit()
@@ -209,7 +230,7 @@ class RoomFolioHMS(Document):
             total_charges = d[0]
 
         for d in frappe.db.sql("""
-        select sum(tge.credit)
+        select 0 - sum(tge.debit-tge.credit)
         from `tabGL Entry` tge
         where
         tge.account = 'Room Folio Debtors - SH'
@@ -276,6 +297,7 @@ def make_transfer_jv(**args):
         'debit_in_account_currency': flt(args.amount_to_transfer),
         'credit_in_account_currency': 0
     })
+
     je.insert(ignore_permissions=True)
     je.submit()
     frappe.get_doc("Room Folio HMS", args.folio).update_charges_and_amounts()

@@ -266,6 +266,9 @@ frappe.ui.form.on("Room Folio HMS", {
       primary_action: function () {
         let data = dlg.get_values();
 
+        if (data.paid_amount < 0) {
+          frappe.throw(`Amount cannot be less than 0.`);
+        }
         if (data.mode_of_payment != "Cash") {
           if (!data.reference_no || !data.reference_date) {
             frappe.throw(
