@@ -23,20 +23,19 @@
   "room_folio_split_bill_detail",
   "guest_details_section",
   "room_guest_detail",
+  "vi_sb",
+  "car_make_model",
+  "vi_s_cb1",
+  "registration_plate_no",
   "advance_payment_section",
   "room_folio_advance",
   "charge_purchase_section",
   "sales_invoice_reference",
   "finance_summary_section",
-  "column_break_19",
   "total_advance_paid",
   "total_charges",
   "balance",
   "amended_from",
-  "vi_sb",
-  "car_make_model",
-  "vi_s_cb1",
-  "registration_plate_no",
   "is_checklist_done"
  ],
  "fields": [
@@ -151,10 +150,6 @@
    "label": "Finance Summary"
   },
   {
-   "fieldname": "column_break_19",
-   "fieldtype": "Column Break"
-  },
-  {
    "fieldname": "total_advance_paid",
    "fieldtype": "Currency",
    "label": "Total Advance Paid"
@@ -218,6 +213,7 @@
    "read_only": 1
   },
   {
+   "collapsible": 1,
    "fieldname": "vi_sb",
    "fieldtype": "Section Break",
    "label": "Vehicle Information"
@@ -238,7 +234,7 @@
   }
  ],
  "is_submittable": 1,
- "modified": "2020-04-30 15:45:34.074945",
+ "modified": "2020-05-01 06:42:16.077289",
  "modified_by": "Administrator",
  "module": "HMS",
  "name": "Room Folio HMS",
