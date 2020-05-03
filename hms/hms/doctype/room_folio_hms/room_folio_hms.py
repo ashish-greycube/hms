@@ -244,7 +244,7 @@ class RoomFolioHMS(Document):
         inner join `tabGL Entry` t2 on t2.against_voucher_type = 'Sales Invoice' and t2.against_voucher = t1.name
         where room_folio_cf = %s and voucher_type <> 'Sales Invoice'
         """, (self.name, self.name)):
-            total_advance_paid += d[0]
+            total_advance_paid += flt(d[0])
 
         total_charges = total_charges or 0
         total_advance_paid = total_advance_paid or 0
