@@ -5,7 +5,7 @@
         {%- if not doc.get("print_heading") and not doc.get("select_print_heading") 
         and doc.set("select_print_heading", _("Sign In Form")) -%}{%- endif -%}
         {{ doc.set("sub_heading", doc.name) or ""}}
-        {{ add_header(0, 1, doc, letter_head, no_letterhead) }}
+        {{ add_header(0, 1, doc, letter_head, no_letterhead, print_settings = {"add_draft_heading" : 0}) }}
     </div>
 </div>
 <style type="text/css">

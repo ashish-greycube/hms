@@ -191,8 +191,8 @@ class RoomFolioHMS(Document):
                 "account": folio_account,
                 "party_type": "Customer",
                 "party": self.customer,
-                "reference_type": self.doctype,
-                "reference_name": self.name,
+                # "reference_type": self.doctype,
+                # "reference_name": self.name,
                 "debit_in_account_currency": amount,
             })
 
