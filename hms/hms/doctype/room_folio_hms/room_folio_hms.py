@@ -127,6 +127,7 @@ class RoomFolioHMS(Document):
         return out.name
 
     def make_check_out(self):
+        self.update_charges_and_amounts()
         self.validate_room_folio_balance()
         self.status = "Checked Out"
         self.save()
@@ -136,32 +137,10 @@ class RoomFolioHMS(Document):
         return self.as_dict()
 
     def validate_room_folio_balance(self):
-        for d in frappe.db.sql("""
-        select sum(debit) debit, sum(credit) credit, sum(debit-credit) balance
-        from
-        (
-            select sum(tge.debit) debit, 0 credit
-            from `tabGL Entry` tge
-            INNER JOIN `tabSales Invoice` si
-            on tge.voucher_no = si.name
-            and tge.voucher_type='Sales Invoice'
-            and tge.account = 'Room Folio Debtors - SH'
-            where si.room_folio_cf = %s
-            union all
-            -- Credit -
-            select
-            0 debit , sum(tge.credit) credit
-            from `tabGL Entry` tge
-            where
-            tge.account = 'Room Folio Debtors - SH'
-            and against_voucher_type = 'Room Folio HMS'
-            and against_voucher = %s
-        ) t
-        """, (self.name, self.name), as_dict=True):
-            if d['balance']:
-                frappe.throw(
-                    _('Unsettled balance {} exists in folio. Please settle balance before checkout.').format(
-                        format_value(d['balance'], df="Currency")))
+        if not self.balance == 0:
+            frappe.throw(
+                _('Unsettled balance {} exists in folio. Please settle balance before checkout.').format(
+                    format_value(self.balance, df="Currency")))
 
     def make_folio_advance_entry(self):
         args = json.loads(frappe.local.form_dict['args'] or "{}")
