@@ -28,6 +28,7 @@ class RoomFolioHMS(Document):
 
         self.validate_checklist()
         self.validate_duplicate_checkin()
+        self.update_charges_and_amounts()
 
     def validate_duplicate_checkin(self):
         for d in frappe.db.sql("""select name from `tabRoom Folio HMS`
@@ -236,8 +237,14 @@ class RoomFolioHMS(Document):
         where
         tge.account = 'Room Folio Debtors - SH'
         and against_voucher_type = 'Room Folio HMS'
-        and against_voucher = %s""", (self.name,)):
-            total_advance_paid = d[0]
+        and against_voucher = %s
+        union all
+        select 0-sum(debit-credit) 
+        from `tabSales Invoice` t1
+        inner join `tabGL Entry` t2 on t2.against_voucher_type = 'Sales Invoice' and t2.against_voucher = t1.name
+        where room_folio_cf = %s and voucher_type <> 'Sales Invoice'
+        """, (self.name, self.name)):
+            total_advance_paid += d[0]
 
         total_charges = total_charges or 0
         total_advance_paid = total_advance_paid or 0

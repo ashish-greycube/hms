@@ -79,7 +79,7 @@ def make_sign_in_sheet(room_folio, no_letterhead=False):
     `tabJournal Entry` t1 inner join `tabJournal Entry Account` t2 on t2.parent = t1.name 
     and t2.reference_type = 'Room Folio HMS' and t1.mode_of_payment is not null
     where reference_name = %s
-    limit 1
+    limit 1 
     """, (folio.reservation, folio.name)):
         print_context.setdefault('mode_of_payment', d[0])
 

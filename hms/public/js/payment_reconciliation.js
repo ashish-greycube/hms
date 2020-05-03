@@ -52,12 +52,13 @@ frappe.ui.form.on("Payment Reconciliation", {
   },
 
   refresh: function (frm) {
-    frm.doc.company = "Sun Hotel";
-    frm.doc.party_type = "Customer";
-    frm.doc.party = "Tata Airlines";
-    frm.doc.receivable_payable_account = "Room Folio Debtors - SH";
-    frm.refresh_fields();
+    frm.set_value(
+      "receivable_payable_account",
+      frappe.user_defaults.default_folio_receivable_account
+    );
+    frm.set_value("company", frappe.user_defaults.company);
+    frm.set_value("party_type", "Customer");
+    // frm.refresh_fields();
   },
 });
-
  */
