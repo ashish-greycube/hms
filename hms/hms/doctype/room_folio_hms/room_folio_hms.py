@@ -168,6 +168,7 @@ class RoomFolioHMS(Document):
         amount = flt(args.get('paid_amount', 0))
         je = frappe.new_doc("Journal Entry")
         je.posting_date = nowdate()
+        je.mode_of_payment = mode_of_payment
         je.voucher_type = 'Journal Entry'
         je.company = self.company
         je.remark = 'Room Folio advance against: ' + self.name

@@ -4,6 +4,7 @@
     <div class="page-break">
         {%- if not doc.get("print_heading") and not doc.get("select_print_heading") 
         and doc.set("select_print_heading", _("Sign In Form")) -%}{%- endif -%}
+        {{ doc.set("sub_heading", doc.name) or ""}}
         {{ add_header(0, 1, doc, letter_head, no_letterhead) }}
     </div>
 </div>
@@ -77,10 +78,10 @@
         <td class="tg-0lax">Adults/Child</td>
     </tr>
     <tr>
-        <td class="tg-0lax" colspan="4">{doc.guest_full_name}</td>
+        <td class="tg-0lax" colspan="4">{{ctx.guest_full_name}}</td>
         <td class="tg-0lax">{{doc.check_in}}</td>
         <td class="tg-0lax">{{doc.check_out}}</td>
-        <td class="tg-0lax">{doc.total_guest}</td>
+        <td class="tg-0lax">{{ctx.total_guest}}</td>
     </tr>
     <tr>
         <td class="tg-0lax" colspan="4">Address :</td>
@@ -89,9 +90,9 @@
         <td class="tg-0lax">Tax Exempt</td>
     </tr>
     <tr>
-        <td class="tg-0lax" colspan="4" rowspan="3">{doc.guest_address_display}</td>
-        <td class="tg-0lax">{doc.total_amount_weekdays}</td>
-        <td class="tg-0lax">{doc.total_amount_weekends}</td>
+        <td class="tg-0lax" colspan="4" rowspan="3">{{ctx.guest_address_display}}</td>
+        <td class="tg-0lax">{{ctx.total_amount_weekdays}}</td>
+        <td class="tg-0lax">{{ctx.total_amount_weekends}}</td>
         <td class="tg-0lax">NO</td>
     </tr>
     <tr>
@@ -112,51 +113,52 @@
         <td class="tg-0lax" colspan="2">Plate</td>
         <td class="tg-0lax"></td>
         <td class="tg-0lax">Total Room:</td>
-        <td class="tg-0lax">{doc.total_room_charges}</td>
+        <td class="tg-0lax">{{ctx.total_room_charges}}</td>
     </tr>
     <tr>
-        <td class="tg-0lax" colspan="3">{{doc.car_make_model}}</td>
-        <td class="tg-0lax" colspan="2">{{doc.registration_plate_no}}</td>
+        <td class="tg-0lax" colspan="3">{{doc.car_make_model or "" }}</td>
+        <td class="tg-0lax" colspan="2">{{doc.registration_plate_no or ""}}</td>
         <td class="tg-0lax"></td>
         <td class="tg-0lax">Other Charges:</td>
-        <td class="tg-0lax">{doc.total_other_charges}</td>
+        <td class="tg-0lax">{{ctx.total_other_charges}}</td>
     </tr>
     <tr>
         <td class="tg-0lax" colspan="5">Payment Information</td>
         <td class="tg-0lax"></td>
         <td class="tg-0lax">Total Tax:</td>
-        <td class="tg-0lax">{doc.total_taxes_and_charges}</td>
+        <td class="tg-0lax">{{ctx.total_taxes_and_charges}}</td>
     </tr>
     {% if frappe.utils.cint(doc.discount_amount) %}
     <tr>
         <td class="tg-0lax" colspan="5">Cash/Bank Transfer/Credit</td>
         <td class="tg-0lax"></td>
         <td class="tg-0lax">Total Discount:</td>
-        <td class="tg-0lax">{doc.discount_amount}</td>
+        <td class="tg-0lax">{{ctx.discount_amount}}</td>
     </tr>
     {% endif %}
     <tr>
-        <td class="tg-0lax" colspan="5">{% if not frappe.utils.cint(doc.discount_amount) %} {doc.mode_of_payment}
+        <td class="tg-0lax" colspan="5">{% if not frappe.utils.cint(doc.discount_amount) %}
+            {{ctx.get("mode_of_payment") or ""}}
             {% endif %}</td>
         <td class="tg-0lax"></td>
         <td class="tg-0lax">Total Stay:</td>
-        <td class="tg-0lax">{doc.total_charges}</td>
+        <td class="tg-0lax">{{ctx.total_charges}}</td>
     </tr>
     <tr>
         <td class="tg-0lax" colspan="3">Email Addresses:</td>
         <td class="tg-0lax" colspan="2">Phone No</td>
         <td class="tg-0lax"></td>
         <td class="tg-0lax">Payments:</td>
-        <td class="tg-0lax">{doc.total_advance_paid}</td>
+        <td class="tg-0lax">{{ctx.total_advance_paid}}</td>
     </tr>
     <tr>
-        <td class="tg-0lax" colspan="3">{doc.guest_email}</td>
-        <td class="tg-0lax" colspan="2">{doc.guest_mobile}</td>
+        <td class="tg-0lax" colspan="3">{{ctx.guest_email}}</td>
+        <td class="tg-0lax" colspan="2">{{ctx.guest_mobile}}</td>
         <td class="tg-0lax"></td>
         <td class="tg-0lax"><span style="font-weight:bold">Balance Due:</span></td>
-        <td class="tg-0lax">{doc.balance}</td>
+        <td class="tg-0lax">{{ctx.balance}}</td>
     </tr>
 </table>
 <div>
-    {doc.terms}
+    {{ctx.terms}}
 </div>
