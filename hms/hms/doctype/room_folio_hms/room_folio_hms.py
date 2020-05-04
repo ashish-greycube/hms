@@ -151,7 +151,6 @@ class RoomFolioHMS(Document):
         je.mode_of_payment = mode_of_payment
         je.voucher_type = 'Journal Entry'
         je.company = self.company
-        je.remark = 'Room Folio advance against: ' + self.name
         if not mode_of_payment == "Cash":
             je.cheque_no = args.get('reference_no')
             je.cheque_date = args.get('reference_date')
@@ -163,6 +162,7 @@ class RoomFolioHMS(Document):
             'default_folio_receivable_account')
 
         if args.get('payment_type') == "Receive":
+            je.remark = 'Room Folio advance against: ' + self.name
             je.append("accounts", {
                 "account":  folio_account,
                 "party_type": "Customer",
@@ -180,6 +180,7 @@ class RoomFolioHMS(Document):
                 "debit_in_account_currency": amount,
             })
         else:
+            je.remark = 'Room Folio refund against: ' + self.name
             je.append("accounts", {
                 "account":  cash_bank_account.account,
                 "account_currency": cash_bank_account.account_currency,
@@ -209,20 +210,21 @@ class RoomFolioHMS(Document):
         from `tabSales Invoice` si
         where NULLIF(si.room_folio_cf, '') = %s""", (self.name)):
             total_charges = d[0]
-
+        remarks = "Room Folio refund against: %s" % self.name
         for d in frappe.db.sql("""
         select 0 - sum(tge.debit-tge.credit)
         from `tabGL Entry` tge
         where
         tge.account = 'Room Folio Debtors - SH'
-        and against_voucher_type = 'Room Folio HMS'
-        and against_voucher = %s
+        and 
+        ((against_voucher_type = 'Room Folio HMS' and against_voucher = %s) or
+        (remarks = %s))
         union all
         select 0-sum(debit-credit) 
         from `tabSales Invoice` t1
         inner join `tabGL Entry` t2 on t2.against_voucher_type = 'Sales Invoice' and t2.against_voucher = t1.name
         where room_folio_cf = %s and voucher_type <> 'Sales Invoice'
-        """, (self.name, self.name)):
+        """, (self.name, remarks, self.name,),):
             total_advance_paid += flt(d[0])
 
         total_charges = total_charges or 0
