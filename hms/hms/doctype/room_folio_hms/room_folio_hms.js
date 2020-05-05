@@ -25,6 +25,14 @@ frappe.ui.form.on("Room Folio HMS", {
   },
 
   add_custom_buttons: function (frm) {
+    frm.page.add_inner_button(__("Frontdesk"), () => {
+      frappe.set_route("ag-report/Frontdesk HMS");
+    });
+
+    if (frm.is_new()) {
+      return;
+    }
+
     if (frm.doc.status == "Pre-Check In" && frm.doc.is_checklist_done) {
       frm.page.add_inner_button(
         __("Check In"),
@@ -62,7 +70,7 @@ frappe.ui.form.on("Room Folio HMS", {
       __("Actions")
     );
 
-    if (true || frm.doc.status == "Checked In") {
+    if (frm.doc.status == "Checked In") {
       frm.page.add_inner_button(
         __("Check Out"),
         function () {
@@ -71,10 +79,6 @@ frappe.ui.form.on("Room Folio HMS", {
         __("Actions")
       );
     }
-
-    frm.page.add_inner_button(__("Frontdesk"), () => {
-      frappe.set_route("ag-report/Frontdesk HMS");
-    });
 
     frm.page.set_inner_btn_group_as_primary(__("Actions"));
   },

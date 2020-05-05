@@ -11,7 +11,6 @@ from frappe.utils import (nowdate, flt, cint, today,
 from erpnext.accounts.party import get_party_account, get_party_bank_account
 from erpnext.accounts.utils import get_outstanding_invoices
 import json
-from hms.hms.doctype.room_ledger_entry_hms.room_ledger_entry_hms import make_room_ledger_entry
 from hms.hms.doctype.room_status_ledger_entry_hms.room_status_ledger_entry_hms import update_room_status_ledger
 from hms.hms.controllers.reservation import get_room_service_item
 from erpnext.accounts.doctype.journal_entry.journal_entry import get_default_bank_cash_account
@@ -37,6 +36,15 @@ class RoomFolioHMS(Document):
             so_link = get_link_to_form("Sales Order", self.reservation)
             frappe.throw(_("Room Folio {} already created for reservation {}.").format(
                 rf_link, so_link))
+        for d in frappe.db.sql("""
+        select name 
+        from `tabRoom Folio HMS`
+        where name <> %s 
+        and status <> 'Checked Out'
+        and not (check_in >= %s or check_out <= %s)
+        limit 1""", (self.name, self.check_out, self.check_in)):
+            frappe.throw(_("Room Folio dates overlap with existing room folio {}.").format(
+                get_link_to_form("Room Folio HMS", d[0])))
 
     def make_sign_in_sheet(self):
         from hms.hms.doctype.sign_in_sheet_hms.sign_in_sheet_hms import make_sign_in_sheet
@@ -92,8 +100,6 @@ class RoomFolioHMS(Document):
 
     def after_insert(self):
         "check in"
-        make_room_ledger_entry(date=self.check_in, room_no=self.room_no, reference_type=self.doctype,
-                               reference_name=self.name, entry_type="Room Folio Check In")
         update_room_status_ledger(self.as_dict(), action="check_in")
         self.create_charge_purchase(self.check_in)
 
@@ -131,8 +137,6 @@ class RoomFolioHMS(Document):
         self.validate_room_folio_balance()
         self.status = "Checked Out"
         self.save()
-        make_room_ledger_entry(date=self.check_out, room_no=self.room_no, reference_type=self.doctype,
-                               reference_name=self.name, entry_type="Room Folio Check Out")
         update_room_status_ledger(self.as_dict(), action="check_out")
         return self.as_dict()
 

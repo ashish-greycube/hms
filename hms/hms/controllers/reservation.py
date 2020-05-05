@@ -12,48 +12,32 @@ import erpnext
 
 
 def validate_sales_order(doc, method):
+    validate_availability(doc.check_in_cf, doc.check_out_cf, doc.room_no_cf)
     messages = []
-    for d in frappe.db.sql("""
-select led.date, reference_type, reference_name
-from
-(
-    select ROW_NUMBER() over (PARTITION BY date ORDER BY creation desc) rn,
-    reference_type, reference_name, date, entry_type
-    from `tabRoom Ledger Entry HMS`
-    where room_no = %s and entry_type <> 'Room Folio Check Out'
-) led where led.rn = 1 and led.date >= %s  and led.date < %s""",
-                           (doc.room_no_cf, doc.check_in_cf, doc.check_out_cf), as_dict=True,):
-        doctype = 'Reservation' if d.reference_type == 'Sales Order' else d.reference_type
-        messages.append(_("Reservation conflicts with {} on {}")
-                        .format(get_link_to_form(d.reference_type, d.reference_name), frappe.bold(formatdate(d.date))))
     if not doc.guest_cf:
-        messages.append("Please select guest for Reservation.")
-    if messages:
-        frappe.throw(
-            "<ol>{}</ol>".format("".join([f"<li>d</li>" for d in messages])))
+        frappe.throw(_("Please select guest for Reservation."))
 
 
-def on_submit_sales_order(doc, method):
-    from hms.hms.doctype.room_ledger_entry_hms.room_ledger_entry_hms import make_room_ledger_entry
-    for d in [add_days(doc.check_in_cf, _)
-              for _ in range(0, cint(doc.no_of_nights_cf))]:
-        make_room_ledger_entry(date=d, room_no=doc.room_no_cf, reference_type=doc.doctype,
-                               reference_name=doc.name, entry_type="Reservation")
+def validate_availability(check_in, check_out, room_no):
+    # If ( NOT (EndA <= StartB or StartA >= EndB) ; “Overlap”)
+    args = dict(check_in=check_in, check_out=check_out, room_no=room_no)
 
-
-def on_update_after_submit_sales_order(doc, method):
-    frappe.db.sql(
-        """update `tabRoom Ledger HMS` set status = 'Cancelled'
-        where parent = %s and parenttype='Sales Order'""", (doc.name,))
-    add_room_ledger_entry(doc)
-
-
-def on_cancel_sales_order(doc, method):
-    frappe.db.sql("""
-    update `tabRoom Ledger Entry HMS`
-    set status = 'Cancelled'
-    where parent = %s and parenttype='Sales Order'
-    """, (doc.name,))
+    for d in frappe.db.sql("""
+    select 'Reservation' doctype, 'Sales Order' ref_type, t.name, check_in_cf check_in, check_out_cf check_out
+    from `tabSales Order` t 
+    where t.docstatus = 1 and room_no_cf = %(room_no)s
+    and not exists (select 1 from `tabRoom Folio HMS` where reservation = t.name)
+    and not (t.check_out_cf <= %(check_in)s or t.check_in_cf >= %(check_out)s)
+    union all 
+    select 'Room Folio', 'Room Folio', t.name, t.check_in, t.check_out
+    from `tabRoom Folio HMS` t
+    where t.docstatus <> 2 and t.room_no = %(room_no)s
+    and (t.status = 'Checked In' or t.status = 'Pre-Check In')
+    and not (t.check_out <= %(check_in)s or t.check_in >= %(check_out)s)
+    """, args, as_dict=True):
+        frappe.throw(_("{0} {1} already exists for dates {2} to {3}").format(
+            d['doctype'], get_link_to_form(d['ref_type'], d['name']),
+            frappe.bold(formatdate(d['check_in'])), frappe.bold(formatdate(d['check_out'],))))
 
 
 @frappe.whitelist()
