@@ -62,7 +62,9 @@ frappe.ui.form.on("Sales Order", {
  */
     frm.page.set_inner_btn_group_as_primary(__("Create"));
     frm.page.add_inner_button(__("Frontdesk"), () => {
-      frappe.set_route("ag-report/Frontdesk HMS");
+      // frappe.set_route("ag-report/Frontdesk HMS");
+      debugger;
+      frappe.set_route("ag-report", "Frontdesk HMS");
     });
   },
 
@@ -116,7 +118,6 @@ frappe.ui.form.on("Sales Order", {
   },
 
   weekend_rate_cf: function (frm) {
-    debugger;
     frm.doc.items.forEach((item) => {
       if (item.is_holiday_cf == 1 || item.is_weekend_cf == 1) {
         frappe.model.set_value(
@@ -174,7 +175,6 @@ frappe.ui.form.on("Sales Order", {
   },
 
   _room_no_cf: function (frm) {
-    debugger;
     frm.set_value("items", []);
     if (
       frm.doc.room_no_cf &&

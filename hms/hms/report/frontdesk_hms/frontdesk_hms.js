@@ -9,7 +9,10 @@ frappe.query_reports["Frontdesk HMS"] = {
       label: __("From Date"),
       fieldtype: "Date",
       default: frappe.datetime.add_days(frappe.datetime.get_today(), -1),
-
+      onchange: function (me) {
+        debugger;
+        me.refresh();
+      },
       reqd: 1,
     },
     {
@@ -51,6 +54,23 @@ frappe.query_reports["Frontdesk HMS"] = {
     frappe.set_redirect_to_ag_report();
     add_shortcuts();
     report.page.clear_menu();
+    this.set_cached_filters(report);
+    report.get_filter("from_date").datepicker.update("onSelect", function () {
+      let filters = report.get_filter_values();
+      if (filters.to_date < filters.from_date) {
+        report.set_filter_value(
+          "to_date",
+          frappe.datetime.add_days(filters.from_date, 10)
+        );
+      } else {
+        report.refresh();
+      }
+    });
+  },
+
+  set_cached_filters(report) {
+    let f = frappe.query_reports[report.report_name].cached_filters;
+    if (f) frappe.ag_report.set_filters(f);
   },
 
   update_footer() {
@@ -240,6 +260,16 @@ const legend = `
         <li><span class="hms-in-house"></span> In House</li>
         <li><span class="hms-gtd-reservation"></span>Deposit Reservation</li>
         <li><span class="hms-ngtd-reservation"></span>NGTD Reservation</li>
+    </ul>
+  </div>
+</div>
+<div class="row">
+  <div class="col-md-12">
+    <ul class="legend">
+        <li class="title">  Days Header </li>
+        <li><span class="ag-header-today"></span> Today</li>
+        <li><span class="ag-header-weekend"></span> Weekend</li>
+        <li><span class="ag-header-holiday"></span> Holiday</li>
     </ul>
   </div>
 </div>
