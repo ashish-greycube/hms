@@ -129,7 +129,13 @@ left outer join tabContact con on con.name = coalesce(gd.guest, b.guest,'')
 where d.date = %(date)s and r.name = %(room_no)s
 order by d.date, r.room_type, r.room_no
     """, dict(date=date, room_no=room_no), as_dict=True, debug=0)
-    return data and data[0] or {}
+    details = data and data[0] or {}
+    if details:
+        from frappe.contacts.doctype.contact.contact import get_contact_details, get_default_contact
+        details["guest"] = get_contact_details(details['guest'])[
+            'contact_display']
+
+    return details
 
 
 @frappe.whitelist()

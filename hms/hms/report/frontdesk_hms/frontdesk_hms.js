@@ -230,24 +230,23 @@ function show_booking_details() {
         "frontdesk_reservation_info",
         r.message
       );
-      let dlg = frappe.confirm(info, () => {});
+      let title = "";
       if (r.message.folio) {
-        dlg.set_title(
-          frappe.utils.get_form_link(
-            __("Room Folio HMS"),
-            r.message.folio,
-            true
-          )
+        let link = frappe.utils.get_form_link(
+          __("Room Folio HMS"),
+          r.message.folio,
+          true
         );
+        title = `Room Folio#: ${link}`;
       } else {
-        dlg.set_title(
-          frappe.utils.get_form_link(
-            __("Sales Order"),
-            r.message.reservation,
-            true
-          )
+        let link = frappe.utils.get_form_link(
+          __("Sales Order"),
+          r.message.reservation,
+          true
         );
+        title = `Reservation#: ${link}`;
       }
+      frappe.msgprint(info, title);
     },
   });
 }
