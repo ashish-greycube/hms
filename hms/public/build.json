@@ -1,5 +1,6 @@
 {
   "js/hms.min.js": [
+    "public/js/customer_quick_entry.js",
     "public/js/common.js",
     "public/js/templates/frontdesk_reservation_info.html"
   ]

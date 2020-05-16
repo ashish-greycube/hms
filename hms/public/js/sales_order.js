@@ -62,8 +62,6 @@ frappe.ui.form.on("Sales Order", {
  */
     frm.page.set_inner_btn_group_as_primary(__("Create"));
     frm.page.add_inner_button(__("Frontdesk"), () => {
-      // frappe.set_route("ag-report/Frontdesk HMS");
-      debugger;
       frappe.set_route("ag-report", "Frontdesk HMS");
     });
   },

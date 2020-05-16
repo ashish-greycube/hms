@@ -21,7 +21,9 @@ frappe.ui.form.on("Room Folio HMS", {
 
   set_css: function (frm) {
     let color = frm.doc.balance < 0 ? "mistyrose" : "lightgreen";
-    frm.fields_dict["balance"].$input.css("background-color", color);
+    frm.fields_dict["balance"].$input_wrapper
+      .find(".control-value, input")
+      .css("background-color", color);
   },
 
   add_custom_buttons: function (frm) {
@@ -37,8 +39,18 @@ frappe.ui.form.on("Room Folio HMS", {
       frm.page.add_inner_button(
         __("Check In"),
         function () {
-          frm.doc.status = "Checked In";
-          frm.save();
+          frappe
+            .call({
+              method:
+                "hms.hms.doctype.room_folio_hms.room_folio_hms.update_room_folio_status",
+              args: {
+                name: frm.doc.name,
+                status: "Checked In",
+              },
+            })
+            .then(() => {
+              frappe.show_alert("Folio checked in.");
+            });
         },
         __("Actions")
       );

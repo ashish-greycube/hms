@@ -379,3 +379,9 @@ def on_submit_sales_invoice(doc, method=None):
     if doc.room_folio_cf:
         frappe.get_doc("Room Folio HMS",
                        doc.room_folio_cf).update_charges_and_amounts()
+
+
+@frappe.whitelist()
+def update_room_folio_status(name, status):
+    frappe.db.set_value("Room Folio HMS", name, "status",
+                        status,  update_modified=True)

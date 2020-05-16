@@ -81,11 +81,6 @@ def get_data():
             "items": [
                 {
                     "type": "report",
-                    "name": "Guest Master HMS",
-                    "label": "Guest",
-                    "is_query_report": True
-                }, {
-                    "type": "report",
                     "name": "Guest History HMS",
                     "label": "Guest History",
                     "is_query_report": True,
