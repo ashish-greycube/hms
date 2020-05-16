@@ -33,13 +33,13 @@ order by f.check_in, guest
     columns = []
     # pinned columns
     columns += [dict(label="Guest Name", fieldname="guest",
-                     fieldtype="Link/Contact", width=130,)]
+                     fieldtype="Link/Contact", width=180,)]
     columns += [dict(label="Customer Name", fieldname="customer",
-                     fieldtype="Link/Customer", width=130,)]
+                     fieldtype="Link/Customer", width=180,)]
     columns += [dict(label="Mobile", fieldname="mobile",
                      fieldtype="Data", width=130,)]
     columns += [dict(label="Email", fieldname="email",
-                     fieldtype="Data", width=130,)]
+                     fieldtype="Data", width=180,)]
     columns += [dict(label="Check In", fieldname="check_in",
                      fieldtype="DateTime", width=100,)]
     columns += [dict(label="Check Out", fieldname="check_out",

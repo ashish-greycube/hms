@@ -10,17 +10,23 @@ def get_data():
             "label": _("Documents"),
             "items": [
                 {
+                    "name": "Frontdesk HMS",
+                    "type": "report",
+                    "module_name": "hms",
+                    "label": _("Frontdesk"),
+                    "route": "#ag-report/Frontdesk HMS"
+                },
+                {
                     "type": "doctype",
                     "name": "Sales Order",
                     "label": "Reservation",
                     "description": "Reservation"
                 },
                 {
-                    "name": "Frontdesk HMS",
-                    "type": "report",
-                    "module_name": "hms",
-                    "label": _("Frontdesk"),
-                    "route": "#ag-report/Frontdesk HMS"
+                    "type": "doctype",
+                    "name": "Room Folio HMS",
+                    "label": "Room Folio",
+                    "description": "Room Folio"
                 },
                 {
                     "name": "Night-Audit",
@@ -29,65 +35,73 @@ def get_data():
                     "label": _("Night Audit"),
                     "route": "#ag-report/Night-Audit"
                 },
-                {
-                "type": "doctype",
-                "name": "Room Folio HMS",
-                "label": "Room Folio",
-                "description": "Room Folio"
-            }
             ]
         },
         {
             "label": _("Setup"),
             "items": [
                 {
-                "type": "doctype",
-                "name": "Room HMS",
-                "label": "Rooms",
-                "description": "Rooms"
-                # "condition": frappe.utils.has_common(["EDMS_Admin", "System Manager"], frappe.get_roles())
-            },
-            {
-                "type": "doctype",
-                "name": "Room Type HMS",
-                "label": "Room Type",
-                "description": "Room Type"
-              
-            },
-            {
-                "type": "doctype",
-                "name": "Date Lookup HMS",
-                "label": "Date Lookup",
-                "description": "Date Lookup"
-            }
+                    "type": "doctype",
+                    "name": "Customer",
+                    "label": "Customer",
+                    "description": "Customer"
+                    # "condition": frappe.utils.has_common(["EDMS_Admin", "System Manager"], frappe.get_roles())
+                },
+                {
+                    "type": "doctype",
+                    "name": "Contact",
+                    "label": "Guest",
+                    "description": "Guest"
+                    # "condition": frappe.utils.has_common(["EDMS_Admin", "System Manager"], frappe.get_roles())
+                },
+                {
+                    "type": "doctype",
+                    "name": "Room HMS",
+                    "label": "Rooms",
+                    "description": "Rooms"
+                    # "condition": frappe.utils.has_common(["EDMS_Admin", "System Manager"], frappe.get_roles())
+                },
+                {
+                    "type": "doctype",
+                    "name": "Room Type HMS",
+                    "label": "Room Type",
+                    "description": "Room Type"
+
+                },
+                {
+                    "type": "doctype",
+                    "name": "Date Lookup HMS",
+                    "label": "Date Lookup",
+                    "description": "Date Lookup"
+                }
             ]
         },
         {
             "label": _("Standard Reports"),
             "items": [
-                # {
-                #     "type": "report",
-                #     "name": "Entity Summary",
-                #     "label": "Entity Master Report",
-                #     "is_query_report": True
-                # }, {
-                #     "type": "report",
-                #     "name": "File Sync",
-                #     "label": "File Sync Report",
-                #     "is_query_report": True,
-                #     "condition": frappe.utils.has_common(["EDMS_Admin", "System Manager"], frappe.get_roles())
-                # }, {
-                #     "type": "report",
-                #     "name": "Folder Sync",
-                #     "label": "Folder Sync Report",
-                #     "is_query_report": True,
-                #     "condition": frappe.utils.has_common(["EDMS_Admin", "System Manager"], frappe.get_roles())
-                # }, {
-                #     "type": "report",
-                #     "name": "Master Search",
-                #     "label": "Master Search Report",
-                #     "is_query_report": True
-                # }
+                {
+                    "type": "report",
+                    "name": "Guest Master HMS",
+                    "label": "Guest",
+                    "is_query_report": True
+                }, {
+                    "type": "report",
+                    "name": "Guest History HMS",
+                    "label": "Guest History",
+                    "is_query_report": True,
+                    # "condition": frappe.utils.has_common(["EDMS_Admin", "System Manager"], frappe.get_roles())
+                    # }, {
+                    #     "type": "report",
+                    #     "name": "Folder Sync",
+                    #     "label": "Folder Sync Report",
+                    #     "is_query_report": True,
+                    #     "condition": frappe.utils.has_common(["EDMS_Admin", "System Manager"], frappe.get_roles())
+                    # }, {
+                    #     "type": "report",
+                    #     "name": "Master Search",
+                    #     "label": "Master Search Report",
+                    #     "is_query_report": True
+                }
             ]
         }
     ]

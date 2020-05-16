@@ -231,7 +231,7 @@ frappe.ui.form.on("Room Folio HMS", {
         label: "Payment Type",
         fieldtype: "Select",
         fieldname: "payment_type",
-        options: "Receive\nPay",
+        options: "Receive\nRefund",
         default: "Receive",
         reqd: 1,
       },

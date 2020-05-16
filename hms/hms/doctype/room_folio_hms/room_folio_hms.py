@@ -40,9 +40,10 @@ class RoomFolioHMS(Document):
         select name 
         from `tabRoom Folio HMS`
         where name <> %s 
+        and room_no = %s
         and status <> 'Checked Out'
         and not (check_in >= %s or check_out <= %s)
-        limit 1""", (self.name, self.check_out, self.check_in)):
+        limit 1""", (self.name, self.room_no, self.check_out, self.check_in)):
             frappe.throw(_("Room Folio dates overlap with existing room folio {}.").format(
                 get_link_to_form("Room Folio HMS", d[0])))
 
