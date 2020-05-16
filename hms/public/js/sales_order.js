@@ -50,16 +50,15 @@ frappe.ui.form.on("Sales Order", {
       frm.trigger("validate_checklist");
     }
 
-    /* 
-    if (
-      frm.doc.docstatus == 1 &&
-      flt(frm.doc.advance_paid) < flt(frm.doc.rounded_total)
-    ) {
-      frm.page.add_inner_button(__("Transfer Funds"), () => {
-        show_transfer_dialog(frm);
-      });
+    if (frm.doc.docstatus == 1) {
+      frm.page.add_inner_button(
+        __("Payment"),
+        () => {
+          make_payment_entry(frm);
+        },
+        __("Create")
+      );
     }
- */
     frm.page.set_inner_btn_group_as_primary(__("Create"));
     frm.page.add_inner_button(__("Frontdesk"), () => {
       frappe.set_route("ag-report", "Frontdesk HMS");
@@ -259,6 +258,10 @@ function _make_room_folio(frm, docname) {
   frappe.set_route("Form", folio.doctype, folio.name);
 }
 
+function show_payment_dialog(frm) {
+  alert();
+}
+
 function show_transfer_dialog(frm) {
   var dialog = new frappe.ui.Dialog({
     title: __("Transfer Funds"),
@@ -428,3 +431,77 @@ function apply_holiday_pricing_list(price_list, reset_plc_conversion) {
     });
 }
 window.apply_holiday_pricing_list = apply_holiday_pricing_list;
+
+function make_payment_entry(frm) {
+  const fields = [
+    {
+      label: "Link Advance to Reservation",
+      fieldtype: "Check",
+      fieldname: "is_linked",
+      default: 1,
+    },
+    { fieldtype: "Section Break", label: "Amount" },
+    {
+      label: "Mode of Payment",
+      fieldtype: "Link",
+      fieldname: "mode_of_payment",
+      options: "Mode of Payment",
+      default: "Cash",
+      reqd: 1,
+    },
+    {
+      label: "Cheque/Reference No",
+      fieldtype: "Data",
+      fieldname: "reference_no",
+    },
+    { fieldtype: "Column Break" },
+    {
+      label: "Paid Amount",
+      fieldtype: "Currency",
+      fieldname: "paid_amount",
+      default: frm.doc.balance < 0 ? 0 - frm.doc.balance : 0,
+      reqd: 1,
+    },
+    {
+      label: "Cheque/Reference Date",
+      fieldtype: "Date",
+      fieldname: "reference_date",
+    },
+  ];
+  var dlg = new frappe.ui.Dialog({
+    title: __("Desk Payment"),
+    fields: fields,
+    primary_action: function () {
+      let data = dlg.get_values();
+
+      $.extend(data, {
+        customer: frm.doc.customer,
+        sales_order: data.is_linked ? frm.doc.name : "",
+      });
+      if (data.paid_amount < 0) {
+        frappe.throw(`Amount cannot be less than 0.`);
+      }
+      if (data.mode_of_payment != "Cash") {
+        if (!data.reference_no || !data.reference_date) {
+          frappe.throw(
+            `Reference number, date required for ${data.mode_of_payment} payment.`
+          );
+          return;
+        }
+      }
+
+      return frappe.call({
+        args: data,
+        method:
+          "hms.hms.controllers.reservation.make_payment_entry_from_sales_order",
+        callback: function (r) {
+          if (!r.exc) {
+            dlg.hide();
+            frm.reload_doc();
+          }
+        },
+      });
+    },
+  });
+  dlg.show();
+}

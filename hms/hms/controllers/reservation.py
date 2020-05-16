@@ -9,6 +9,7 @@ from frappe import _
 from frappe.utils import (formatdate, get_link_to_form,
                           getdate, date_diff, add_to_date, add_days, cint, flt, today)
 import erpnext
+from erpnext.accounts.doctype.journal_entry.journal_entry import get_default_bank_cash_account
 
 
 def validate_sales_order(doc, method):
@@ -234,3 +235,47 @@ def attach_contact_id(docname, date, data_url):
     _file.save()
     frappe.db.set_value('Contact', docname, 'image', _file.file_url)
     return _file.name
+
+
+@frappe.whitelist()
+def make_payment_entry_from_sales_order(mode_of_payment, paid_amount, customer, sales_order=None, reference_no=None, reference_date=None):
+    default_desk_account = frappe.defaults.get_user_default(
+        'default_desk_receivable_account')
+
+    from erpnext.accounts.doctype.payment_entry.payment_entry import get_payment_entry
+    company = erpnext.get_default_company()
+    if sales_order:
+        for d in frappe.db.get_values(
+                'Sales Order', sales_order, ['rounded_total', 'advance_paid']):
+            if (d[0]-d[1]) < flt(paid_amount):
+                frappe.throw(
+                    _("Payment amount cannot be greater than the outstanding amount for reservation: {}").format(
+                        frappe.bold(frappe.format(d[0]-d[1], dict(fieldtype="Currency"))))
+                )
+        payment = get_payment_entry("Sales Order", sales_order)
+        for d in payment.references:
+            d.allocated_amount = paid_amount
+    else:
+        payment = frappe.new_doc("Payment Entry")
+
+    cash_bank_account = get_default_bank_cash_account(
+        company, mode_of_payment=mode_of_payment)
+
+    payment.posting_date = frappe.flags.current_date
+    payment.payment_type = "Receive"
+    payment.mode_of_payment = mode_of_payment
+    payment.party_type = "Customer"
+    payment.party = customer
+    payment.paid_to = cash_bank_account.account
+    payment.paid_from = default_desk_account
+    payment.received_amount = abs(flt(paid_amount))
+    if not mode_of_payment == "Cash":
+        payment.reference_no = reference_no
+        payment.reference_date = reference_date
+    payment.total_allocated_amount = payment.paid_amount
+    payment.difference_amount = 0
+    payment.setup_party_account_field()
+    payment.set_missing_values()
+    payment.save()
+    payment.submit()
+    return payment
