@@ -283,7 +283,7 @@ def make_payment_entry_from_sales_order(mode_of_payment, paid_amount, customer, 
 
 
 @frappe.whitelist()
-def validate_sales_order_checklist(docname, guest, customer, company):
+def validate_sales_order_checklist(docname, guest, customer, company, advance_paid):
     validation = []
     if not frappe.db.get_value('Contact', guest, 'image'):
         validation += ["Please capture ID for guest %s" %
@@ -291,7 +291,7 @@ def validate_sales_order_checklist(docname, guest, customer, company):
     default_desk_account = frappe.defaults.get_user_default(
         'default_desk_receivable_account')
 
-    if not get_balance_on(account=default_desk_account, date=today(), party_type='Customer', party=customer, company=company,
-                          ignore_account_permission=True):
+    if not cint(advance_paid) and not get_balance_on(account=default_desk_account, date=today(), party_type='Customer', party=customer, company=company,
+                                                     ignore_account_permission=True):
         validation += ["Please make payment against this Reservation to be able to Check In."]
     return validation and "<br>".join([frappe.bold(d) for d in validation]) or ""

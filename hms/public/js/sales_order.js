@@ -18,6 +18,7 @@ frappe.ui.form.on("Sales Order", {
   },
 
   validate_checklist(frm) {
+    frm.dashboard.clear_headline();
     return frappe.call({
       method: "hms.hms.controllers.reservation.validate_sales_order_checklist",
       args: {
@@ -25,11 +26,15 @@ frappe.ui.form.on("Sales Order", {
         guest: frm.doc.guest_cf,
         customer: frm.doc.customer,
         company: frm.doc.company,
+        advance_paid: frm.doc.advance_paid,
       },
       callback: function (r) {
         if (!r.exc) {
-          frm.dashboard.clear_headline();
-          frm.set_intro(r.message, "yellow");
+          if (r.message) {
+            frm.set_intro(r.message, "yellow");
+          } else {
+            frm.trigger("add_checkin");
+          }
         }
       },
     });
@@ -46,7 +51,7 @@ frappe.ui.form.on("Sales Order", {
     remove_so_buttons(frm);
     set_holiday_rows(frm);
 
-    if (frm.doc.docstatus == 1 && frm.doc.advance_paid !== 0) {
+    if (frm.doc.docstatus == 1) {
       frm.trigger("validate_checklist");
     }
 
