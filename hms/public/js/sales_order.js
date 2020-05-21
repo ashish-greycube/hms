@@ -18,20 +18,20 @@ frappe.ui.form.on("Sales Order", {
   },
 
   validate_checklist(frm) {
-    frappe.db.get_value("Contact", frm.doc.guest_cf, "image", (r) => {
-      let _msg = [];
-      if (!r.image) {
-        _msg.push("Please capture ID Card of guest.");
-      }
-      if (frm.doc.advance_paid == 0) {
-        _msg.push("Please make payment against this Reservation.");
-      }
-      frm.set_intro(null);
-      if (_msg.length) {
-        frm.set_intro(_msg.join("<br>"), "yellow");
-      } else if (frm.doc.docstatus == 1) {
-        frm.trigger("add_checkin");
-      }
+    return frappe.call({
+      method: "hms.hms.controllers.reservation.validate_sales_order_checklist",
+      args: {
+        docname: frm.doc.name,
+        guest: frm.doc.guest_cf,
+        customer: frm.doc.customer,
+        company: frm.doc.company,
+      },
+      callback: function (r) {
+        if (!r.exc) {
+          frm.dashboard.clear_headline();
+          frm.set_intro(r.message, "yellow");
+        }
+      },
     });
   },
 
@@ -46,7 +46,7 @@ frappe.ui.form.on("Sales Order", {
     remove_so_buttons(frm);
     set_holiday_rows(frm);
 
-    if (frm.doc.docstatus == 1) {
+    if (frm.doc.docstatus == 1 && frm.doc.advance_paid !== 0) {
       frm.trigger("validate_checklist");
     }
 

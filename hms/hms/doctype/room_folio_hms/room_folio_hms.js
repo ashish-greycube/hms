@@ -49,6 +49,9 @@ frappe.ui.form.on("Room Folio HMS", {
               },
             })
             .then(() => {
+              frm.reload_doc();
+              console.log("reloaded");
+
               frappe.show_alert("Folio checked in.");
             });
         },

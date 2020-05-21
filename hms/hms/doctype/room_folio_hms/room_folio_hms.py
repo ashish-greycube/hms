@@ -136,8 +136,7 @@ class RoomFolioHMS(Document):
     def make_check_out(self):
         self.update_charges_and_amounts()
         self.validate_room_folio_balance()
-        self.status = "Checked Out"
-        self.save()
+        self.db_set('status', "Checked Out", update_modified=True)
         update_room_status_ledger(self.as_dict(), action="check_out")
         return self.as_dict()
 
@@ -197,9 +196,9 @@ class RoomFolioHMS(Document):
                 "account": folio_account,
                 "party_type": "Customer",
                 "party": self.customer,
-                # "reference_type": self.doctype,
-                # "reference_name": self.name,
                 "debit_in_account_currency": amount,
+                "reference_type": self.doctype,
+                "reference_name": self.name,
             })
 
         je.insert(ignore_permissions=True)
@@ -215,21 +214,15 @@ class RoomFolioHMS(Document):
         from `tabSales Invoice` si
         where NULLIF(si.room_folio_cf, '') = %s""", (self.name)):
             total_charges = d[0]
-        remarks = "Room Folio refund against: %s" % self.name
+
         for d in frappe.db.sql("""
-        select 0 - sum(tge.debit-tge.credit)
-        from `tabGL Entry` tge
-        where
-        tge.account = 'Room Folio Debtors - SH'
-        and 
-        ((against_voucher_type = 'Room Folio HMS' and against_voucher = %s) or
-        (remarks = %s))
-        union all
-        select 0-sum(debit-credit) 
-        from `tabSales Invoice` t1
-        inner join `tabGL Entry` t2 on t2.against_voucher_type = 'Sales Invoice' and t2.against_voucher = t1.name
-        where room_folio_cf = %s and voucher_type <> 'Sales Invoice'
-        """, (self.name, remarks, self.name,),):
+            select 0-sum(debit-credit) total_advance 
+            from `tabGL Entry`
+            where account = 'Room Folio Debtors - SH'
+            and party = %(customer)s
+            and against_voucher_type = 'Room Folio HMS'
+            and against_voucher = %(folio)s
+        """, dict(folio=self.name, customer=self.customer)):
             total_advance_paid += flt(d[0])
 
         total_charges = total_charges or 0
@@ -259,7 +252,7 @@ def make_transfer_jv(**args):
     je.voucher_type = "Journal Entry"
     je.company = erpnext.get_default_company()
     je.posting_date = today()
-    je.remark = f"Transfer of funds for {args.customer}. Folio#: {args.folio}"
+    je.remark = f"Ref. folio# {args.folio}. Transfer of funds for {args.customer}."
 
     against_voucher, against_voucher_type = None, None
 
@@ -289,7 +282,9 @@ def make_transfer_jv(**args):
         "party_type": 'Customer',
         'party': args.customer,
         'debit_in_account_currency': flt(args.amount_to_transfer),
-        'credit_in_account_currency': 0
+        'credit_in_account_currency': 0,
+        'reference_name': against_voucher,
+        'reference_type': against_voucher_type
     })
 
     je.insert(ignore_permissions=True)

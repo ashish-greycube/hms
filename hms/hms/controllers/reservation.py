@@ -9,7 +9,7 @@ from frappe import _
 from frappe.utils import (formatdate, get_link_to_form,
                           getdate, date_diff, add_to_date, add_days, cint, flt, today)
 import erpnext
-from erpnext.accounts.doctype.journal_entry.journal_entry import get_default_bank_cash_account
+from erpnext.accounts.doctype.journal_entry.journal_entry import get_default_bank_cash_account, get_balance_on
 
 
 def validate_sales_order(doc, method):
@@ -257,6 +257,7 @@ def make_payment_entry_from_sales_order(mode_of_payment, paid_amount, customer, 
             d.allocated_amount = paid_amount
     else:
         payment = frappe.new_doc("Payment Entry")
+        payment.paid_amount = payment.received_amount = abs(flt(paid_amount))
 
     cash_bank_account = get_default_bank_cash_account(
         company, mode_of_payment=mode_of_payment)
@@ -279,3 +280,18 @@ def make_payment_entry_from_sales_order(mode_of_payment, paid_amount, customer, 
     payment.save()
     payment.submit()
     return payment
+
+
+@frappe.whitelist()
+def validate_sales_order_checklist(docname, guest, customer, company):
+    validation = []
+    if not frappe.db.get_value('Contact', guest, 'image'):
+        validation += ["Please capture ID for guest %s" %
+                       get_link_to_form("Contact", guest)]
+    default_desk_account = frappe.defaults.get_user_default(
+        'default_desk_receivable_account')
+
+    if not get_balance_on(account=default_desk_account, date=today(), party_type='Customer', party=customer, company=company,
+                          ignore_account_permission=True):
+        validation += ["Please make payment against this Reservation to be able to Check In."]
+    return validation and "<br>".join([frappe.bold(d) for d in validation]) or ""
