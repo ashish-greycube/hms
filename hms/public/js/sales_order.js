@@ -41,7 +41,7 @@ frappe.ui.form.on("Sales Order", {
   },
 
   add_checkin(frm) {
-    frm.page.add_inner_button("Check In", function (params) {
+    frm.page.add_inner_button("Room Folio", function (params) {
       on_checkin(frm);
     });
   },
@@ -464,7 +464,7 @@ function make_payment_entry(frm) {
       label: "Paid Amount",
       fieldtype: "Currency",
       fieldname: "paid_amount",
-      default: frm.doc.balance < 0 ? 0 - frm.doc.balance : 0,
+      default: frm.doc.rounded_total || 0,
       reqd: 1,
     },
     {
