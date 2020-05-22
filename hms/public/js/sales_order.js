@@ -464,7 +464,7 @@ function make_payment_entry(frm) {
       label: "Paid Amount",
       fieldtype: "Currency",
       fieldname: "paid_amount",
-      default: frm.doc.rounded_total || 0,
+      default: flt(frm.doc.base_rounded_total) - flt(frm.doc.advance_paid),
       reqd: 1,
     },
     {
