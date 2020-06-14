@@ -37,9 +37,9 @@ class RoomFolioHMS(Document):
             frappe.throw(_("Room Folio {} already created for reservation {}.").format(
                 rf_link, so_link))
         for d in frappe.db.sql("""
-        select name 
+select name
         from `tabRoom Folio HMS`
-        where name <> %s 
+        where name <> %s
         and room_no = %s
         and status <> 'Checked Out'
         and not (check_in >= %s or check_out <= %s)
@@ -54,7 +54,7 @@ class RoomFolioHMS(Document):
     def validate_room_reservation(self):
         """WHERE NOT (From_date > @RangeTill OR To_date < @RangeFrom)"""
         for d in frappe.db.sql("""
-        select name reservation, room_no_cf, check_in_cf, check_out_cf
+select name reservation, room_no_cf, check_in_cf, check_out_cf
         from `tabSales Order`
         where docstatus = 1 and room_no_cf = %s and name <> %s
         and not (check_in_cf >= %s or check_out_cf <= %s)
@@ -64,7 +64,7 @@ class RoomFolioHMS(Document):
 
     def validate_room_status(self):
         for d in frappe.db.sql("""
-        select status, reference_type, reference_name
+select status, reference_type, reference_name
         from `tabRoom Status Ledger Entry HMS`
         where room_no = %s and docstatus <> 2""", (self.room_no), as_dict=True):
             frappe.throw(
@@ -121,7 +121,7 @@ class RoomFolioHMS(Document):
 
         # remove lines for other dates in Sales Invoice, only bill for room_date
         so_detail = frappe.db.sql("""
-        select soi.name from `tabRoom Folio HMS` f
+select soi.name from `tabRoom Folio HMS` f
         inner join `tabSales Order Item` soi on soi.parent = f.reservation
         and ifnull(soi.reservation_date_cf,'') = %s
         where f.name = %s""", (getdate(room_date), self.name, ), debug=True)
@@ -210,13 +210,13 @@ class RoomFolioHMS(Document):
         total_charges, total_advance_paid = 0, 0
         # set totals from charge purchase and advances
         for d in frappe.db.sql("""
-        select sum(si.rounded_total)
+select sum(si.rounded_total)
         from `tabSales Invoice` si
         where NULLIF(si.room_folio_cf, '') = %s""", (self.name)):
             total_charges = d[0]
 
         for d in frappe.db.sql("""
-            select 0-sum(debit-credit) total_advance 
+            select 0-sum(debit-credit) total_advance
             from `tabGL Entry`
             where account = 'Room Folio Debtors - SH'
             and party = %(customer)s
@@ -234,11 +234,14 @@ class RoomFolioHMS(Document):
         self.db_set('balance', total_advance_paid -
                     total_charges, update_modified=False)
 
+    def get_print_doc(self):
+        return get_folio_invoice_summary(self.name)
+
 
 @frappe.whitelist()
 def get_charge_and_purchase(docname):
     return frappe.db.sql("""
-    select si.name, rf.name room_folio, rf.room_no, date_format(room_date_cf,'%%d %%b, %%y') room_date_cf,
+select si.name, rf.name room_folio, rf.room_no, date_format(room_date_cf,'%%d %%b, %%y') room_date_cf,
     date_format(posting_time,'%%H:%%i') posting_time, rounded_total, outstanding_amount
     from `tabRoom Folio HMS` rf
     inner join `tabSales Invoice` si on rf.name = ifnull(si.room_folio_cf, '')
@@ -305,7 +308,7 @@ def get_folio_balance(party, company=None, folio=None):
 
     if folio:
         for d in frappe.db.sql("""
-        select sum(debit - credit) balance
+select sum(debit - credit) balance
         from `tabGL Entry`
         where company = %(company)s
         and against_voucher_type = 'Room Folio HMS'
@@ -350,7 +353,7 @@ def get_nonreconciled_payment_entries(**args):
             and t2.account = %(account)s and {dr_or_cr} > 0
             and t2.reference_type = 'Room Folio HMS' and t2.reference_name = %(room_folio)s
         order by t1.posting_date
-        """.format(**{
+    """.format(**{
         "dr_or_cr": dr_or_cr,
     }), args, as_dict=1,)
     return list(journal_entries)
@@ -380,3 +383,71 @@ def on_submit_sales_invoice(doc, method=None):
 def update_room_folio_status(name, status):
     frappe.db.set_value("Room Folio HMS", name, "status",
                         status,  update_modified=True)
+
+
+@frappe.whitelist()
+def get_folio_invoice_summary(docname):
+    doc = frappe.get_doc("Room Folio HMS", docname).as_dict()
+
+    print_args = dict()
+
+    print_args["company_description"] = frappe.db.get_value(
+        "Company", doc['company'], "company_description")
+
+    folios = frappe.db.sql("""
+select f.name folio, r.room_no, f.check_in, f.check_out, f.balance, f.customer, case when f.master_folio is null then 1 else 0 end is_master
+from `tabRoom Folio HMS` f
+inner join `tabRoom HMS` r on r.name = f.room_no
+where f.name = %(name)s or f.master_folio = %(name)s
+    """, {"name": docname}, as_dict=True)
+
+    print_args["folios"] = folios
+
+    filters = dict(room_folio=doc["name"],
+                   company=doc["company"],
+                   party_type="Customer",
+                   party=doc["customer"],
+                   account=frappe.defaults.get_user_default(
+        'default_folio_receivable_account')
+    )
+
+    items = frappe.db.sql("""
+    with data as
+    (
+        select
+    si.room_date_cf date, rm.room_no, sit.item_code voucher, si.base_rounded_total charges,
+    0 credits, 0 balance, rm.name room_name, si.creation
+            from
+                `tabSales Invoice` si
+                inner join `tabSales Invoice Item` sit on sit.parent = si.name
+                inner join `tabRoom Folio HMS` fo on fo.name = si.room_folio_cf
+                inner join `tabRoom HMS` rm on rm.name = fo.room_no
+            where
+                si.room_folio_cf = %(room_folio)s
+    union all
+    select t1.posting_date `date`,
+    rm.room_no, t1.remark as voucher,
+    0 charges, credit_in_account_currency - debit_in_account_currency as credits,
+    0 balance,  rm.name room_name,
+    t1.creation
+            from
+                `tabJournal Entry` t1, `tabJournal Entry Account` t2,
+                `tabRoom Folio HMS` fo, `tabRoom HMS` rm
+            where
+                t1.name = t2.parent and t1.docstatus = 1 and t2.docstatus = 1
+                and t2.party_type = 'Customer' and t2.party = %(party)s
+                and t2.account = %(account)s
+                and t2.reference_type = 'Room Folio HMS' and t2.reference_name = %(room_folio)s
+                and fo.name = t2.reference_name
+                and rm.name = fo.room_no
+    order by creation
+    )
+select date, room_no, voucher, charges, credits, sum(credits-charges) over (order by creation) balance from data
+""", filters, as_dict=True)
+
+    print_args["items"] = items
+
+    return print_args
+
+    # html = frappe.render_template("templates/folio_invoice_summary.html", doc)
+    # return html
