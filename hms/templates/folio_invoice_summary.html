@@ -1,10 +1,7 @@
-{%- block head -%}
-<link type="text/css" rel="stylesheet" href="/assets/css/frappe-web-b4.css">
-{%- endblock -%}
-
 {% set print_doc = doc.get_print_doc() %}
 
 {% block head_include %}
+<link type="text/css" rel="stylesheet" href="/assets/css/frappe-web-b4.css">
 <meta name="pdfkit-orientation" content="portrait" />
 {% endblock %}
 
@@ -15,9 +12,8 @@
 </div>
 <div class="row">
     <div class="col col-sm-3">
-
+        {{doc.customer}}
     </div>
-
     <div class="col col-sm-9">
         <table class='table table-bordered'>
             <colgroup>
@@ -89,6 +85,16 @@
                 <td class="text-right">{{ d.balance }}</td>
             </tr>
             {% endfor %}
+            <tr>
+                <td colspan="3" class="text-right"></td>
+                <td class="right">
+                    {{ frappe.format((print_doc.get("items") | sum(attribute="charges")), {fieldtype: "Currency"}) }}
+                </td>
+                <td class="right">
+                    {{ frappe.format((print_doc.get("items") | sum(attribute="credits")), {fieldtype: "Currency"}) }}
+                </td>
+                <td class="right"></td>
+            </tr>
         </tbody>
     </table>
 </div>
