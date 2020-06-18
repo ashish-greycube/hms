@@ -11,7 +11,7 @@
  "html": "{% include \"/templates/folio_invoice_summary.html\" %}",
  "idx": 0,
  "line_breaks": 0,
- "modified": "2020-06-18 04:14:17.880308",
+ "modified": "2020-06-18 05:34:30.594930",
  "modified_by": "Administrator",
  "module": "HMS",
  "name": "Folio Summary",

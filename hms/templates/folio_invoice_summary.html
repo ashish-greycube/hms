@@ -1,19 +1,23 @@
+{%- macro add_header(page_num, max_pages, doc, letter_head, no_letterhead) -%}
+{% if letter_head and not no_letterhead %} <div class="letter-head">{{ letter_head }}</div> {% endif %}
+{%- if doc.meta.is_submittable and doc.docstatus==2-%} <div class="alert alert-danger text-center">
+    <h4 style="margin: 0px;">{{ _("CANCELLED") }}</h4>
+</div> {%- endif -%} {%- if doc.meta.is_submittable and doc.docstatus==0-%} <div class="alert alert-danger
+    text-center">
+    <h4 style="margin: 0px;">{{ _("DRAFT") }}</h4>
+</div> {%- endif -%} {% if max_pages > 1 %} <p class="text-right">
+    {{ _("Page #{0} of {1}").format(page_num, max_pages) }}</p> {% endif %} {%- endmacro -%}
+
+{{ add_header(0,1,doc,letter_head, no_letterhead) }}
+
 {% set print_doc = doc.get_print_doc() %}
 
 {% block head_include %}
-<p style="display: none;">link type="text/css" rel="stylesheet" href="/assets/css/frappe-web-b4.css"</p>
-<meta name="pdfkit-orientation" content="portrait" />
-{% endblock %}
-
-{% block content %}
-
-<div>
+<meta name="pdfkit-orientation" content="portrait" /> {% endblock %} {% block content %} <div>
     <p>{{ print_doc.company_description }}</p>
 </div>
 <div class="row">
-    <div class="col col-sm-3">
-        {{doc.customer}}
-    </div>
+    <div class="col col-sm-3"> <strong> {{doc.customer.upper()}}</strong> </div>
     <div class="col col-sm-9">
         <table class='table table-bordered'>
             <colgroup>
@@ -32,36 +36,28 @@
                     <th>Balance</th>
                 </tr>
             </thead>
-            <tbody>
-                {% for d in print_doc.get("folios") %}
-                <tr>
+            <tbody> {% for d in print_doc.get("folios") %} <tr>
                     <td>{{ d.room_no }}</td>
                     <td>{{ d.folio }}</td>
                     <td>{{ frappe.utils.format_datetime(d.check_in,"dd MMM, yyyy") }}</td>
                     <td>{{ frappe.utils.format_datetime(d.check_out,"dd MMM, yyyy") }}</td>
                     <td class="text-right">{{ d.balance }}</td>
-                </tr>
-                {% endfor %}
-                <tr>
+                </tr> {% endfor %} <tr>
                     <td colspan="2" class="text-right">Master Folio</td>
-                    <td colspan="3" class="text-right">
-                    </td>
+                    <td colspan="3" class="text-right"> </td>
                 </tr>
             </tbody>
         </table>
     </div>
 </div>
-
-
-
 <div>
     <table class="table table-bordered">
         <colgroup>
             <col style="width:10%;">
             <col style="width:10%;">
-            <col style="width:50%;">
-            <col style="width:10%;">
-            <col style="width:10%;">
+            <col style="width:46%;">
+            <col style="width:12%;">
+            <col style="width:12%;">
             <col style="width:10%;">
         </colgroup>
         <thead>
@@ -74,24 +70,20 @@
                 <th>Balance</th>
             </tr>
         </thead>
-        <tbody>
-            {% for d in print_doc.get("items") %}
-            <tr>
+        <tbody> {% for d in print_doc.get("items") %} <tr>
                 <td>{{ frappe.utils.format_datetime(d.date, "dd/MM/yyyy") }}</td>
                 <td>{{ d.room_no or "" }}</td>
-                <td>{{ d.voucher | truncate(75) }}</td>
+                <td>{{ d.voucher }}</td>
                 <td class="text-right">{{ d.charges }}</td>
                 <td class="text-right">{{ d.credits }}</td>
                 <td class="text-right">{{ d.balance }}</td>
-            </tr>
-            {% endfor %}
-            <tr>
+            </tr> {% endfor %} <tr>
                 <td colspan="3" class="text-right"></td>
                 <td class="text-right">
-                    {{ frappe.format((print_doc.get("items") | sum(attribute="charges")), {fieldtype: "Currency"}) }}
+                    {{ frappe.utils.fmt_money((print_doc.get("items") | sum(attribute="charges")), currency=print_doc.get("currency")) }}
                 </td>
                 <td class="text-right">
-                    {{ frappe.format((print_doc.get("items") | sum(attribute="credits")), {fieldtype: "Currency"}) }}
+                    {{ frappe.utils.fmt_money((print_doc.get("items") | sum(attribute="credits")), currency=print_doc.get("currency")) }}
                 </td>
                 <td class="text-right"></td>
             </tr>
@@ -102,3 +94,9 @@
     {{ print_doc.get("invoice_html", "No invoices")}}
 </div>
 {% endblock %}
+<div>
+    <div id="footer-html" class="visible-pdf"> {% if not no_letterhead and footer %} <div class="letter-head-footer">
+            {{ footer }} </div> {% endif %} <p class="text-center small page-number
+            visible-pdf">
+            {{ _("Page {0} of {1}").format('<span class="page"></span>', '<span class="topage"></span>') }} </p>
+    </div>

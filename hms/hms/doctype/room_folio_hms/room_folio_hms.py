@@ -394,6 +394,9 @@ def get_folio_invoice_summary(docname):
     print_args["company_description"] = frappe.db.get_value(
         "Company", doc['company'], "company_description")
 
+    print_args["currency"] = frappe.get_cached_value(
+        'Company',  doc['company'],  'default_currency')
+
     folios = frappe.db.sql("""
 select f.name folio, r.room_no, f.check_in, f.check_out, f.balance, f.customer, case when f.master_folio is null then 1 else 0 end is_master
 from `tabRoom Folio HMS` f
