@@ -295,3 +295,12 @@ def validate_sales_order_checklist(docname, guest, customer, company, advance_pa
                                                      ignore_account_permission=True):
         validation += ["Please make payment against this Reservation to be able to Check In."]
     return validation and "<br>".join([frappe.bold(d) for d in validation]) or ""
+
+
+@frappe.whitelist()
+def get_checked_in_folios():
+    return frappe.db.sql("""
+      select customer, room_type, room_no, balance, date_format(check_in,'%d-%b') check_in,
+      date_format(check_out,'%d-%b') check_out, name folio
+      from `tabRoom Folio HMS` where status = 'Checked In'
+    """, as_dict=True)

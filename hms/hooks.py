@@ -30,6 +30,10 @@ app_include_css = "/assets/hms/css/hms.css"
 
 # include js in page
 # page_js = {"page" : "public/js/file.js"}
+page_js = {
+    "point-of-sale": "public/js/point_of_sale_custom.js",
+    "pos": "public/js/pos_custom.js"}
+
 
 # include js in doctype views
 # doctype_js = {"doctype" : "public/js/doctype.js"}

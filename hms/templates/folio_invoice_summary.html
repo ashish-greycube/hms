@@ -1,7 +1,7 @@
 {% set print_doc = doc.get_print_doc() %}
 
 {% block head_include %}
-<link type="text/css" rel="stylesheet" href="/assets/css/frappe-web-b4.css">
+<p style="display: none;">link type="text/css" rel="stylesheet" href="/assets/css/frappe-web-b4.css"</p>
 <meta name="pdfkit-orientation" content="portrait" />
 {% endblock %}
 
@@ -79,7 +79,7 @@
             <tr>
                 <td>{{ frappe.utils.format_datetime(d.date, "dd/MM/yyyy") }}</td>
                 <td>{{ d.room_no or "" }}</td>
-                <td>{{ d.voucher }}</td>
+                <td>{{ d.voucher | truncate(75) }}</td>
                 <td class="text-right">{{ d.charges }}</td>
                 <td class="text-right">{{ d.credits }}</td>
                 <td class="text-right">{{ d.balance }}</td>
@@ -87,15 +87,18 @@
             {% endfor %}
             <tr>
                 <td colspan="3" class="text-right"></td>
-                <td class="right">
+                <td class="text-right">
                     {{ frappe.format((print_doc.get("items") | sum(attribute="charges")), {fieldtype: "Currency"}) }}
                 </td>
-                <td class="right">
+                <td class="text-right">
                     {{ frappe.format((print_doc.get("items") | sum(attribute="credits")), {fieldtype: "Currency"}) }}
                 </td>
-                <td class="right"></td>
+                <td class="text-right"></td>
             </tr>
         </tbody>
     </table>
+</div>
+<div>
+    {{ print_doc.get("invoice_html", "No invoices")}}
 </div>
 {% endblock %}

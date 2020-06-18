@@ -414,18 +414,20 @@ where f.name = %(name)s or f.master_folio = %(name)s
     items = frappe.db.sql("""
     with data as
     (
-        select
-    si.room_date_cf date, rm.room_no, sit.item_code voucher, si.base_rounded_total charges,
+        select si.name invoice,
+    coalesce(si.room_date_cf, si.posting_date) date, rm.room_no, sit.voucher, si.base_rounded_total charges,
     0 credits, 0 balance, rm.name room_name, si.creation
             from
                 `tabSales Invoice` si
-                inner join `tabSales Invoice Item` sit on sit.parent = si.name
+                inner join (
+                		select parent, group_concat(item.item_code) voucher from `tabSales Invoice Item` item
+						group by parent) sit on sit.parent = si.name
                 inner join `tabRoom Folio HMS` fo on fo.name = si.room_folio_cf
                 inner join `tabRoom HMS` rm on rm.name = fo.room_no
             where
                 si.room_folio_cf = %(room_folio)s
     union all
-    select t1.posting_date `date`,
+    select '' invoice, t1.posting_date `date`,
     rm.room_no, t1.remark as voucher,
     0 charges, credit_in_account_currency - debit_in_account_currency as credits,
     0 balance,  rm.name room_name,
@@ -442,10 +444,20 @@ where f.name = %(name)s or f.master_folio = %(name)s
                 and rm.name = fo.room_no
     order by creation
     )
-select date, room_no, voucher, charges, credits, sum(credits-charges) over (order by creation) balance from data
+select invoice, date, room_no, voucher, charges, credits, 
+sum(credits-charges) over (order by creation) balance from data
 """, filters, as_dict=True)
 
     print_args["items"] = items
+
+    invoice_html = ""
+    for d in items:
+        if not d["invoice"]:
+            continue
+        invoice_html += frappe.get_print("Sales Invoice",
+                                         d["invoice"], "Standard", no_letterhead=0)
+
+    print_args["invoice_html"] = invoice_html or "**"*10
 
     return print_args
 
