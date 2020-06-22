@@ -5,8 +5,8 @@ frappe.pages["pos"].refresh = function (wrapper) {
     </button>`).prependTo(wrapper.page.page_actions);
 
     $(wrapper).on("click", ".list-folio-btn", function () {
-      if (!wrapper.pos.dialog) make_folio_dialog(wrapper.pos);
-      wrapper.pos.dialog.show();
+      if (!wrapper.pos.folio_dialog) make_folio_dialog(wrapper.pos);
+      wrapper.pos.folio_dialog.show();
       get_folios(wrapper.pos);
     });
   }
@@ -31,7 +31,7 @@ function get_folios(pos) {
 }
 
 function make_folio_dialog(pos) {
-  pos.dialog = new frappe.ui.Dialog({
+  pos.folio_dialog = new frappe.ui.Dialog({
     title: __("Select Folio & Customer"),
     size: "large",
     fields: [
@@ -41,7 +41,7 @@ function make_folio_dialog(pos) {
         label: __("Clear Filter"),
         click: function () {
           pos.gridOptions.api.setFilterModel({});
-          pos.dialog.hide();
+          pos.folio_dialog.hide();
         },
       },
       {
@@ -51,7 +51,7 @@ function make_folio_dialog(pos) {
     ],
   });
 
-  let body = pos.dialog.fields_dict["grid_html"].$wrapper;
+  let body = pos.folio_dialog.fields_dict["grid_html"].$wrapper;
   body.html(
     `
     <p>Double click on item to select.</p>
@@ -108,7 +108,7 @@ function make_folio_dialog(pos) {
   pos.gridOptions.floatingFilter = true;
 
   pos.gridOptions.onCellDoubleClicked = function (params) {
-    pos.dialog.hide();
+    pos.folio_dialog.hide();
 
     let folio = params.api.getSelectedRows()[0],
       customer = folio["customer"];
