@@ -10,6 +10,23 @@ frappe.pages["pos"].refresh = function (wrapper) {
       get_folios(wrapper.pos);
     });
   }
+  // Code for overriding pos functions if required
+  // var override = function (object, methodName, callback) {
+  //   object[methodName] = callback(object[methodName]);
+  // };
+  // e.g. set default account_receivable
+  // setTimeout(() => {
+  //   override(wrapper.pos, "change_status", function (original) {
+  //     return function () {
+  //       console.warn(
+  //         "Overriden in hms/public/js/pos_custom.js to set default receivable account"
+  //       );
+  //       console.log(this.frm.doc);
+  //       this.frm.doc.debit_to = "Room Folio Debtors - SH";
+  //       original.apply(this, arguments);
+  //     };
+  //   });
+  // }, 1000);
 
   window.onbeforeunload = function () {
     return wrapper.pos.beforeunload();
@@ -118,6 +135,9 @@ function make_folio_dialog(pos) {
     pos.set_customer_value_in_party_field();
     pos.party_field.awesomeplete.evaluate();
     pos.party_field.awesomeplete.select();
+    pos.frm.doc.debit_to = frappe.defaults.get_user_default(
+      "default_folio_receivable_account"
+    );
   };
 
   pos.gridDiv = body.find("#ag-items");
