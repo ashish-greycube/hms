@@ -25,6 +25,7 @@ frappe.pages["pos"].refresh = function (wrapper) {
           // Allow no ZERO payment
           $.each(me.frm.doc.payments, function (index, data) {
             if (data.amount != 0 || me.frm.doc.room_folio_cf) {
+              if (me.frm.doc.room_folio_cf && index > 0) return false;
               me.dialog.hide();
               me.submit_invoice();
               return;
@@ -33,7 +34,7 @@ frappe.pages["pos"].refresh = function (wrapper) {
         });
       };
     });
-  }, 1000);
+  }, 1500);
 
   window.onbeforeunload = function () {
     return wrapper.pos.beforeunload();
