@@ -10,23 +10,30 @@ frappe.pages["pos"].refresh = function (wrapper) {
       get_folios(wrapper.pos);
     });
   }
-  // Code for overriding pos functions if required
-  // var override = function (object, methodName, callback) {
-  //   object[methodName] = callback(object[methodName]);
-  // };
-  // e.g. set default account_receivable
-  // setTimeout(() => {
-  //   override(wrapper.pos, "change_status", function (original) {
-  //     return function () {
-  //       console.warn(
-  //         "Overriden in hms/public/js/pos_custom.js to set default receivable account"
-  //       );
-  //       console.log(this.frm.doc);
-  //       this.frm.doc.debit_to = "Room Folio Debtors - SH";
-  //       original.apply(this, arguments);
-  //     };
-  //   });
-  // }, 1000);
+
+  // Code for overriding functions if required
+  var override = function (object, methodName, callback) {
+    object[methodName] = callback(object[methodName]);
+  };
+  setTimeout(() => {
+    // override payment dialog submit to allow zero amount payment if room folio is selected
+    // will be added to customer room folio
+    override(wrapper.pos, "set_payment_primary_action", function (original) {
+      return function () {
+        var me = this;
+        this.dialog.set_primary_action(__("Submit"), function () {
+          // Allow no ZERO payment
+          $.each(me.frm.doc.payments, function (index, data) {
+            if (data.amount != 0 || me.frm.doc.room_folio_cf) {
+              me.dialog.hide();
+              me.submit_invoice();
+              return;
+            }
+          });
+        });
+      };
+    });
+  }, 1000);
 
   window.onbeforeunload = function () {
     return wrapper.pos.beforeunload();
