@@ -11,31 +11,6 @@ frappe.pages["pos"].refresh = function (wrapper) {
     });
   }
 
-  // Code for overriding functions if required
-  var override = function (object, methodName, callback) {
-    object[methodName] = callback(object[methodName]);
-  };
-  setTimeout(() => {
-    // override payment dialog submit to allow zero amount payment if room folio is selected
-    // will be added to customer room folio
-    override(wrapper.pos, "set_payment_primary_action", function (original) {
-      return function () {
-        var me = this;
-        this.dialog.set_primary_action(__("Submit"), function () {
-          // Allow no ZERO payment
-          $.each(me.frm.doc.payments, function (index, data) {
-            if (data.amount != 0 || me.frm.doc.room_folio_cf) {
-              if (me.frm.doc.room_folio_cf && index > 0) return false;
-              me.dialog.hide();
-              me.submit_invoice();
-              return;
-            }
-          });
-        });
-      };
-    });
-  }, 1500);
-
   window.onbeforeunload = function () {
     return wrapper.pos.beforeunload();
   };
@@ -143,6 +118,7 @@ function make_folio_dialog(pos) {
     pos.set_customer_value_in_party_field();
     pos.party_field.awesomeplete.evaluate();
     pos.party_field.awesomeplete.select();
+    debugger;
     pos.frm.doc.debit_to = frappe.defaults.get_user_default(
       "default_folio_receivable_account"
     );

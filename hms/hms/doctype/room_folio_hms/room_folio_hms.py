@@ -168,7 +168,7 @@ select soi.name from `tabRoom Folio HMS` f
         if args.get('payment_type') == "Receive":
             je.remark = 'Room Folio advance against: ' + self.name
             je.append("accounts", {
-                "account":  folio_account,
+                "account": folio_account,
                 "party_type": "Customer",
                 "party": self.customer,
                 "reference_type": self.doctype,
@@ -186,7 +186,7 @@ select soi.name from `tabRoom Folio HMS` f
         else:
             je.remark = 'Room Folio refund against: ' + self.name
             je.append("accounts", {
-                "account":  cash_bank_account.account,
+                "account": cash_bank_account.account,
                 "account_currency": cash_bank_account.account_currency,
                 "account_type": cash_bank_account.account_type,
                 "credit_in_account_currency": amount,
@@ -270,7 +270,7 @@ def make_transfer_jv(**args):
     against_voucher_type = 'Room Folio HMS'
 
     je.append("accounts", {
-        "account":  credit_account,
+        "account": credit_account,
         "party_type": 'Customer',
         'party': args.customer,
         'debit_in_account_currency': 0,
@@ -378,11 +378,16 @@ def on_submit_sales_invoice(doc, method=None):
         frappe.get_doc("Room Folio HMS",
                        doc.room_folio_cf).update_charges_and_amounts()
 
+def on_validate_sales_invoice(doc, method=None):
+    if doc.room_folio_cf and doc.is_pos:
+        doc.debit_to = frappe.defaults.get_user_default(
+            'default_folio_receivable_account')
+
 
 @frappe.whitelist()
 def update_room_folio_status(name, status):
     frappe.db.set_value("Room Folio HMS", name, "status",
-                        status,  update_modified=True)
+                        status, update_modified=True)
 
 
 @frappe.whitelist()
@@ -395,7 +400,7 @@ def get_folio_invoice_summary(docname):
         "Company", doc['company'], "company_description")
 
     print_args["currency"] = frappe.get_cached_value(
-        'Company',  doc['company'],  'default_currency')
+        'Company', doc['company'], 'default_currency')
 
     folios = frappe.db.sql("""
 select f.name folio, r.room_no, f.check_in, f.check_out, f.balance, f.customer, case when f.master_folio is null then 1 else 0 end is_master
@@ -460,7 +465,7 @@ sum(credits-charges) over (order by creation) balance from data
         invoice_html += frappe.get_print("Sales Invoice",
                                          d["invoice"], "Standard", no_letterhead=0)
 
-    print_args["invoice_html"] = invoice_html or "**"*10
+    print_args["invoice_html"] = invoice_html or "**" * 10
 
     return print_args
 
