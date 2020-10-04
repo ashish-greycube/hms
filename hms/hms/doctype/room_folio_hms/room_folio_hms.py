@@ -380,6 +380,8 @@ def on_submit_sales_invoice(doc, method=None):
 
 def on_validate_sales_invoice(doc, method=None):
     if doc.room_folio_cf and doc.is_pos:
+        if doc.paid_amount > 0:
+            frappe.throw("Cannot recieve payment when charging to folio.")
         doc.debit_to = frappe.defaults.get_user_default(
             'default_folio_receivable_account')
 
