@@ -8,7 +8,7 @@ frappe.query_reports["Room Occupancy and Revenue HMS"] = {
       fieldname: "from_date",
       label: __("From Date"),
       fieldtype: "Date",
-      default: frappe.datetime.add_days(frappe.datetime.get_today(), -30),
+      default: hms.utils.get_first_of_month(),
       reqd: 1,
     },
     {
@@ -35,6 +35,13 @@ frappe.query_reports["Room Occupancy and Revenue HMS"] = {
     let me = this;
     gridOptions.floatingFilter = false;
     gridOptions.defaultColDef = defaultColDef;
+
+    gridOptions.getRowClass = function (params) {
+      if (params.node.data.room_type == "Total") {
+        return "hms-grid-total";
+      }
+      return null;
+    };
   },
 };
 

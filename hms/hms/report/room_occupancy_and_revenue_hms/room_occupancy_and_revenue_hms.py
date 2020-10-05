@@ -58,7 +58,7 @@ with fn as
 )
 select * from fn
 union all
-select '', '', '', sum(fn.no_of_rooms), sum(fn.total_rooms), sum(occupancy), 
+select 'Total', '', '', sum(fn.no_of_rooms), sum(fn.total_rooms), sum(occupancy), 
 round(sum(fn.total_rooms)/ndays,2),sum(empty), round(sum(empty/ndays),2),
 0, 0, sum(revenue), round(sum(revenue)/ndays,2), ndays
 from fn""", filters, as_dict=1, debug=True)
@@ -71,24 +71,24 @@ def get_columns(filters):
                 dict(label="Room Type", fieldname="room_type",
              fieldtype="", width=160),
                 dict(label="No of Rooms", fieldname="no_of_rooms",
-             type="numericColumn", width=100),
+             type="numericColumn", width=120),
                 dict(label="Total Rooms", fieldname="total_rooms",
-             type="numericColumn", width=100),
+             type="numericColumn", width=120),
                 dict(label="Occupancy", fieldname="occupancy",
-             type="numericColumn", width=100),
+             type="numericColumn", width=110),
                 dict(label="Empty", fieldname="empty",
-             type="numericColumn", width=100),
+             type="numericColumn", width=90),
                 dict(label="Avg Occupancy per Day", fieldname="avg_occupancy",
-             type="numericColumn", width=100),
+             type="numericColumn", width=180),
                 dict(label="Avg Empty", fieldname="avg_empty",
-             type="numericColumn", width=100),
+             type="numericColumn", width=110),
                 dict(label="Normal Room Rate", fieldname="normal_rate",
-             type="numericColumn", width=100),
+             type="numericColumn", width=160),
                 dict(label="Special Room Rate", fieldname="special_rate",
-             type="numericColumn", width=100),
+             type="numericColumn", width=160),
                 dict(label="Total Revenue", fieldname="revenue",
-             type="numericColumn", width=100),
+             type="numericColumn", width=130),
                 dict(label="Avg Revenue Per Day", fieldname="revenue_per_day",
-             type="numericColumn", width=100),
+             type="numericColumn", width=180),
 
     ]

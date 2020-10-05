@@ -45,21 +45,21 @@ def get_data():
                     "name": "Customer",
                     "label": "Customer",
                     "description": "Customer"
-                    # "condition": frappe.utils.has_common(["EDMS_Admin", "System Manager"], frappe.get_roles())
+                    # "condition": frappe.utils.has_common(["", "System Manager"], frappe.get_roles())
                 },
                 {
                     "type": "doctype",
                     "name": "Contact",
                     "label": "Guest",
                     "description": "Guest"
-                    # "condition": frappe.utils.has_common(["EDMS_Admin", "System Manager"], frappe.get_roles())
+                    # "condition": frappe.utils.has_common(["", "System Manager"], frappe.get_roles())
                 },
                 {
                     "type": "doctype",
                     "name": "Room HMS",
                     "label": "Rooms",
                     "description": "Rooms"
-                    # "condition": frappe.utils.has_common(["EDMS_Admin", "System Manager"], frappe.get_roles())
+                    # "condition": frappe.utils.has_common(["", "System Manager"], frappe.get_roles())
                 },
                 {
                     "type": "doctype",
@@ -84,19 +84,14 @@ def get_data():
                     "name": "Guest History HMS",
                     "label": "Guest History",
                     "is_query_report": True,
-                    # "condition": frappe.utils.has_common(["EDMS_Admin", "System Manager"], frappe.get_roles())
-                    # }, {
-                    #     "type": "report",
-                    #     "name": "Folder Sync",
-                    #     "label": "Folder Sync Report",
-                    #     "is_query_report": True,
-                    #     "condition": frappe.utils.has_common(["EDMS_Admin", "System Manager"], frappe.get_roles())
-                    # }, {
-                    #     "type": "report",
-                    #     "name": "Master Search",
-                    #     "label": "Master Search Report",
-                    #     "is_query_report": True
-                }
+                },
+                {
+                    "name": "Room Occupancy and Revenue HMS",
+                    "type": "report",
+                    "module_name": "hms",
+                    "label": _("Room Occupancy and Revenue"),
+                    "route": "#ag-report/Room Occupancy and Revenue HMS"
+                },
             ]
         }
     ]
