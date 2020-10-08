@@ -8,6 +8,10 @@ hms.make_grid_room_folio_advance = function (frm) {
       `<div id="ag-room-folio-advance" class="ag-theme-balham" style="width:100%;height:150px;;"></div>`
     );
   frm.room_folio_advance_gridOptions = {
+    defaultColDef: {
+      sortable: true,
+      resizable: true,
+    },
     columnDefs: [
       { headerName: "Reference Type", field: "reference_type", width: 160 },
       {
@@ -19,8 +23,18 @@ hms.make_grid_room_folio_advance = function (frm) {
         },
       },
       { headerName: "Posting Date", field: "posting_date", width: 100 },
-      { headerName: "Amount", field: "amount", width: 100 },
-      { headerName: "Allocated Amount", field: "allocated_amount", width: 100 },
+      {
+        headerName: "Amount",
+        field: "amount",
+        width: 100,
+        type: "numericColumn",
+      },
+      {
+        headerName: "Allocated Amount",
+        field: "allocated_amount",
+        width: 130,
+        type: "numericColumn",
+      },
     ],
     rowData: [],
     components: {
@@ -48,6 +62,10 @@ hms.make_grid_charge_and_purchase = function (frm) {
       `<div id="charge-purchase" class="ag-theme-balham" style="width:100%;height:150px;;"></div>`
     );
   frm.gridOptions = {
+    defaultColDef: {
+      sortable: true,
+      resizable: true,
+    },
     columnDefs: [
       {
         headerName: "Invoice",
@@ -68,8 +86,23 @@ hms.make_grid_charge_and_purchase = function (frm) {
       { headerName: "Room", field: "room_no", width: 90 },
       { headerName: "Date", field: "room_date_cf", width: 90 },
       { headerName: "Time", field: "posting_time", width: 90 },
-      { headerName: "Total", field: "rounded_total", width: 90 },
-      { headerName: "Outstanding", field: "outstanding_amount" },
+      {
+        headerName: "Total",
+        field: "rounded_total",
+        type: "numericColumn",
+        width: 90,
+      },
+      {
+        headerName: "Outstanding",
+        field: "outstanding_amount",
+        type: "numericColumn",
+        width: 100,
+      },
+      {
+        headerName: "Charges For",
+        field: "charges_for",
+        width: 300,
+      },
     ],
     rowData: [],
   };

@@ -24,11 +24,12 @@ def execute(filters=None):
 def get_data(filters):
 
     data = frappe.db.sql("""
-    select g.reference_name name, g.room_no, f.room_type, f.status, g.reference_name folio, f.customer,
+select g.reference_name name, g.room_no, f.room_type, f.status, g.reference_name folio, f.customer,
 f.check_in, f.check_out, f.total_charges, f.total_advance_paid, f.balance, gu.guests guest, '' mobile,
 coalesce(si.name,'') invoice, coalesce(si.outstanding_amount, 0) outstanding_amount
 from `tabRoom Status Ledger Entry HMS` g
-inner join `tabRoom Folio HMS` f on f.name = g.reference_name
+inner join `tabRoom Folio HMS` f on f.name = g.reference_name 
+and f.check_in <= %(audit_date)s
 left outer join 
 (
 	select parent, concat_ws(',',guest)guests from `tabRoom Guest Detail HMS`
@@ -38,9 +39,9 @@ left outer join
 (
     select name, room_date_cf, room_folio_cf, outstanding_amount
     from `tabSales Invoice`
-    where room_folio_cf is not null and room_date_cf = %(audit_date)s
+    where docstatus = 1 and room_folio_cf is not null and room_date_cf = %(audit_date)s
 ) si on room_folio_cf = f.name
-where g.docstatus <> 2 and g.status = 'Occupied'
+where g.docstatus <> 2 and g.status = 'Occupied' and f.status = 'Checked In'
 """, filters, as_dict=True, debug=False)
 
     columns = []
@@ -77,7 +78,7 @@ where g.docstatus <> 2 and g.status = 'Occupied'
     # columns += [dict(label="Mobile", fieldname="mobile",
     #                  fieldtype="Data", width=120,)]
 
-    return columns,  data
+    return columns, data
 
 
 @frappe.whitelist()

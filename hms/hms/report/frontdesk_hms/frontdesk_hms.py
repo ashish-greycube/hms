@@ -52,6 +52,7 @@ def get_data(filters=None):
                 from `tabRoom Folio HMS` fo
                 where not (fo.check_in >= %(to_date)s OR fo.check_out <= %(from_date)s)
                 and (fo.status = 'Checked In' or fo.status = 'Pre-Check In') 
+                and fo.docstatus <> 2
             ) a on d.date BETWEEN date(a.check_in) and date_sub(date(a.check_out), INTERVAL 1 DAY) and r.name = a.room_no
             left outer join `tabRoom Guest Detail HMS` gd on gd.name = (
                 -- guest details
@@ -66,6 +67,7 @@ def get_data(filters=None):
                 from `tabSales Order` so
                 where not (so.check_in_cf >= %(to_date)s OR so.check_out_cf <= %(from_date)s)
                 and not exists (select 1 from `tabRoom Folio HMS` x where x.reservation = so.name)
+                and so.docstatus <> 2
             ) b on d.date BETWEEN date(b.check_in) and date_sub(date(b.check_out), INTERVAL 1 DAY) and r.name = b.room_no
             left outer join 
             (
@@ -108,7 +110,7 @@ def get_data(filters=None):
     holidays = get_holidays(filters.get('from_date'), filters.get('to_date'))
 
     for d in [add_days(filters.get('from_date'), _)
-              for _ in range(0, date_diff(filters.get('to_date'), filters.get('from_date'))+1)]:
+              for _ in range(0, date_diff(filters.get('to_date'), filters.get('from_date')) + 1)]:
         col_date = getdate(d)
         day_type = "today" if d == today() else ""
         if d in holidays.keys():
@@ -128,7 +130,7 @@ def set_room_status(room_no, status_action):
 
 def get_holidays(from_date, to_date):
     holiday_list = frappe.get_cached_value(
-        'Company',  get_default_company(),  "default_holiday_list")
+        'Company', get_default_company(), "default_holiday_list")
     holidays = {}
     for d in frappe.db.sql("""select date_format(holiday_date,'%%Y-%%m-%%d') holiday_date, description 
     from tabHoliday where parent = %s

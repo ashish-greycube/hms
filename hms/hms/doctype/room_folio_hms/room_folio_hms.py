@@ -137,6 +137,7 @@ select soi.name from `tabRoom Folio HMS` f
         self.update_charges_and_amounts()
         self.validate_room_folio_balance()
         self.db_set('status', "Checked Out", update_modified=True)
+        self.db_set('check_out', frappe.utils.now_datetime(), update_modified=True)
         update_room_status_ledger(self.as_dict(), action="check_out")
         return self.as_dict()
 
@@ -241,10 +242,17 @@ select sum(si.rounded_total)
 @frappe.whitelist()
 def get_charge_and_purchase(docname):
     return frappe.db.sql("""
-select si.name, rf.name room_folio, rf.room_no, date_format(room_date_cf,'%%d %%b, %%y') room_date_cf,
-    date_format(posting_time,'%%H:%%i') posting_time, rounded_total, outstanding_amount
+    select si.name, rf.name room_folio, rf.room_no, 
+    date_format(coalesce(room_date_cf, posting_date),'%%d %%b, %%y') room_date_cf,
+    date_format(posting_time,'%%H:%%i') posting_time, rounded_total, outstanding_amount,
+    sit.items charges_for
     from `tabRoom Folio HMS` rf
     inner join `tabSales Invoice` si on rf.name = ifnull(si.room_folio_cf, '')
+    inner join (
+        select parent, group_concat(distinct item_name) items
+        from `tabSales Invoice Item`
+        group by parent
+    ) sit on sit.parent = si.name
     where rf.name = %(folio)s or rf.master_folio = %(folio)s""", dict(folio=docname, ), as_dict=True)
 
 
