@@ -29,7 +29,7 @@ f.check_in, f.check_out, f.total_charges, f.total_advance_paid, f.balance, gu.gu
 coalesce(si.name,'') invoice, coalesce(si.outstanding_amount, 0) outstanding_amount
 from `tabRoom Status Ledger Entry HMS` g
 inner join `tabRoom Folio HMS` f on f.name = g.reference_name 
-and f.check_in <= %(audit_date)s
+and date(f.check_in) <= %(audit_date)s
 left outer join 
 (
 	select parent, concat_ws(',',guest)guests from `tabRoom Guest Detail HMS`

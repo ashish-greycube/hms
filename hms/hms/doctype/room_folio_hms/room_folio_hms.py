@@ -106,7 +106,7 @@ select status, reference_type, reference_name
 
     def create_charge_purchase(self, room_date):
         """create sales invoice for room_date date"""
-        if frappe.db.exists("Sales Invoice", {'room_folio_cf': self.name, 'room_date_cf': room_date}):
+        if frappe.db.exists("Sales Invoice", {'room_folio_cf': self.name, 'room_date_cf': room_date, 'docstatus': 1}):
             frappe.throw(
                 _("Sales Invoice already created for %s") % (room_date,))
             return
@@ -121,14 +121,17 @@ select status, reference_type, reference_name
 
         # remove lines for other dates in Sales Invoice, only bill for room_date
         so_detail = frappe.db.sql("""
-select soi.name from `tabRoom Folio HMS` f
+        select soi.name 
+        from `tabRoom Folio HMS` f
         inner join `tabSales Order Item` soi on soi.parent = f.reservation
         and ifnull(soi.reservation_date_cf,'') = %s
-        where f.name = %s""", (getdate(room_date), self.name, ), debug=True)
+        where f.name = %s""", (getdate(room_date), self.name, ), debug=False)
         so_detail = so_detail and so_detail[0][0] or None
-        for d in out.items:
-            if not d.so_detail == so_detail:
-                out.remove(d)
+        out.items = [d for d in out.items if d.so_detail == so_detail]
+
+        if not out.items:
+            frappe.throw("No billable room charges for %s." % room_date)
+
         out.save()
         out.submit()
         return out.name
@@ -247,7 +250,7 @@ def get_charge_and_purchase(docname):
     date_format(posting_time,'%%H:%%i') posting_time, rounded_total, outstanding_amount,
     sit.items charges_for
     from `tabRoom Folio HMS` rf
-    inner join `tabSales Invoice` si on rf.name = ifnull(si.room_folio_cf, '')
+    inner join `tabSales Invoice` si on si.docstatus = 1 and rf.name = ifnull(si.room_folio_cf, '')
     inner join (
         select parent, group_concat(distinct item_name) items
         from `tabSales Invoice Item`
@@ -443,7 +446,7 @@ where f.name = %(name)s or f.master_folio = %(name)s
                 inner join `tabRoom Folio HMS` fo on fo.name = si.room_folio_cf
                 inner join `tabRoom HMS` rm on rm.name = fo.room_no
             where
-                si.room_folio_cf = %(room_folio)s
+                si.docstatus = 1 and si.room_folio_cf = %(room_folio)s
     union all
     select '' invoice, t1.posting_date `date`,
     rm.room_no, t1.remark as voucher,
