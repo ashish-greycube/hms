@@ -99,17 +99,25 @@ select status, reference_type, reference_name
 
         return checklist and "<br>".join(checklist) or ""
 
-    def after_insert(self):
+    def make_check_in(self):
         "check in"
+        self.update({"status": "Checked In"})
+        self.save()
         update_room_status_ledger(self.as_dict(), action="check_in")
+
+    def after_insert(self):
         self.create_charge_purchase(self.check_in)
+
+    def on_cancel(self):
+        "cancel"
+        update_room_status_ledger(self.as_dict(), action="cancel")
 
     def create_charge_purchase(self, room_date):
         """create sales invoice for room_date date"""
-        if frappe.db.exists("Sales Invoice", {'room_folio_cf': self.name, 'room_date_cf': room_date, 'docstatus': 1}):
-            frappe.throw(
-                _("Sales Invoice already created for %s") % (room_date,))
-            return
+        # if frappe.db.exists("Sales Invoice", {'room_folio_cf': self.name, 'room_date_cf': room_date, 'docstatus': 1}):
+        #     frappe.throw(
+        #         _("Sales Invoice already created for %s") % (room_date,))
+        #     return
 
         from erpnext.selling.doctype.sales_order.sales_order import make_sales_invoice
         out = make_sales_invoice(source_name=self.reservation)
@@ -118,7 +126,9 @@ select status, reference_type, reference_name
         out.room_date_cf = room_date
         out.debit_to = frappe.defaults.get_user_default(
             'default_folio_receivable_account')
+        out.customer = "Adani"
 
+        print(out.items)
         # remove lines for other dates in Sales Invoice, only bill for room_date
         so_detail = frappe.db.sql("""
         select soi.name 
@@ -126,7 +136,7 @@ select status, reference_type, reference_name
         inner join `tabSales Order Item` soi on soi.parent = f.reservation
         and ifnull(soi.reservation_date_cf,'') = %s
         where f.name = %s""", (getdate(room_date), self.name, ), debug=False)
-        so_detail = so_detail and so_detail[0][0] or None
+        so_detail = so_detail and so_detail[0][0] or []
         out.items = [d for d in out.items if d.so_detail == so_detail]
 
         if not out.items:
@@ -395,6 +405,26 @@ def on_validate_sales_invoice(doc, method=None):
             frappe.throw("Cannot recieve payment when charging to folio.")
         doc.debit_to = frappe.defaults.get_user_default(
             'default_folio_receivable_account')
+
+    # '''split POS Invoice based on item-group set in reservation split bill.'''
+    #     def make_split_invoice(doc, customer, items):
+    #     invoice = frappe.copy_doc(doc)
+    #     invoice.customer = customer
+    #     invoice.items = items
+    #     invoice.insert()
+    #     invoice.submit()
+
+    # if cint(doc.is_pos) and doc.room_folio_cf:
+    #     split = frappe.db.sql("""
+    #     select  customer, item_group
+    #     from `tabRoom Folio Split Bill Detail HMS`
+    #     where parent = %s
+    #     """, (doc.reservation_cf), as_dict=False)
+
+    #     for customer, item_group in split:
+    #         items = [i for i in doc.items if i.item_group == item_group]
+    #         make_split_invoice(doc, customer, items)
+    #         doc.items = [i for i in doc.items if not i.item_group == item_group]
 
 
 @frappe.whitelist()

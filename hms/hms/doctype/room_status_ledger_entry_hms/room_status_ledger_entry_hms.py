@@ -9,7 +9,14 @@ from frappe.model.document import Document
 
 
 class RoomStatusLedgerEntryHMS(Document):
-    pass
+    def validate(self):
+        for d in frappe.db.exists("""
+            select room_no, status
+            from `tabRoom Status Ledger Entry HMS` g
+            where docstatus <> 2 and room_no = %s and status = %s
+            group by room_no, status
+            having count(*) > 1""", (self.room_no, self.status)):
+            frappe.throw("Entry for %s in %s status already exists." % (self.room_no, self.status))
 
 
 class update_room_status_ledger(object):
@@ -56,6 +63,15 @@ class update_room_status_ledger(object):
         where docstatus = 0 and status = 'Occupied' and room_no = %(room_no)s
         """, self.args)
 
+        self.set_dirty()
+
+    def cancel(self):
+        # on Cancel of Folio cancel Occupied entry
+        frappe.db.sql("""
+        update `tabRoom Status Ledger Entry HMS`
+        set docstatus = 2, status = 'Cancelled', modified = %(modified)s, modified_by = %(modified_by)s
+        where docstatus = 0 and status = 'Occupied' and room_no = %(room_no)s
+        """, self.args)
         self.set_dirty()
 
     def set_dirty(self):

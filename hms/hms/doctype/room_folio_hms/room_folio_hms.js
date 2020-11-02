@@ -42,16 +42,13 @@ frappe.ui.form.on("Room Folio HMS", {
           frappe
             .call({
               method:
-                "hms.hms.doctype.room_folio_hms.room_folio_hms.update_room_folio_status",
+                "hms.hms.doctype.room_folio_hms.room_folio_hms.make_check_in",
               args: {
                 name: frm.doc.name,
-                status: "Checked In",
               },
             })
             .then(() => {
               frm.reload_doc();
-              console.log("reloaded");
-
               frappe.show_alert("Folio checked in.");
             });
         },
