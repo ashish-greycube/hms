@@ -101,8 +101,7 @@ select status, reference_type, reference_name
 
     def make_check_in(self):
         "check in"
-        self.update({"status": "Checked In"})
-        self.save()
+        self.db_set("status", "Checked In", update_modified=True)
         update_room_status_ledger(self.as_dict(), action="check_in")
 
     def after_insert(self):
@@ -126,9 +125,6 @@ select status, reference_type, reference_name
         out.room_date_cf = room_date
         out.debit_to = frappe.defaults.get_user_default(
             'default_folio_receivable_account')
-        out.customer = "Adani"
-
-        print(out.items)
         # remove lines for other dates in Sales Invoice, only bill for room_date
         so_detail = frappe.db.sql("""
         select soi.name 
@@ -155,6 +151,10 @@ select status, reference_type, reference_name
         return self.as_dict()
 
     def validate_room_folio_balance(self):
+        if not self.guest_purchase_balance == 0:
+            frappe.throw(
+                _('Unsettled Guest Purchases in folio. Please settle outstanding amount {} before checkout.').format(
+                    format_value(self.guest_purchase_balance, df="Currency")))
         if not self.balance == 0:
             frappe.throw(
                 _('Unsettled balance {} exists in folio. Please settle balance before checkout.').format(
@@ -247,6 +247,14 @@ select sum(si.rounded_total)
                     update_modified=False)
         self.db_set('balance', total_advance_paid -
                     total_charges, update_modified=False)
+
+        guest_purchase_balance = frappe.db.sql("""
+        select sum(si.outstanding_amount)
+        from `tabSales Invoice` si
+        inner join `tabRoom Folio HMS` rf on rf.name = si.room_folio_cf and rf.customer <> si.customer
+        where si.docstatus = 1 and si.is_pos = 1 and si.room_folio_cf = %s""", (self.name,))
+        if guest_purchase_balance:
+            self.db_set('guest_purchase_balance', guest_purchase_balance[0][0], update_modified=False)
 
     def get_print_doc(self):
         return get_folio_invoice_summary(self.name)
@@ -351,7 +359,6 @@ select sum(debit - credit) balance
                                   ignore_account_permission=True,
                                   company=company),
     }
-    print(balance, "balance")
     return balance
 
 
@@ -406,31 +413,83 @@ def on_validate_sales_invoice(doc, method=None):
         doc.debit_to = frappe.defaults.get_user_default(
             'default_folio_receivable_account')
 
-    # '''split POS Invoice based on item-group set in reservation split bill.'''
-    #     def make_split_invoice(doc, customer, items):
-    #     invoice = frappe.copy_doc(doc)
-    #     invoice.customer = customer
-    #     invoice.items = items
-    #     invoice.insert()
-    #     invoice.submit()
+        def _make_split_invoice(doc, customer, items):
+            '''split POS Invoice based on item-group set in reservation split bill.'''
+            si = frappe.new_doc("Sales Invoice")
+            si.flags.is_split_bill = True
+            si.room_folio_cf = doc.room_folio_cf
+            si.posting_date = doc.posting_date or nowdate()
+            si.company = doc.company
+            si.customer = customer
+            si.debit_to = doc.debit_to
+            si.update_stock = doc.update_stock
+            si.is_pos = doc.is_pos
+            si.currency = doc.currency
+            si.conversion_rate = doc.conversion_rate
+            for d in doc.payments:
+                si.append("payments", {
+                    "mode_of_payment": d.mode_of_payment,
+                    "account": d.account,
+                    "type": d.type,
+                })
+            for item in items:
+                si.append("items", {
+                    "item_code": item.item_code,
+                    "warehouse": item.warehouse,
+                    "qty": item.qty,
+                    "rate": item.rate,
+                    "income_account": item.income_account,
+                    "expense_account": item.expense_account,
+                    "cost_center": item.cost_center,
+                })
+            si.calculate_taxes_and_totals()
+            si.insert()
+            si.submit()
+            frappe.msgprint("Split Invoice %s created." % si.name, alert=True)
 
-    # if cint(doc.is_pos) and doc.room_folio_cf:
-    #     split = frappe.db.sql("""
-    #     select  customer, item_group
-    #     from `tabRoom Folio Split Bill Detail HMS`
-    #     where parent = %s
-    #     """, (doc.reservation_cf), as_dict=False)
+    if cint(doc.is_pos) and doc.room_folio_cf and not doc.flags.is_split_bill:
+        customer_item_groups = frappe.db.sql("""
+        select  a.customer, group_concat(a.item_group)
+        from `tabRoom Folio Split Bill Detail HMS` a
+        inner join `tabRoom Folio HMS` b on b.name = a.parent
+        and b.name = %s and a.customer <> %s
+        group by a.customer""", (doc.room_folio_cf, doc.customer), as_dict=False)
+        if customer_item_groups:
+            split_invoices = []
+            for customer, item_groups in customer_item_groups:
+                items = [i for i in doc.items if i.item_group in item_groups.split(",")]
+                if items:
+                    split_invoices.append((customer, items))
+                    doc.items = [i for i in doc.items if not i.item_group in item_groups.split(",")]
 
-    #     for customer, item_group in split:
-    #         items = [i for i in doc.items if i.item_group == item_group]
-    #         make_split_invoice(doc, customer, items)
-    #         doc.items = [i for i in doc.items if not i.item_group == item_group]
+            if not doc.items:
+                doc.customer = split_invoices[0][0]
+                doc.customer_name = frappe.db.get_value("Customer", split_invoices[0][0], 'customer_name')
+                doc.items = split_invoices[0][1]
+                split_invoices = split_invoices[1:]
+
+            doc.calculate_taxes_and_totals()
+            for d in split_invoices:
+                _make_split_invoice(doc, d[0], d[1])
 
 
 @frappe.whitelist()
 def update_room_folio_status(name, status):
     frappe.db.set_value("Room Folio HMS", name, "status",
                         status, update_modified=True)
+
+@frappe.whitelist()
+def get_guest_purchase(room_folio):
+    return frappe.db.sql("""
+        select si.name invoice, concat(si.posting_date, ' ', left(si.posting_time,5)) posting_date,
+        si.base_rounded_total, si.remarks, si.customer_name, si.status, group_concat(distinct sit.item_group) items
+        from `tabSales Invoice` si
+        inner join `tabRoom Folio HMS` rf on rf.name = si.room_folio_cf and rf.customer <> si.customer
+        inner join `tabSales Invoice Item` sit on sit.parent = si.name
+        where si.docstatus = 1 and si.is_pos = 1 and si.room_folio_cf = %s
+        group by si.name, si.posting_date, si.posting_time, si.base_rounded_total,
+        si.remarks, si.customer_name, si.status
+        """, (room_folio), as_dict=True)
 
 
 @frappe.whitelist()

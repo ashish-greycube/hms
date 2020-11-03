@@ -21,6 +21,8 @@
   "sign_in_sheet",
   "split_bill_section_section",
   "room_folio_split_bill_detail",
+  "guest_purchase",
+  "guest_purchase_balance",
   "guest_details_section",
   "room_guest_detail",
   "vi_sb",
@@ -231,10 +233,21 @@
    "fieldname": "registration_plate_no",
    "fieldtype": "Data",
    "label": "Registration Plate No"
+  },
+  {
+   "depends_on": "eval:doc.is_split_bill==1;",
+   "fieldname": "guest_purchase",
+   "fieldtype": "HTML",
+   "label": "Guest Purchase"
+  },
+  {
+   "fieldname": "guest_purchase_balance",
+   "fieldtype": "Currency",
+   "label": "Guest Purchase Balance"
   }
  ],
  "is_submittable": 1,
- "modified": "2020-05-01 06:42:16.077289",
+ "modified": "2020-11-03 03:10:41.660119",
  "modified_by": "Administrator",
  "module": "HMS",
  "name": "Room Folio HMS",

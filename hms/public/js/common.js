@@ -143,3 +143,41 @@ CustomNoRowsOverlay.prototype.init = function (params) {
 CustomNoRowsOverlay.prototype.getGui = function () {
   return this.eGui;
 };
+
+hms.make_grid_guest_purchase = function (frm) {
+  let $wrapper = frm.fields_dict["guest_purchase"].$wrapper;
+  $wrapper
+    .empty()
+    .html(
+      `<div id="guest-purchase" class="ag-theme-balham" style="width:100%;height:150px;;"></div>`
+    );
+  frm.gridOptions_guest_purchase = {
+    defaultColDef: {
+      sortable: true,
+      resizable: true,
+    },
+    columnDefs: [
+      {
+        headerName: "Invoice",
+        field: "invoice",
+        width: 160,
+        cellRenderer: function (params) {
+          return `<a href='#Form/Sales Invoice/${params.value}' target="_blank">${params.value}</a>`;
+        },
+      },
+      { headerName: "Status", field: "status", width: 90 },
+      { headerName: "Date", field: "posting_date", width: 130 },
+      {
+        headerName: "Total",
+        field: "base_rounded_total",
+        type: "numericColumn",
+        width: 90,
+      },
+      { headerName: "Items", field: "items", width: 300 },
+      { headerName: "Remarks", field: "remarks", width: 90 },
+    ],
+    rowData: [],
+  };
+  var gridDiv = document.querySelector("#guest-purchase");
+  new agGrid.Grid(gridDiv, frm.gridOptions_guest_purchase);
+};

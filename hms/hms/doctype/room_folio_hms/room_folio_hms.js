@@ -9,7 +9,9 @@ frappe.ui.form.on("Room Folio HMS", {
   refresh: function (frm) {
     hms.make_grid_room_folio_advance(frm);
     hms.make_grid_charge_and_purchase(frm);
+    hms.make_grid_guest_purchase(frm);
     frm.events.load_charge_and_purchase(frm);
+    frm.events.set_guest_purchase(frm);
     frm.events.set_advance_payments(frm);
     frm.events.add_custom_buttons(frm);
 
@@ -39,18 +41,14 @@ frappe.ui.form.on("Room Folio HMS", {
       frm.page.add_inner_button(
         __("Check In"),
         function () {
-          frappe
-            .call({
-              method:
-                "hms.hms.doctype.room_folio_hms.room_folio_hms.make_check_in",
-              args: {
-                name: frm.doc.name,
-              },
-            })
-            .then(() => {
+          frappe.call({
+            doc: frm.doc,
+            method: "make_check_in",
+            callback: function (r) {
               frm.reload_doc();
               frappe.show_alert("Folio checked in.");
-            });
+            },
+          });
         },
         __("Actions")
       );
@@ -93,6 +91,28 @@ frappe.ui.form.on("Room Folio HMS", {
     }
 
     frm.page.set_inner_btn_group_as_primary(__("Actions"));
+  },
+
+  set_guest_purchase: function (frm) {
+    frappe
+      .call({
+        method:
+          "hms.hms.doctype.room_folio_hms.room_folio_hms.get_guest_purchase",
+        args: {
+          room_folio: frm.doc.name,
+        },
+      })
+      .then((r) => {
+        if (!r.exc) {
+          frm.gridOptions_guest_purchase.api.setRowData(r.message);
+          let guest_balance = r.message.reduce(
+            (acc, i) => acc + (i.status == "Paid" ? 0 : i.base_rounded_total),
+            0
+          );
+          frm.doc.guest_purchase_balance = guest_balance;
+          frm.refresh_field("guest_purchase_balance");
+        }
+      });
   },
 
   set_advance_payments: function (frm) {

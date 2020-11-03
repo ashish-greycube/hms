@@ -10,12 +10,11 @@ from frappe.model.document import Document
 
 class RoomStatusLedgerEntryHMS(Document):
     def validate(self):
-        for d in frappe.db.exists("""
+        '''Check for duplicates'''
+        for d in frappe.db.sql("""
             select room_no, status
             from `tabRoom Status Ledger Entry HMS` g
-            where docstatus <> 2 and room_no = %s and status = %s
-            group by room_no, status
-            having count(*) > 1""", (self.room_no, self.status)):
+            where docstatus <> 2 and room_no = %s and status = %s""", (self.room_no, self.status)):
             frappe.throw("Entry for %s in %s status already exists." % (self.room_no, self.status))
 
 

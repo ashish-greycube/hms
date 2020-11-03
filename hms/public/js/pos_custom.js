@@ -96,11 +96,16 @@ function make_folio_dialog(pos) {
         field: "folio",
         headerName: "Folio",
         type: "Link/Room Folio HMS",
-        width: 120,
+        width: 180,
       },
     ],
     onGridReady: function () {
       get_folios(pos);
+    },
+
+    defaultColDef = {
+      sortable: true,
+      resizable: true,
     },
   };
 
