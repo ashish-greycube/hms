@@ -243,11 +243,11 @@
   {
    "fieldname": "guest_purchase_balance",
    "fieldtype": "Currency",
-   "label": "Guest Purchase Balance"
+   "label": "Guest Outstanding Amount"
   }
  ],
  "is_submittable": 1,
- "modified": "2020-11-03 03:10:41.660119",
+ "modified": "2020-11-03 04:09:48.445755",
  "modified_by": "Administrator",
  "module": "HMS",
  "name": "Room Folio HMS",
