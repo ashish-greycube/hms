@@ -254,7 +254,7 @@ select sum(si.rounded_total)
         inner join `tabRoom Folio HMS` rf on rf.name = si.room_folio_cf and rf.customer <> si.customer
         where si.docstatus = 1 and si.is_pos = 1 and si.room_folio_cf = %s""", (self.name,))
         if guest_purchase_balance:
-            self.db_set('guest_purchase_balance', guest_purchase_balance[0][0], update_modified=False)
+            self.db_set('guest_purchase_balance', guest_purchase_balance[0][0] or 0, update_modified=False)
 
     def get_print_doc(self):
         return get_folio_invoice_summary(self.name)

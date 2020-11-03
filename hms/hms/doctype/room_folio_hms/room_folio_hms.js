@@ -109,7 +109,7 @@ frappe.ui.form.on("Room Folio HMS", {
             (acc, i) => acc + (i.status == "Paid" ? 0 : i.base_rounded_total),
             0
           );
-          frm.doc.guest_purchase_balance = guest_balance;
+          frm.doc.guest_purchase_balance = guest_balance || 0;
           frm.refresh_field("guest_purchase_balance");
         }
       });
