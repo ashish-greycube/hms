@@ -103,7 +103,7 @@ function make_folio_dialog(pos) {
       get_folios(pos);
     },
 
-    defaultColDef = {
+    defaultColDef: {
       sortable: true,
       resizable: true,
     },
