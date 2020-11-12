@@ -35,6 +35,7 @@ def get_data(filters=None):
             select d.date, r.name name, r.room_no room_no, r.room_type, c.room_status,
             case
             when a.name is not null  and (a.status='Checked In' or a.status='Pre-Check In') then 'hms-in-house'
+            when a.name is not null  and a.status = 'Checked Out' then 'hms-checked-out'
             when a.name is null and b.name is not null 
                 then case when b.advance_paid > 0 then 'hms-gtd-reservation' else 'hms-ngtd-reservation' end
             when d.date = curdate() then concat('hms-',coalesce(lower(c.room_status),''))
@@ -51,9 +52,9 @@ def get_data(filters=None):
                 select fo.room_no, fo.check_in, fo.check_out, fo.customer, fo.name, fo.status
                 from `tabRoom Folio HMS` fo
                 where not (fo.check_in >= %(to_date)s OR fo.check_out <= %(from_date)s)
-                and (fo.status = 'Checked In' or fo.status = 'Pre-Check In') 
                 and fo.docstatus <> 2
-            ) a on d.date BETWEEN date(a.check_in) and date_sub(date(a.check_out), INTERVAL 1 DAY) and r.name = a.room_no
+            ) a on r.name = a.room_no
+            and d.date >= date(a.check_in) and d.date <= date(a.check_out) 
             left outer join `tabRoom Guest Detail HMS` gd on gd.name = (
                 -- guest details
                 select x.name from `tabRoom Guest Detail HMS` x 
@@ -68,7 +69,7 @@ def get_data(filters=None):
                 where not (so.check_in_cf >= %(to_date)s OR so.check_out_cf <= %(from_date)s)
                 and not exists (select 1 from `tabRoom Folio HMS` x where x.reservation = so.name)
                 and so.docstatus <> 2
-            ) b on d.date BETWEEN date(b.check_in) and date_sub(date(b.check_out), INTERVAL 1 DAY) and r.name = b.room_no
+            ) b on d.date BETWEEN date(b.check_in) and date_sub(date(b.check_out), INTERVAL 0 DAY) and r.name = b.room_no
             left outer join 
             (
                 -- room status ledger: Dirty/Occupied/OOO/OOS

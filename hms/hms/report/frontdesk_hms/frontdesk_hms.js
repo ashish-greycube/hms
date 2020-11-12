@@ -259,6 +259,7 @@ const legend = `
         <li><span class="hms-in-house"></span> In House</li>
         <li><span class="hms-gtd-reservation"></span>Deposit Reservation</li>
         <li><span class="hms-ngtd-reservation"></span>NGTD Reservation</li>
+        <li><span class="hms-checked-out"></span>Checked Out</li>
     </ul>
   </div>
 </div>

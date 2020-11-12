@@ -17,7 +17,6 @@ class RoomStatusLedgerEntryHMS(Document):
             where docstatus <> 2 and room_no = %s and status = %s""", (self.room_no, self.status)):
             frappe.throw("Entry for %s in %s status already exists." % (self.room_no, self.status))
 
-
 class update_room_status_ledger(object):
     """
         update room status ledger
@@ -46,7 +45,13 @@ class update_room_status_ledger(object):
         getattr(self, action)()
 
     def check_in(self):
-        # create Occuied entry
+        # create Occupied entry
+        exists_status = frappe.db.sql("""select status
+        from `tabRoom Status Ledger Entry HMS` g
+        where docstatus <> 2 and room_no = %s""", (self.args.get("room_no")))
+        if exists_status:
+            frappe.throw("Room %s is in %s status. Cannot Check In." % (self.args.get("room_no"), exists_status[0][0]))
+
         doc = frappe.get_doc({
             "doctype": "Room Status Ledger Entry HMS",
         })
