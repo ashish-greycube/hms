@@ -8,6 +8,21 @@ frappe.pages["pos"].refresh = function (wrapper) {
       if (!wrapper.pos.folio_dialog) make_folio_dialog(wrapper.pos);
       wrapper.pos.folio_dialog.show();
       get_folios(wrapper.pos);
+
+      if (!wrapper.pos.is_monkey_patched) {
+        wrapper.pos.is_monkey_patched = true;
+        var original = wrapper.pos.submit_sales_invoice;
+        wrapper.pos.submit_sales_invoice = function () {
+          if (
+            wrapper.pos.frm.doc.room_folio_cf &&
+            wrapper.pos.frm.doc.paid_amount > 0
+          ) {
+            let mop = wrapper.pos.frm.doc.payments[0].mode_of_payment;
+            wrapper.pos.payment.update_payment_value(mop, 0);
+          }
+          original.apply(this, arguments);
+        };
+      }
     });
   }
 
