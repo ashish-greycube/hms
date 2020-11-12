@@ -51,6 +51,12 @@ frappe.ui.form.on("Sales Order", {
     remove_so_buttons(frm);
     set_holiday_rows(frm);
 
+    if (frm.is_new()) {
+      frappe.timeout(0.8).then(() => {
+        frm.set_value("tc_name", "Sign-In Sheet");
+      });
+    }
+
     if (frm.doc.docstatus == 1) {
       frm.trigger("validate_checklist");
     }
