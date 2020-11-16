@@ -174,6 +174,16 @@ frappe.ui.form.on("Sales Order", {
       frappe.throw(__("One night is the minimum stay period allowed."));
     }
     if (
+      frm.doc.docstatus == 0 &&
+      frappe.datetime.get_diff(
+        frappe.datetime.get_today(),
+        frm.doc.check_in_cf
+      ) > 0
+    ) {
+      frappe.throw(__("Check In date cannot be earlier than today."));
+    }
+
+    if (
       frappe.datetime.get_diff(frm.doc.check_out_cf, frm.doc.check_in_cf) < 0
     ) {
       frappe.throw(

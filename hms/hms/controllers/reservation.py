@@ -13,8 +13,10 @@ from erpnext.accounts.doctype.journal_entry.journal_entry import get_default_ban
 
 
 def validate_sales_order(doc, method):
+    if doc.docstatus == 0 and date_diff(today(), doc.check_in_cf) > 0:
+        frappe.throw(_("Check In date cannot be earlier than today."))
+
     validate_availability(doc.check_in_cf, doc.check_out_cf, doc.room_no_cf)
-    messages = []
     if not doc.guest_cf:
         frappe.throw(_("Please select guest for Reservation."))
 
@@ -151,7 +153,7 @@ def make_transfer_jv_to_sales_order(customer, amount_to_transfer, docname):
         'default_desk_receivable_account')
 
     je.append("accounts", {
-        "account":  default_desk_account,
+        "account": default_desk_account,
         "party_type": 'Customer',
         'party': customer,
         'reference_type': 'Sales Order',
@@ -247,10 +249,10 @@ def make_payment_entry_from_sales_order(mode_of_payment, paid_amount, customer, 
     if sales_order:
         for d in frappe.db.get_values(
                 'Sales Order', sales_order, ['rounded_total', 'advance_paid']):
-            if (d[0]-d[1]) < flt(paid_amount):
+            if (d[0] - d[1]) < flt(paid_amount):
                 frappe.throw(
                     _("Payment amount cannot be greater than the outstanding amount for reservation: {}").format(
-                        frappe.bold(frappe.format(d[0]-d[1], dict(fieldtype="Currency"))))
+                        frappe.bold(frappe.format(d[0] - d[1], dict(fieldtype="Currency"))))
                 )
         payment = get_payment_entry("Sales Order", sales_order)
         for d in payment.references:

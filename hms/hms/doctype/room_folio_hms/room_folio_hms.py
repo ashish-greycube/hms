@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import (nowdate, flt, cint, today,
+from frappe.utils import (nowdate, flt, cint, today, date_diff,
                           getdate, cstr, now, get_link_to_form)
 from erpnext.accounts.party import get_party_account, get_party_bank_account
 from erpnext.accounts.utils import get_outstanding_invoices
@@ -21,6 +21,9 @@ from frappe.utils.formatters import format_value
 
 class RoomFolioHMS(Document):
     def validate(self):
+        if self.is_new() and date_diff(getdate(), getdate(self.check_in)) > 0:
+            frappe.throw(_("Check In date cannot be earlier than today."))
+
         if self.is_new() and self.status == "Checked In":
             self.validate_room_reservation()
             self.validate_room_status()
