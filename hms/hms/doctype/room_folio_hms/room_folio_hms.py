@@ -17,6 +17,7 @@ from erpnext.accounts.doctype.journal_entry.journal_entry import get_default_ban
 import erpnext
 from six import iteritems, string_types
 from frappe.utils.formatters import format_value
+from erpnext.setup.doctype.item_group.item_group import get_child_item_groups
 
 
 class RoomFolioHMS(Document):
@@ -460,14 +461,25 @@ def on_validate_sales_invoice(doc, method=None):
         if customer_item_groups:
             split_invoices = []
             for customer, item_groups in customer_item_groups:
-                items = [i for i in doc.items if i.item_group in item_groups.split(",")]
+                _groups = item_groups.split(",")
+                for g in item_groups.split(","):
+                    _groups += get_child_item_groups(g)
+                items = [i for i in doc.items if i.item_group in _groups]
                 if items:
                     split_invoices.append((customer, items))
-                    doc.items = [i for i in doc.items if not i.item_group in item_groups.split(",")]
+                    doc.items = [i for i in doc.items if not i.item_group in _groups]
 
             if not doc.items:
                 doc.customer = split_invoices[0][0]
-                doc.customer_name = frappe.db.get_value("Customer", split_invoices[0][0], 'customer_name')
+                doc.update({
+                    "title": None,
+                    "customer_name": None,
+                    "contact_person": None,
+                    "contact_display": None,
+                    "contact_mobile": None,
+                    "contact_email": None,
+                })
+                doc.set_missing_values()
                 doc.items = split_invoices[0][1]
                 split_invoices = split_invoices[1:]
 

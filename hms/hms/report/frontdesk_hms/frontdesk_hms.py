@@ -54,7 +54,7 @@ def get_data(filters=None):
                 where not (fo.check_in >= %(to_date)s OR fo.check_out <= %(from_date)s)
                 and fo.docstatus <> 2
             ) a on r.name = a.room_no
-            and d.date >= date(a.check_in) and d.date <= date(a.check_out) 
+            and d.date >= date(a.check_in) and d.date < date(a.check_out) 
             left outer join `tabRoom Guest Detail HMS` gd on gd.name = (
                 -- guest details
                 select x.name from `tabRoom Guest Detail HMS` x 
@@ -69,7 +69,7 @@ def get_data(filters=None):
                 where not (so.check_in_cf >= %(to_date)s OR so.check_out_cf <= %(from_date)s)
                 and not exists (select 1 from `tabRoom Folio HMS` x where x.reservation = so.name)
                 and so.docstatus <> 2
-            ) b on d.date BETWEEN date(b.check_in) and date_sub(date(b.check_out), INTERVAL 0 DAY) and r.name = b.room_no
+            ) b on d.date BETWEEN date(b.check_in) and date_sub(date(b.check_out), INTERVAL 1 DAY) and r.name = b.room_no
             left outer join 
             (
                 -- room status ledger: Dirty/Occupied/OOO/OOS

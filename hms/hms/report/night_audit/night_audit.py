@@ -7,15 +7,6 @@ import frappe
 import json
 from six import string_types, iteritems
 
-
-def execute(filters=None):
-    columns, data = [], []
-    return columns, data
-
-# Copyright (c) 2013, GreyCube Technologies and contributors
-# For license information, please see license.txt
-
-
 def execute(filters=None):
     columns, data = get_data(filters)
     return columns, data
