@@ -17,9 +17,9 @@ def get_columns(filters):
         dict(label="Folio", fieldname="folio",
                      fieldtype="Link/Room Folio HMS", width=130,),
         dict(label="Customer", fieldname="customer",
-                     fieldtype="Link/Customer", width=130,),
-        dict(label="Invoice", fieldname="invoice",
-                     fieldtype="Link/Sales Invoice", width=110,),
+                     fieldtype="Link/Customer", width=140,),
+        dict(label="Voucher No", fieldname="voucher_no",
+                     fieldtype="Data", width=160,),
         dict(label="Room No", fieldname="room_no",
                      fieldtype="Data", width=110,),
         dict(label="Room Type", fieldname="room_type",
@@ -27,9 +27,9 @@ def get_columns(filters):
         dict(label="Date", fieldname="date",
                      fieldtype="Data", width=110,),
         dict(label="Description", fieldname="description",
-                     fieldtype="Data", width=200,),
-        dict(label="Payment", fieldname="payment_entry",
-                     fieldtype="Link/Payment Entry", width=130,),
+                     fieldtype="Data", width=230,),
+        # dict(label="Payment", fieldname="payment_entry",
+        #              fieldtype="Link/Payment Entry", width=130,),
         dict(label="Dr", fieldname="debit",
                      fieldtype="Currency", width=110,),
         dict(label="Cr", fieldname="credit",
@@ -53,8 +53,8 @@ def get_data(filters):
     where_clause = " and " + " and ".join(where_clause) if where_clause else ""
 
     charges = frappe.db.sql("""
-    select rf.customer,  rf.name folio, si.name invoice,rf.room_no, rm.room_type,
-    coalesce(si.room_date_cf,si.posting_date) date, sit.item_name description,
+    select rf.customer,  rf.name folio, si.name voucher_no,rf.room_no, rm.room_type,
+    coalesce(si.room_date_cf,si.posting_date) date, sit.item_name description, 'Sales Invoice' voucher_type,
     if(si.is_return=0,si.base_rounded_total,0) debit, if(si.is_return=1,si.base_rounded_total,0) credit
     from `tabRoom Folio HMS` rf
         inner join `tabSales Invoice` si on si.room_folio_cf = rf.name
@@ -77,7 +77,7 @@ def get_data(filters):
     where_clause = " and " + " and ".join(where_clause) if where_clause else ""
 
     payments = frappe.db.sql("""
-    select pe.party customer, pe.name payment_entry, pe.posting_date date,
+    select pe.party customer, pe.name voucher_no, pe.posting_date date, 'Payment Entry' voucher_type,
         concat_ws(' ', pe.mode_of_payment, concat(' - ', pe.reference_no)) description,
         if(payment_type='Paid', pe.base_paid_amount,0) debit,
         if(payment_type='Receive', pe.base_paid_amount,0) credit

@@ -55,7 +55,10 @@ frappe.query_reports["Room Folio Statement"] = {
     let balance = totals.length
       ? (totals[0].credit || 0) - (totals[0].debit || 0)
       : 0;
-    $(".ag-header-message").html(`Account Balance: ${balance}`);
+    let html = `<span style="font-weight:bold;font-size:14px;color:${
+      balance < 0 ? "red" : "green"
+    }">Account Balance: ${format_currency(balance)}</span>`;
+    $(".ag-header-message").html(html);
   },
 
   set_gridOptions(gridOptions) {
@@ -70,11 +73,23 @@ frappe.query_reports["Room Folio Statement"] = {
     // gridOptions.context = { always_recreate: false };
     gridOptions.onRowDataChanged = function (params) {};
     gridOptions.onCellDoubleClicked = function (params) {};
-    gridOptions.getRowClass = function (params) {
-      return null;
-      //   if (params.node.isSelected()) return null;
-      //   return params.node.data.invoice ? "" : frappe.scrub(`hms-to-charge`);
+    gridOptions.getRowStyle = function (params) {
+      return params.data.voucher_type == "Payment Entry"
+        ? {
+            "background-color": "#def8de",
+          }
+        : null;
     };
+
+    for (let col of gridOptions.columnDefs) {
+      if (col.colId == "voucher_no")
+        col.cellRenderer = function (params) {
+          return params.data.voucher_type
+            ? `<a href='#Form/${params.data.voucher_type}/${params.value}' target="_blank">${params.value}</a>`
+            : "";
+        };
+    }
+
     //
   },
 };
