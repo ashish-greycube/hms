@@ -1,28 +1,28 @@
 frappe.provide("frappe.views");
 frappe.provide("frappe.ag_reports");
 
-frappe.standard_pages["ag-report"] = function() {
+frappe.standard_pages["ag-report"] = function () {
   var wrapper = frappe.container.add_page("ag-report");
 
   frappe.ui.make_app_page({
     parent: wrapper,
     title: __("ag Report"),
-    single_column: true
+    single_column: true,
   });
 
   frappe.ag_report = new frappe.views.AgReport({
-    parent: wrapper
+    parent: wrapper,
   });
 
-  $(wrapper).bind("show", function() {
-    $(wrapper)
-      .find(".container.page-body")
-      .addClass("col-md-12");
+  $(wrapper).bind("show", function () {
+    $(wrapper).find(".container.page-body").addClass("col-md-12");
     frappe.ag_report.show();
   });
 };
 
-frappe.views.AgReport = class AgReport extends frappe.views.BaseList {
+frappe.views.AgReport = class AgReport extends (
+  frappe.views.BaseList
+) {
   show() {
     this.init().then(() => this.load());
   }
@@ -36,8 +36,8 @@ frappe.views.AgReport = class AgReport extends frappe.views.BaseList {
       frappe.set_ag_license,
       this.setup_defaults,
       this.setup_page,
-      this.setup_report_wrapper
-    ].map(fn => fn.bind(this));
+      this.setup_report_wrapper,
+    ].map((fn) => fn.bind(this));
     this.init_promise = frappe.run_serially(tasks);
     return this.init_promise;
   }
@@ -52,7 +52,7 @@ frappe.views.AgReport = class AgReport extends frappe.views.BaseList {
       label: __("Refresh"),
       action: () => {
         this.refresh();
-      }
+      },
     };
 
     // throttle refresh for 300ms
@@ -90,7 +90,7 @@ frappe.views.AgReport = class AgReport extends frappe.views.BaseList {
       () => this.get_report_doc(),
       () => this.get_report_settings(),
       () => this.setup_page_head(),
-      () => this.refresh_report()
+      () => this.refresh_report(),
     ]);
   }
 
@@ -108,14 +108,14 @@ frappe.views.AgReport = class AgReport extends frappe.views.BaseList {
       () => {
         this._no_refresh = false;
       },
-      () => this.refresh()
+      () => this.refresh(),
     ]);
   }
 
   get_report_doc() {
     return frappe.model
       .with_doc("Report", this.report_name)
-      .then(doc => {
+      .then((doc) => {
         this.report_doc = doc;
       })
       .then(() => frappe.model.with_doctype(this.report_doc.ref_doctype));
@@ -127,18 +127,18 @@ frappe.views.AgReport = class AgReport extends frappe.views.BaseList {
       return this._load_script;
     }
 
-    this._load_script = new Promise(resolve =>
+    this._load_script = new Promise((resolve) =>
       frappe.call({
         method: "frappe.desk.query_report.get_script",
         args: { report_name: this.report_name },
-        callback: resolve
+        callback: resolve,
       })
     )
-      .then(r => {
+      .then((r) => {
         frappe.dom.eval(r.message.script || "");
         return r;
       })
-      .then(r => {
+      .then((r) => {
         return frappe.after_ajax(() => {
           this.report_settings = frappe.query_reports[this.report_name];
           this.report_settings.html_format = r.message.html_format;
@@ -154,7 +154,7 @@ frappe.views.AgReport = class AgReport extends frappe.views.BaseList {
     const { filters = [] } = this.report_settings;
 
     this.filters = filters
-      .map(df => {
+      .map((df) => {
         if (df.fieldtype === "Break") return;
 
         let f = this.page.add_field(df);
@@ -211,7 +211,7 @@ frappe.views.AgReport = class AgReport extends frappe.views.BaseList {
   }
 
   set_filters(filters) {
-    this.filters.map(f => {
+    this.filters.map((f) => {
       f.set_input(filters[f.fieldname]);
     });
   }
@@ -220,11 +220,11 @@ frappe.views.AgReport = class AgReport extends frappe.views.BaseList {
     if (frappe.route_options) {
       const fields = Object.keys(frappe.route_options);
 
-      const filters_to_set = this.filters.filter(f =>
+      const filters_to_set = this.filters.filter((f) =>
         fields.includes(f.df.fieldname)
       );
 
-      const promises = filters_to_set.map(f => {
+      const promises = filters_to_set.map((f) => {
         return () => {
           const value = frappe.route_options[f.df.fieldname];
           return f.set_value(value);
@@ -260,18 +260,18 @@ frappe.views.AgReport = class AgReport extends frappe.views.BaseList {
       this.last_ajax.abort();
     }
 
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       this.last_ajax = frappe.call({
         method: "frappe.desk.query_report.run",
         type: "GET",
         args: {
           report_name: this.report_name,
-          filters: filters
+          filters: filters,
         },
         callback: resolve,
-        always: () => this.page.btn_secondary.prop("disabled", false)
+        always: () => this.page.btn_secondary.prop("disabled", false),
       });
-    }).then(r => {
+    }).then((r) => {
       let data = r.message;
       this.hide_status();
       clearInterval(this.interval);
@@ -292,6 +292,9 @@ frappe.views.AgReport = class AgReport extends frappe.views.BaseList {
         this.report_settings.update_footer();
 
       frappe.hide_progress();
+
+      this.report_settings.after_refresh &&
+        this.report_settings.after_refresh(this);
     });
   }
 
@@ -301,7 +304,7 @@ frappe.views.AgReport = class AgReport extends frappe.views.BaseList {
     this.columns = this.prepare_columns(data.columns);
     this.data = this.prepare_data(data.result);
 
-    this.tree_report = this.data.some(d => "indent" in d);
+    this.tree_report = this.data.some((d) => "indent" in d);
   }
 
   render_datatable() {
@@ -333,17 +336,17 @@ frappe.views.AgReport = class AgReport extends frappe.views.BaseList {
         cellHeight: 33,
         showTotalRow: this.raw_data.add_total_row,
         hooks: {
-          columnTotal: frappe.utils.report_column_total
-        }
+          columnTotal: frappe.utils.report_column_total,
+        },
       };
 
       this.gridOptions = {
         columnDefs: datatable_options.columns,
-        onGridReady: function(event) {
+        onGridReady: function (event) {
           frappe.ag_report.gridOptions.api.setRowData(frappe.ag_report.data);
         },
         floatingFilter: true,
-        defaultColDef: { filter: "agTextColumnFilter" }
+        defaultColDef: { filter: "agTextColumnFilter" },
       };
 
       if (this.report_settings.set_gridOptions) {
@@ -360,13 +363,13 @@ frappe.views.AgReport = class AgReport extends frappe.views.BaseList {
   get_user_settings() {
     return frappe.model.user_settings
       .get(this.report_name)
-      .then(user_settings => {
+      .then((user_settings) => {
         this.user_settings = user_settings;
       });
   }
 
   prepare_columns(columns) {
-    return columns.map(column => {
+    return columns.map((column) => {
       if (typeof column === "string") {
         if (column.includes(":")) {
           let [label, fieldtype, width] = column.split(":");
@@ -381,13 +384,13 @@ frappe.views.AgReport = class AgReport extends frappe.views.BaseList {
             fieldname: label,
             fieldtype,
             width,
-            options
+            options,
           };
         } else {
           column = {
             label: column,
             fieldname: column,
-            fieldtype: "Data"
+            fieldtype: "Data",
           };
         }
       }
@@ -416,7 +419,7 @@ frappe.views.AgReport = class AgReport extends frappe.views.BaseList {
       if (column.fieldtype && column.fieldtype.startsWith("Link/")) {
         let option = column.fieldtype.replace("Link/", "");
         column.fieldtype = "Varchar";
-        column.cellRenderer = function(params) {
+        column.cellRenderer = function (params) {
           return params.value
             ? `<a href='#Form/${option}/${params.value}' target="_blank">${params.value}</a>`
             : "";
@@ -427,14 +430,14 @@ frappe.views.AgReport = class AgReport extends frappe.views.BaseList {
         Int: "agNumberColumnFilter",
         Float: "agNumberColumnFilter",
         Varchar: "agTextColumnFilter",
-        Date: "agDateColumnFilter"
+        Date: "agDateColumnFilter",
       };
 
       let agfieldtype_for_fieldtype = {
         Int: "numericColumn",
         Float: "numericColumn",
         Currency: "numericColumn",
-        Date: "dateColumn"
+        Date: "dateColumn",
       };
 
       // fix column types
@@ -459,12 +462,12 @@ frappe.views.AgReport = class AgReport extends frappe.views.BaseList {
         field: column.fieldname, // for ag-grid
         name: column.label,
         headerName: column.label,
-        width: parseInt(column.width) || null
+        width: parseInt(column.width) || null,
       });
 
       // fix coldef properties not recognized by ag-grid, which log warnings in console
       ["label", "name", "fieldname", "fieldtype"].forEach(
-        e => delete colDef[e]
+        (e) => delete colDef[e]
       );
 
       return colDef;
@@ -472,7 +475,7 @@ frappe.views.AgReport = class AgReport extends frappe.views.BaseList {
   }
 
   prepare_data(data) {
-    return data.map(row => {
+    return data.map((row) => {
       let row_obj = {};
       if (Array.isArray(row)) {
         this.columns.forEach((column, i) => {
@@ -488,16 +491,16 @@ frappe.views.AgReport = class AgReport extends frappe.views.BaseList {
   get_visible_columns() {
     const visible_column_ids = this.datatable.datamanager
       .getColumns(true)
-      .map(col => col.colId);
+      .map((col) => col.colId);
 
     return visible_column_ids
-      .map(id => this.columns.find(col => col.colId === id))
+      .map((id) => this.columns.find((col) => col.colId === id))
       .filter(Boolean);
   }
 
   get_filter_values(raise) {
-    const mandatory = this.filters.filter(f => f.df.reqd);
-    const missing_mandatory = mandatory.filter(f => !f.get_value());
+    const mandatory = this.filters.filter((f) => f.df.reqd);
+    const missing_mandatory = mandatory.filter((f) => !f.get_value());
     if (raise && missing_mandatory.length > 0) {
       let message = __("Please set filters");
       this.toggle_message(raise, message);
@@ -505,14 +508,14 @@ frappe.views.AgReport = class AgReport extends frappe.views.BaseList {
     }
 
     const filters = this.filters
-      .filter(f => f.get_value())
-      .map(f => {
+      .filter((f) => f.get_value())
+      .map((f) => {
         var v = f.get_value();
         // hidden fields dont have $input
         if (f.df.hidden) v = f.value;
         if (v === "%") v = null;
         return {
-          [f.df.fieldname]: v
+          [f.df.fieldname]: v,
         };
       })
       .reduce((acc, f) => {
@@ -523,7 +526,9 @@ frappe.views.AgReport = class AgReport extends frappe.views.BaseList {
   }
 
   get_filter(fieldname) {
-    const field = (this.filters || []).find(f => f.df.fieldname === fieldname);
+    const field = (this.filters || []).find(
+      (f) => f.df.fieldname === fieldname
+    );
     if (!field) {
       console.warn(`[Query Report] Invalid filter: ${fieldname}`);
     }
@@ -575,7 +580,7 @@ frappe.views.AgReport = class AgReport extends frappe.views.BaseList {
       filters: this.get_filter_values(),
       data: custom_format ? this.data : this.get_data_for_print(),
       columns: custom_format ? this.columns : this.get_columns_for_print(),
-      report: this
+      report: this,
     });
   }
 
@@ -596,7 +601,7 @@ frappe.views.AgReport = class AgReport extends frappe.views.BaseList {
       filters: applied_filters,
       data: data,
       columns: columns,
-      report: this
+      report: this,
     });
 
     // Render Report in HTML
@@ -607,7 +612,7 @@ frappe.views.AgReport = class AgReport extends frappe.views.BaseList {
       print_css: print_css,
       print_settings: print_settings,
       landscape: landscape,
-      columns: columns
+      columns: columns,
     });
 
     frappe.render_pdf(html, print_settings);
@@ -616,7 +621,7 @@ frappe.views.AgReport = class AgReport extends frappe.views.BaseList {
   get_filters_html_for_print() {
     const applied_filters = this.get_filter_values();
     return Object.keys(applied_filters)
-      .map(fieldname => {
+      .map((fieldname) => {
         const label = frappe.query_report.get_filter(fieldname).df.label;
         const value = applied_filters[fieldname];
         return `<h6>${__(label)}: ${value}</h6>`;
@@ -646,34 +651,37 @@ frappe.views.AgReport = class AgReport extends frappe.views.BaseList {
               "hidden",
               this.export_dialog.get_value("file_format") !== "CSV"
             );
-          }
+          },
         },
         {
           label: __("With Group Indentation"),
           fieldname: "with_indentation",
           fieldtype: "Check",
-          hidden: 1
-        }
+          hidden: 1,
+        },
       ],
       ({ file_format, with_indentation }) => {
         if (file_format === "CSV") {
-          const column_row = this.columns.map(col => col.headerName);
+          const column_row = this.columns.map((col) => col.headerName);
           const data = this.get_data_for_csv(with_indentation);
           const out = [column_row].concat(data);
           frappe.tools.downloadify(out, null, this.report_name);
         } else {
           //custom export to xlsx using js-xlsx
-          let header = this.columns.map(col => col.headerName);
+          let header = this.columns.map((col) => col.headerName);
           let doclist = [];
           let title = this.report_name;
-          this.gridOptions.api.forEachNodeAfterFilter(function(rowNode, index) {
+          this.gridOptions.api.forEachNodeAfterFilter(function (
+            rowNode,
+            index
+          ) {
             doclist.push(rowNode.data);
           });
 
           let ws1 = XLSX.utils.aoa_to_sheet([header]);
           XLSX.utils.sheet_add_json(ws1, doclist, {
             origin: "A2",
-            skipHeader: true
+            skipHeader: true,
           });
           let workbook = XLSX.utils.book_new();
           XLSX.utils.book_append_sheet(workbook, ws1, "Sheet1");
@@ -687,7 +695,7 @@ frappe.views.AgReport = class AgReport extends frappe.views.BaseList {
 
   get_data_for_csv(with_indentation = false) {
     let doclist = [];
-    this.gridOptions.api.forEachNodeAfterFilter(function(rowNode, index) {
+    this.gridOptions.api.forEachNodeAfterFilter(function (rowNode, index) {
       doclist.push(Object.values(rowNode.data));
     });
     return doclist;
@@ -695,7 +703,7 @@ frappe.views.AgReport = class AgReport extends frappe.views.BaseList {
 
   get_data_for_print() {
     const indices = this.datatable.datamanager.getFilteredRowIndices();
-    return indices.map(i => this.data[i]);
+    return indices.map((i) => this.data[i]);
   }
 
   get_columns_for_print() {
@@ -707,67 +715,67 @@ frappe.views.AgReport = class AgReport extends frappe.views.BaseList {
       {
         label: __("Refresh"),
         action: () => this.refresh(),
-        class: "visible-xs"
+        class: "visible-xs",
       },
       {
         label: __("Edit"),
         action: () => frappe.set_route("Form", "Report", this.report_name),
         condition: () => frappe.user.is_report_manager(),
-        standard: true
+        standard: true,
       },
       {
         label: __("Print"),
         action: () => {
           frappe.ui.get_print_settings(
             false,
-            print_settings => this.print_report(print_settings),
+            (print_settings) => this.print_report(print_settings),
             this.report_doc.letter_head
           );
         },
         condition: () => frappe.model.can_print(this.report_doc.ref_doctype),
-        standard: true
+        standard: true,
       },
       {
         label: __("PDF"),
         action: () => {
           frappe.ui.get_print_settings(
             false,
-            print_settings => this.pdf_report(print_settings),
+            (print_settings) => this.pdf_report(print_settings),
             this.report_doc.letter_head
           );
         },
         condition: () => frappe.model.can_print(this.report_doc.ref_doctype),
-        standard: true
+        standard: true,
       },
       {
         label: __("Export"),
         action: () => this.export_report(),
-        standard: true
+        standard: true,
       },
       {
         label: __("Setup Auto Email"),
         action: () =>
           frappe.set_route("List", "Auto Email Report", {
-            report: this.report_name
+            report: this.report_name,
           }),
-        standard: true
+        standard: true,
       },
       {
         label: __("User Permissions"),
         action: () =>
           frappe.set_route("List", "User Permission", {
             doctype: "Report",
-            name: this.report_name
+            name: this.report_name,
           }),
         condition: () => frappe.model.can_set_user_permissions("Report"),
-        standard: true
+        standard: true,
       },
       {
         label: __("Add to Desktop"),
         action: () =>
           frappe.add_to_desktop(this.report_name, null, this.report_name),
-        standard: true
-      }
+        standard: true,
+      },
     ];
   }
 
@@ -787,9 +795,7 @@ frappe.views.AgReport = class AgReport extends frappe.views.BaseList {
       `<div id="ag-report-grid" class="ag-theme-balham" style="height:550px;"></div>`
     ).appendTo(this.page.main);
     // this.$report = $('<div class="report-wrapper">').appendTo(this.page.main);
-    this.$message = $(this.message_div(""))
-      .hide()
-      .appendTo(this.page.main);
+    this.$message = $(this.message_div("")).hide().appendTo(this.page.main);
   }
 
   show_status(status_message) {
@@ -804,7 +810,7 @@ frappe.views.AgReport = class AgReport extends frappe.views.BaseList {
     const message = "";
     const execution_time_msg = __("{0} records in {1} sec", [
       (this.data || []).length,
-      this.execution_time || 0.1
+      this.execution_time || 0.1,
     ]);
 
     $(document.querySelector(".ag-header-message")).html(
@@ -861,7 +867,7 @@ frappe.views.AgReport = class AgReport extends frappe.views.BaseList {
 
   get_selected_rows_after_filter(raise_error, only_selected) {
     let doclist = [];
-    this.gridOptions.api.forEachNodeAfterFilter(function(rowNode, index) {
+    this.gridOptions.api.forEachNodeAfterFilter(function (rowNode, index) {
       if (!only_selected || rowNode.isSelected())
         doclist.push(Object.assign({}, rowNode.data));
     });
@@ -872,7 +878,7 @@ frappe.views.AgReport = class AgReport extends frappe.views.BaseList {
   }
 };
 
-frappe.set_ag_license = function() {
+frappe.set_ag_license = function () {
   //   if (agGrid.LicenseManager.licenseKey) return Promise.resolve();
   //   return frappe.call({
   //     method: "custom_report.get_agGrid_licenseKey",
@@ -882,7 +888,7 @@ frappe.set_ag_license = function() {
   //   });
 };
 
-frappe.set_redirect_to_ag_report = function() {
+frappe.set_redirect_to_ag_report = function () {
   const href = window.location.href;
   const regex = /query-report/g;
   if (href.match(regex))
@@ -890,7 +896,7 @@ frappe.set_redirect_to_ag_report = function() {
   // document.getElementById("ag-report-grid").style.height = "550px";
 };
 
-frappe.add_row_numbers = function(report) {
+frappe.add_row_numbers = function (report) {
   let old_columns = report.gridOptions.columnDefs;
   let new_columns = [
     {
@@ -899,14 +905,14 @@ frappe.add_row_numbers = function(report) {
       width: 60,
       filter: false,
       lockPosition: true,
-      pinned: "left"
-    }
+      pinned: "left",
+    },
   ].concat(old_columns);
 
   report.gridOptions.api.setColumnDefs(new_columns);
 };
 
-frappe.set_pinned_totals = function(report, total_columns) {
+frappe.set_pinned_totals = function (report, total_columns) {
   let gop = report.gridOptions,
     filtered_rows = [],
     row = {};
@@ -919,25 +925,25 @@ frappe.set_pinned_totals = function(report, total_columns) {
     }
   }
 
-  gop.api.forEachNodeAfterFilter(function(rowNode, index) {
-    total_columns.forEach(col => {
+  gop.api.forEachNodeAfterFilter(function (rowNode, index) {
+    total_columns.forEach((col) => {
       row[col] += rowNode.data[col] ? flt(rowNode.data[col]) : 0;
     });
   });
-  total_columns.forEach(col => {
+  total_columns.forEach((col) => {
     row[col] = row[col] ? roundNumber(row[col], 2) : 0;
   });
 
   report.gridOptions.api.setPinnedTopRowData([row]);
 };
 
-frappe.set_pinned_row = function(report, total_columns) {
+frappe.set_pinned_row = function (report, total_columns) {
   // if (!gop.components) gop.components = {};
   // gop.components.customPinnedRowRenderer = CustomPinnedRowRenderer;
 
   for (let c of report.gridOptions.columnDefs) {
     if (total_columns.includes(c.colId || c.field)) {
-      c.pinnedRowCellRenderer = function(params) {
+      c.pinnedRowCellRenderer = function (params) {
         return `<div style='font-weight: bold; color: black;' >${params.value}</div>`;
       };
     }

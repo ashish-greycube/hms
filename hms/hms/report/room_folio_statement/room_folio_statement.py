@@ -16,6 +16,8 @@ def get_columns(filters):
     return [
         dict(label="Folio", fieldname="folio",
                      fieldtype="Link/Room Folio HMS", width=130,),
+        dict(label="Customer", fieldname="customer",
+                     fieldtype="Link/Customer", width=130,),
         dict(label="Invoice", fieldname="invoice",
                      fieldtype="Link/Sales Invoice", width=110,),
         dict(label="Room No", fieldname="room_no",
@@ -24,7 +26,7 @@ def get_columns(filters):
                      fieldtype="Data", width=110,),
         dict(label="Date", fieldname="date",
                      fieldtype="Data", width=110,),
-        dict(label="Charge Description", fieldname="description",
+        dict(label="Description", fieldname="description",
                      fieldtype="Data", width=200,),
         dict(label="Payment", fieldname="payment_entry",
                      fieldtype="Link/Payment Entry", width=130,),
@@ -35,31 +37,62 @@ def get_columns(filters):
     ]
 
 def get_data(filters):
-    data = frappe.db.sql("""
-        select rf.customer,  rf.name folio, si.name invoice, '' payment_entry,
-        rf.room_no, rm.room_type, coalesce(si.room_date_cf,si.posting_date) date, sit.item_name description,
-        nullif(je.debit,0) debit, nullif(je.credit,0) credit
-        from `tabRoom Folio HMS` rf 
+    where_clause = []
+    if filters.get("company"):
+        where_clause += ["si.company = %(company)s"]
+    if filters.get("customer"):
+        where_clause += ["si.customer = %(customer)s"]
+    if filters.get("from_date"):
+        where_clause += ["rf.check_in >= %(from_date)s"]
+    if filters.get("to_date"):
+        where_clause += ["rf.check_out <= %(to_date)s"]
+    if filters.get("status"):
+        where_clause += ["rf.status = %(status)s"]
+    if filters.get("room_folio"):
+        where_clause += ["rf.name = %(room_folio)s"]
+    where_clause = " and " + " and ".join(where_clause) if where_clause else ""
+
+    charges = frappe.db.sql("""
+    select rf.customer,  rf.name folio, si.name invoice,rf.room_no, rm.room_type,
+    coalesce(si.room_date_cf,si.posting_date) date, sit.item_name description,
+    if(si.is_return=0,si.base_rounded_total,0) debit, if(si.is_return=1,si.base_rounded_total,0) credit
+    from `tabRoom Folio HMS` rf
         inner join `tabSales Invoice` si on si.room_folio_cf = rf.name
-        inner join `tabSales Invoice Item` sit on sit.parent = si.name
+        inner join (select parent, group_concat(item_name) item_name from `tabSales Invoice Item`
+        group by parent) sit on sit.parent = si.name
         inner join `tabRoom HMS` rm on rm.name = rf.room_no
-        left outer join 
-        (
-            select reference_name, credit, debit 
-            from `tabJournal Entry Account` x 
-            where reference_type = 'Sales Invoice'
-            group by reference_name
-        ) je on je.reference_name = si.name
-        where si.docstatus = 1
-        union all
-        select pe.party, '' folio, '' invoice, pe.name payment_entry,
-        '', '', pe.posting_date date, '' description, 
-        if(payment_type='Paid', pe.base_paid_amount,0) debit, 
-        if(payment_type='Receive', pe.base_paid_amount,0) credit 
-        -- per.reference_doctype, per.reference_name reservation, 
-        -- coalesce(so.room_no_cf,rf.room_no) room_no
-        from `tabPayment Entry` pe
+    where si.docstatus = 1  {where_clause}
+    order by si.posting_date
+    """.format(where_clause=where_clause), filters, as_dict=True, debug=False)
+
+    where_clause = []
+    if filters.get("company"):
+        where_clause += ["pe.company = %(company)s"]
+    if filters.get("customer"):
+        where_clause += ["pe.party = %(customer)s"]
+    if filters.get("from_date"):
+        where_clause += ["pe.posting_date >= %(from_date)s"]
+    if filters.get("to_date"):
+        where_clause += ["pe.posting_date <= %(to_date)s"]
+    where_clause = " and " + " and ".join(where_clause) if where_clause else ""
+
+    payments = frappe.db.sql("""
+    select pe.party customer, pe.name payment_entry, pe.posting_date date,
+        concat_ws(' ', pe.mode_of_payment, concat(' - ', pe.reference_no)) description,
+        if(payment_type='Paid', pe.base_paid_amount,0) debit,
+        if(payment_type='Receive', pe.base_paid_amount,0) credit
+    from `tabPayment Entry` pe
         inner join `tabPayment Entry Reference` per on per.parent = pe.name
-        order by date
-    """, filters, as_dict=True, debug=False)
-    return data
+    where pe.docstatus = 1 {where_clause}
+    order by date
+    """.format(where_clause=where_clause), filters, as_dict=True, debug=False)
+
+    data = sorted(charges + payments, key=lambda x: x.date)
+
+    total = [{
+       "payment": "Total",
+       "debit": sum([d.get("debit", 0) or 0 for d in data]),
+       "credit": sum([d.get("credit", 0) or 0 for d in data]),
+    }]
+
+    return data + total

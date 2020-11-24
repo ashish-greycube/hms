@@ -92,6 +92,14 @@ def get_data():
                     "label": _("Room Occupancy and Revenue"),
                     "route": "#ag-report/Room Occupancy and Revenue HMS"
                 },
+                {
+                    "name": "Room Folio Statement",
+                    "type": "report",
+                    "module_name": "hms",
+                    "label": _("Room Folio Statement"),
+                    "route": "#ag-report/Room Folio Statement"
+                },
+
             ]
         }
     ]

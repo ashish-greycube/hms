@@ -8,7 +8,7 @@ frappe.query_reports["Room Folio Statement"] = {
       fieldname: "from_date",
       label: __("From"),
       fieldtype: "Date",
-      default: [frappe.datetime.get_today()],
+      default: frappe.defaults.get_default("year_start_date"),
       reqd: 1,
     },
     {
@@ -23,6 +23,7 @@ frappe.query_reports["Room Folio Statement"] = {
       label: __("Company"),
       fieldtype: "Link",
       options: "Company",
+      default: frappe.defaults.get_user_default("company"),
     },
     {
       fieldname: "customer",
@@ -34,9 +35,9 @@ frappe.query_reports["Room Folio Statement"] = {
       fieldname: "folio_status",
       label: __("Status"),
       fieldtype: "Select",
-      options: ["Checked In", "Checked Out", "Cancelled"],
+      options: ["", "Checked In", "Checked Out", "Cancelled"],
+      default: "Checked In",
     },
-
     {
       fieldname: "room_folio",
       label: __("Room Folio"),
@@ -46,9 +47,15 @@ frappe.query_reports["Room Folio Statement"] = {
   ],
 
   onload(report) {
-    //
     frappe.set_redirect_to_ag_report();
-    //
+  },
+
+  after_refresh(report) {
+    let totals = report.data.slice(-1);
+    let balance = totals.length
+      ? (totals[0].credit || 0) - (totals[0].debit || 0)
+      : 0;
+    $(".ag-header-message").html(`Account Balance: ${balance}`);
   },
 
   set_gridOptions(gridOptions) {
