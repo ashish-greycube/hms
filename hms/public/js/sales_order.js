@@ -3,6 +3,19 @@ frappe.ui.form.on("Sales Order", {
 
   onload: function (frm) {},
 
+  change_room: function (frm) {
+    if (
+      frappe.datetime.get_diff(
+        frappe.datetime.get_today(),
+        cur_frm.doc.check_in_cf
+      ) >= 0
+    ) {
+      frappe.msgprint("Cannot change room after Check In date");
+    } else {
+      show_room_change(frm);
+    }
+  },
+
   customer: function (frm) {
     if (frm.doc.customer) {
       frm.trigger("_room_no_cf");
@@ -523,6 +536,53 @@ function make_payment_entry(frm) {
         },
       });
     },
+  });
+  dlg.show();
+}
+
+function show_room_change(frm) {
+  let dlg = new frappe.ui.Dialog({
+    title: __("Select Room to Move to"),
+    fields: [
+      {
+        label: "Reservation #",
+        fieldname: "reservation",
+        fieldtype: "Data",
+        default: frm.doc.name,
+        read_only: 1,
+      },
+      {
+        label: "Room No",
+        fieldname: "room_no",
+        fieldtype: "Link",
+        options: "Room HMS",
+        get_query: function () {
+          return {
+            filters: {
+              room_type: frm.doc.room_type_cf,
+              check_in: frm.doc.check_in_cf,
+              check_out: frm.doc.check_out_cf,
+              company: frm.doc.company,
+            },
+            query: "hms.hms.controllers.reservation.get_available_rooms",
+          };
+        },
+        reqd: 1,
+      },
+    ],
+    primary_action: function () {
+      var args = dlg.get_values();
+      frappe.call({
+        method: "hms.hms.controllers.reservation.move_room",
+        args: args,
+        callback: function (r) {
+          dlg.get_close_btn().trigger("click");
+          frappe.show_alert("Reservation room has been changed.");
+          frm.reload_doc();
+        },
+      });
+    },
+    primary_action_label: __("Move Reservation Room"),
   });
   dlg.show();
 }

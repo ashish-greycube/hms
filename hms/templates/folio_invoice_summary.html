@@ -14,10 +14,10 @@
 
 {% block head_include %}
 <meta name="pdfkit-orientation" content="portrait" /> {% endblock %} {% block content %} <div>
-    <p>{{ print_doc.company_description }}</p>
+    <p>{{ print_doc.company_description or "" }}</p>
 </div>
 <div class="row">
-    <div class="col col-sm-3"> <strong> {{doc.customer.upper()}}</strong> </div>
+    <div class="col col-sm-3"> Customer: <br> <strong> {{doc.customer.upper()}}</strong> </div>
     <div class="col col-sm-9">
         <table class='table table-bordered'>
             <colgroup>
@@ -90,13 +90,17 @@
         </tbody>
     </table>
 </div>
-<div>
-    {{ print_doc.get("invoice_html", "No invoices")}}
-</div>
+<!-- <div>
+     print_doc.get("invoice_html", "No invoices")  
+</div> -->
 {% endblock %}
-<div>
-    <div id="footer-html" class="visible-pdf"> {% if not no_letterhead and footer %} <div class="letter-head-footer">
-            {{ footer }} </div> {% endif %} <p class="text-center small page-number
-            visible-pdf">
-            {{ _("Page {0} of {1}").format('<span class="page"></span>', '<span class="topage"></span>') }} </p>
+<div id="footer-html" class="visible-pdf">
+    {% if not no_letterhead and footer %}
+    <div class="letter-head-footer">
+        {{ footer }}
     </div>
+    {% endif %}
+    <p class="text-center small page-number visible-pdf">
+        {{ _("Page {0} of {1}").format('<span class="page"></span>', '<span class="topage"></span>') }}
+    </p>
+</div>

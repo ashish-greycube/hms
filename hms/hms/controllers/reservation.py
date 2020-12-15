@@ -20,6 +20,9 @@ def validate_sales_order(doc, method):
     if not doc.guest_cf:
         frappe.throw(_("Please select guest for Reservation."))
 
+def validate_item_price(doc, method):
+    if not doc.weekend_rate_cf:
+        doc.weekend_rate_cf = doc.price_list_rate
 
 def validate_availability(check_in, check_out, room_no):
     # If ( NOT (EndA <= StartB or StartA >= EndB) ; “Overlap”)
@@ -27,11 +30,11 @@ def validate_availability(check_in, check_out, room_no):
 
     for d in frappe.db.sql("""
     select 'Reservation' doctype, 'Sales Order' ref_type, t.name, check_in_cf check_in, check_out_cf check_out
-    from `tabSales Order` t 
+    from `tabSales Order` t
     where t.docstatus = 1 and room_no_cf = %(room_no)s
     and not exists (select 1 from `tabRoom Folio HMS` where reservation = t.name)
     and not (t.check_out_cf <= %(check_in)s or t.check_in_cf >= %(check_out)s)
-    union all 
+    union all
     select 'Room Folio', 'Room Folio', t.name, t.check_in, t.check_out
     from `tabRoom Folio HMS` t
     where t.docstatus <> 2 and t.room_no = %(room_no)s
@@ -48,7 +51,7 @@ def get_holidays(company, check_in, check_out):
     day_names = ["Monday", "Tuesday", "Wednesday",
                  "Thursday", "Friday", "Saturday", "Sunday"]
     weekends, holidays = [], []
-    for d in frappe.db.sql("""select 
+    for d in frappe.db.sql("""select
         date_format(d.date,'%%Y-%%m-%%d') date, h.description
         from `tabDate Lookup HMS` d
         inner join tabHoliday h on h.holiday_date = d.date and h.holiday_date BETWEEN %s and %s
@@ -123,7 +126,7 @@ left outer join
 (
     -- reservation
     select so.name, so.room_no_cf room_no, so.check_in_cf check_in, so.check_out_cf check_out,
-    so.guest_cf guest, so.customer, no_of_nights_cf no_nights, room_rate_cf, weekend_rate_cf, 
+    so.guest_cf guest, so.customer, no_of_nights_cf no_nights, room_rate_cf, weekend_rate_cf,
     so.advance_paid, so.rounded_total
     from `tabSales Order` so
     -- where not exists (select 1 from `tabRoom Folio HMS` x where x.reservation = so.name)
@@ -241,47 +244,56 @@ def attach_contact_id(docname, date, data_url):
 
 @frappe.whitelist()
 def make_payment_entry_from_sales_order(mode_of_payment, paid_amount, customer, sales_order=None, reference_no=None, reference_date=None):
-    default_desk_account = frappe.defaults.get_user_default(
-        'default_desk_receivable_account')
-
+    paid_amount = flt(paid_amount)
     from erpnext.accounts.doctype.payment_entry.payment_entry import get_payment_entry
     company = erpnext.get_default_company()
+
+    default_desk_account = frappe.defaults.get_user_default(
+        'default_desk_receivable_account')
+    cash_bank_account = get_default_bank_cash_account(
+        company, mode_of_payment=mode_of_payment)
+
+    payments = []
+
     if sales_order:
-        for d in frappe.db.get_values(
-                'Sales Order', sales_order, ['rounded_total', 'advance_paid']):
-            if (d[0] - d[1]) < flt(paid_amount):
-                frappe.throw(
-                    _("Payment amount cannot be greater than the outstanding amount for reservation: {}").format(
-                        frappe.bold(frappe.format(d[0] - d[1], dict(fieldtype="Currency"))))
-                )
         payment = get_payment_entry("Sales Order", sales_order)
         for d in payment.references:
-            d.allocated_amount = paid_amount
+            d.allocated_amount = d.outstanding_amount
+        payments.append(payment)
+
+        rounded_total, advance_paid = frappe.db.get_value('Sales Order', sales_order, ['rounded_total', 'advance_paid'],)
+        if (rounded_total - advance_paid) < paid_amount:
+        # frappe.throw(
+        #     _("Payment amount cannot be greater than the outstanding amount for reservation: {}").format(
+        #         frappe.bold(frappe.format(d[0] - d[1], dict(fieldtype="Currency"))))
+        # )
+        # create payment entry for excess amount with no reference
+            pe = frappe.new_doc("Payment Entry")
+            pe.paid_amount = pe.received_amount = abs(paid_amount - rounded_total + advance_paid)
+            payments.append(pe)
+
     else:
         payment = frappe.new_doc("Payment Entry")
         payment.paid_amount = payment.received_amount = abs(flt(paid_amount))
 
-    cash_bank_account = get_default_bank_cash_account(
-        company, mode_of_payment=mode_of_payment)
-
-    payment.posting_date = frappe.flags.current_date
-    payment.payment_type = "Receive"
-    payment.mode_of_payment = mode_of_payment
-    payment.party_type = "Customer"
-    payment.party = customer
-    payment.paid_to = cash_bank_account.account
-    payment.paid_from = default_desk_account
-    payment.received_amount = abs(flt(paid_amount))
-    if not mode_of_payment == "Cash":
-        payment.reference_no = reference_no
-        payment.reference_date = reference_date
-    payment.total_allocated_amount = payment.paid_amount
-    payment.difference_amount = 0
-    payment.setup_party_account_field()
-    payment.set_missing_values()
-    payment.save()
-    payment.submit()
-    return payment
+    for payment in payments:
+        payment.posting_date = frappe.flags.current_date
+        payment.payment_type = "Receive"
+        payment.mode_of_payment = mode_of_payment
+        payment.party_type = "Customer"
+        payment.party = customer
+        payment.paid_to = cash_bank_account.account
+        payment.paid_from = default_desk_account
+        if not mode_of_payment == "Cash":
+            payment.reference_no = reference_no
+            payment.reference_date = reference_date
+        payment.total_allocated_amount = sum([d.allocated_amount for d in payment.get("references", [])]) or 0
+        payment.difference_amount = 0
+        payment.setup_party_account_field()
+        payment.set_missing_values()
+        payment.save()
+        payment.submit()
+    return payments[0]
 
 
 @frappe.whitelist()
@@ -306,3 +318,67 @@ def get_checked_in_folios():
       date_format(check_out,'%d-%b') check_out, name folio
       from `tabRoom Folio HMS` where status = 'Checked In'
     """, as_dict=True)
+
+
+@frappe.whitelist()
+def get_available_rooms(doctype, txt, searchfield, start, page_len, filters):
+    """
+    filters = {
+            room_type='DLX-SH',
+            check_in='2020-10-01',
+            check_out='2020-10-02',
+            company='SH'
+    }
+    """
+    filters['txt'] = "%%%s%%" % txt
+
+    return frappe.db.sql("""
+        select *
+        from
+            (
+            select name
+            from
+                `tabRoom HMS` r
+            where
+                room_type = %(room_type)s
+            except
+            select fo.room_no
+            from
+                `tabRoom Folio HMS` fo
+            where
+                not (fo.check_in >= %(check_out)s OR fo.check_out <= %(check_in)s)
+                and fo.docstatus = 1 and fo.status = 'Checked In'
+            except
+            select so.room_no_cf room_no
+            from
+                `tabSales Order` so
+            where
+                not (so.check_in_cf >= %(check_out)s OR so.check_out_cf <= %(check_in)s)
+                and not exists (select 1 from `tabRoom Folio HMS` x where x.reservation = so.name)
+                and so.docstatus = 1
+            except
+            select room_no
+            from
+                `tabRoom Status Ledger Entry HMS`
+            where
+                docstatus <> 2 and status = 'Out Of Order'
+            ) t
+        where
+            t.name like %(txt)s
+        """, filters)
+
+@frappe.whitelist()
+def move_room(reservation, room_no):
+    so = frappe.db.get_value("Sales Order",
+    filters={"name": reservation, },
+    fieldname=['docstatus', 'check_in_cf', 'check_out_cf', 'room_no_cf'],
+    as_dict=True)
+    if not so:
+        frappe.throw("Reservation %s cannot be modified.", (reservation,))
+    validate_availability(so.check_in_cf, so.check_out_cf, room_no)
+
+    frappe.db.sql("""
+    update `tabSales Order`
+    set room_no_cf= %s
+    where name = %s""", (room_no, reservation))
+    frappe.db.commit()

@@ -43,9 +43,9 @@ def get_data(filters):
     if filters.get("customer"):
         where_clause += ["si.customer = %(customer)s"]
     if filters.get("from_date"):
-        where_clause += ["rf.check_in >= %(from_date)s"]
+        where_clause += ["date(rf.check_in) >= %(from_date)s"]
     if filters.get("to_date"):
-        where_clause += ["rf.check_out <= %(to_date)s"]
+        where_clause += ["date(rf.check_in) <= %(to_date)s"]
     if filters.get("status"):
         where_clause += ["rf.status = %(status)s"]
     if filters.get("room_folio"):
@@ -53,7 +53,7 @@ def get_data(filters):
     where_clause = " and " + " and ".join(where_clause) if where_clause else ""
 
     charges = frappe.db.sql("""
-    select rf.customer,  rf.name folio, si.name voucher_no,rf.room_no, rm.room_type,
+    select rf.customer,  rf.name folio, si.name voucher_no, rf.room_no, rm.room_type,
     coalesce(si.room_date_cf,si.posting_date) date, sit.item_name description, 'Sales Invoice' voucher_type,
     if(si.is_return=0,si.base_rounded_total,0) debit, if(si.is_return=1,si.base_rounded_total,0) credit
     from `tabRoom Folio HMS` rf
@@ -63,28 +63,38 @@ def get_data(filters):
         inner join `tabRoom HMS` rm on rm.name = rf.room_no
     where si.docstatus = 1  {where_clause}
     order by si.posting_date
-    """.format(where_clause=where_clause), filters, as_dict=True, debug=False)
+    """.format(where_clause=where_clause), filters, as_dict=True, debug=True)
 
     where_clause = []
     if filters.get("company"):
-        where_clause += ["pe.company = %(company)s"]
+        where_clause += ["je.company = %(company)s"]
     if filters.get("customer"):
-        where_clause += ["pe.party = %(customer)s"]
+        where_clause += ["jea.party = %(customer)s"]
     if filters.get("from_date"):
-        where_clause += ["pe.posting_date >= %(from_date)s"]
+        where_clause += ["je.posting_date >= %(from_date)s"]
     if filters.get("to_date"):
-        where_clause += ["pe.posting_date <= %(to_date)s"]
+        where_clause += ["je.posting_date <= %(to_date)s"]
+    if filters.get("room_folio"):
+        where_clause += ["jea.reference_name = %(room_folio)s"]
     where_clause = " and " + " and ".join(where_clause) if where_clause else ""
 
     payments = frappe.db.sql("""
-    select pe.party customer, pe.name voucher_no, pe.posting_date date, 'Payment Entry' voucher_type,
-        concat_ws(' ', pe.mode_of_payment, concat(' - ', pe.reference_no)) description,
-        if(payment_type='Paid', pe.base_paid_amount,0) debit,
-        if(payment_type='Receive', pe.base_paid_amount,0) credit
-    from `tabPayment Entry` pe
-        inner join `tabPayment Entry Reference` per on per.parent = pe.name
-    where pe.docstatus = 1 {where_clause}
-    order by date
+    select
+        jea.reference_name folio, rf.room_no, rm.room_type,
+        jea.party customer, je.name voucher_no, je.posting_date date, 'Journal Entry' voucher_type,
+        concat(coalesce(je.mode_of_payment, 'Transfer'),' - ', je.name) description, debit, credit
+    from 
+        `tabJournal Entry Account` jea
+        inner join `tabJournal Entry` je on je.name = jea.parent
+        left outer join `tabRoom Folio HMS` rf on rf.name = jea.reference_name
+        left outer join `tabRoom HMS` rm on rm.name = rf.room_no
+    where 
+        je.docstatus = 1
+        and account = 'Room Folio Debtors - SH'
+        and reference_type = 'Room Folio HMS'
+        and jea.party_type = 'Customer'
+    {where_clause}
+    order by posting_date, je.creation
     """.format(where_clause=where_clause), filters, as_dict=True, debug=False)
 
     data = sorted(charges + payments, key=lambda x: x.date)
