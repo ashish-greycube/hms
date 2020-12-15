@@ -8,7 +8,7 @@ frappe.ui.form.on("Sales Order", {
       frappe.datetime.get_diff(
         frappe.datetime.get_today(),
         cur_frm.doc.check_in_cf
-      ) >= 0
+      ) > 0
     ) {
       frappe.msgprint("Cannot change room after Check In date");
     } else {
