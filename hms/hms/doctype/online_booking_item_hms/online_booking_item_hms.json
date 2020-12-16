@@ -1,0 +1,42 @@
+{
+ "creation": "2020-12-16 03:59:14.921181",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "room",
+  "adult_count",
+  "child_count"
+ ],
+ "fields": [
+  {
+   "fieldname": "room",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Room"
+  },
+  {
+   "fieldname": "adult_count",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Adult Count"
+  },
+  {
+   "fieldname": "child_count",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Child Count"
+  }
+ ],
+ "istable": 1,
+ "modified": "2020-12-16 03:59:14.921181",
+ "modified_by": "Administrator",
+ "module": "HMS",
+ "name": "Online Booking Item HMS",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

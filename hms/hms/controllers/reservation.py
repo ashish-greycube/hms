@@ -382,3 +382,13 @@ def move_room(reservation, room_no):
     set room_no_cf= %s
     where name = %s""", (room_no, reservation))
     frappe.db.commit()
+
+
+@frappe.whitelist()
+def get_rooms_available(**args):
+    rooms = frappe.db.sql("""
+        select count(*)
+        from `tabRoom HMS` r
+        where r.room_type = %(room_type)s
+    """, args,)
+    return rooms and rooms[0][0] or 0
