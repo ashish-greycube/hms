@@ -11,10 +11,8 @@
   "check_in",
   "check_out",
   "section_break_6",
-  "check_availability",
-  "availability",
   "guest_details_section",
-  "name1",
+  "guest_name",
   "email",
   "phone_no",
   "column_break_8",
@@ -27,7 +25,7 @@
   "terms_conditions_section",
   "terms_and_conditions",
   "terms",
-  "series"
+  "naming_series"
  ],
  "fields": [
   {
@@ -56,11 +54,6 @@
    "fieldname": "guest_details_section",
    "fieldtype": "Section Break",
    "label": "Guest Details"
-  },
-  {
-   "fieldname": "name1",
-   "fieldtype": "Data",
-   "label": "Name"
   },
   {
    "fieldname": "email",
@@ -142,23 +135,18 @@
    "fieldtype": "Section Break"
   },
   {
-   "fieldname": "check_availability",
-   "fieldtype": "Button",
-   "label": "Check Availability"
-  },
-  {
-   "fieldname": "availability",
-   "fieldtype": "HTML",
-   "label": "Availability"
-  },
-  {
-   "fieldname": "series",
+   "fieldname": "naming_series",
    "fieldtype": "Select",
-   "label": "Series",
-   "options": "ORB.#"
+   "label": "Naming Series",
+   "options": "ORB-.#"
+  },
+  {
+   "fieldname": "guest_name",
+   "fieldtype": "Data",
+   "label": "Guest Name"
   }
  ],
- "modified": "2020-12-16 16:23:56.431032",
+ "modified": "2020-12-16 19:10:54.133746",
  "modified_by": "Administrator",
  "module": "HMS",
  "name": "Online Booking HMS",

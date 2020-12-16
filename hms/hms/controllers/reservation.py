@@ -384,7 +384,7 @@ def move_room(reservation, room_no):
     frappe.db.commit()
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def get_rooms_available(**args):
     rooms = frappe.db.sql("""
         select count(*)

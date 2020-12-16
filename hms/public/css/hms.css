@@ -73,3 +73,9 @@
   background-color: #eeeeee !important;
   font-weight: bold;
 }
+
+.web-form-wrapper .form-section-heading {
+  background-color: #cccccc;
+  padding: 12px 5px;
+  font-weight: bold;
+}
