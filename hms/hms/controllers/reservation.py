@@ -386,9 +386,5 @@ def move_room(reservation, room_no):
 
 @frappe.whitelist(allow_guest=True)
 def get_rooms_available(**args):
-    rooms = frappe.db.sql("""
-        select count(*)
-        from `tabRoom HMS` r
-        where r.room_type = %(room_type)s
-    """, args,)
-    return rooms and rooms[0][0] or 0
+    rooms = get_available_rooms(None, "", None, 0, 100, args)
+    return rooms and len(rooms) or 0

@@ -12,12 +12,13 @@ frappe.ready(function () {
 
   frappe.web_form.events.on("after_load", function () {
     $(".btn.btn-primary:contains('Save')").remove();
+    frappe.web_form.fields_dict["items"].grid.remove_all();
     // for testing
-    frappe.web_form.set_value("room_type", "LUX-SH");
-    frappe.web_form.set_value("package", "Gold Membership - 12");
-    frappe.web_form.set_value("check_in", "2020-12-16");
-    frappe.web_form.set_value("check_out", "2020-12-18");
-    frappe.web_form.set_value("items", []);
+    // frappe.web_form.set_value("room_type", "LUX-SH");
+    // frappe.web_form.set_value("package", "Gold Membership - 12");
+    // frappe.web_form.set_value("check_in", "2020-12-16");
+    // frappe.web_form.set_value("check_out", "2020-12-18");
+    // frappe.web_form.set_value("items", []);
   });
 });
 
@@ -25,28 +26,45 @@ set_items_description = function () {
   $('div.frappe-control[data-fieldname="items"] > div#guest-count')
     .detach()
     .appendTo($('div.frappe-control[data-fieldname="items"]'));
+
+  $('div.frappe-control[data-fieldname="items"] > p').remove();
 };
 
 clear_buttons = function () {
   $(".web-form-actions .btn").remove();
+  frappe.web_form.add_button("Make New Booking", "light", function () {
+    window.location.reload();
+  });
 };
 
 function add_custom_buttons() {
-  frappe.web_form.add_button("Check Availability", "light", function () {
-    if (validate()) {
-      frappe.call({
-        method: "hms.hms.controllers.reservation.get_rooms_available",
-        args: frappe.web_form.doc,
-        callback: function (r) {
-          frappe.web_form.set_form_description(
-            `${r.message} rooms are available for the selected dates.`
-          );
-        },
-      });
-    }
-  });
+  frappe.web_form.add_button_to_header(
+    "Check Availability",
+    "light",
+    check_availability
+  );
+  frappe.web_form.add_button_to_header("Confirm Booking", "primary", _save);
   //
-  frappe.web_form.add_button("Confirm Booking", "primary", _save);
+  frappe.web_form.add_button_to_footer(
+    "Check Availability",
+    "light",
+    check_availability
+  );
+  frappe.web_form.add_button_to_footer("Confirm Booking", "primary", _save);
+}
+
+function check_availability() {
+  if (validate()) {
+    frappe.call({
+      method: "hms.hms.controllers.reservation.get_rooms_available",
+      args: frappe.web_form.doc,
+      callback: function (r) {
+        frappe.web_form.set_form_description(
+          `${r.message} rooms are available for the selected dates.`
+        );
+      },
+    });
+  }
 }
 
 function validate() {
@@ -57,7 +75,11 @@ function validate() {
     if (!doc[f]) missing.push(frappe.model.unscrub(f));
   }
   if (missing.length) {
-    frappe.msgprint("Please fill values for " + missing.join(", "));
+    frappe.msgprint({
+      title: "Validation Error",
+      indicator: "red",
+      message: "Please fill values for " + missing.join(", "),
+    });
   }
   return missing.length == 0;
 }
@@ -78,11 +100,21 @@ function validate_confirm() {
   for (const f of fields) {
     if (!doc[f]) missing.push(frappe.model.unscrub(f));
   }
+
   if (missing.length) {
-    frappe.msgprint("Please fill values for " + missing.join(", "));
+    frappe.msgprint({
+      title: "Validation Error",
+      indicator: "red",
+      message: "Please fill values for " + missing.join(", "),
+    });
   }
+
   if (!doc.items.length) {
-    frappe.msgprint("Please fill atleast 1 room detail to confirm booking.");
+    frappe.msgprint({
+      title: "Validation Error",
+      indicator: "red",
+      message: "Please fill atleast 1 room detail to confirm booking.",
+    });
   }
 
   return missing.length == 0 && doc.items.length > 0;
