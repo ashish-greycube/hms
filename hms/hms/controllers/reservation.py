@@ -9,6 +9,7 @@ from frappe import _
 from frappe.utils import (formatdate, get_link_to_form,
                           getdate, date_diff, add_to_date, add_days, cint, flt, today)
 import erpnext
+from erpnext import get_company_currency, get_default_company
 from erpnext.accounts.doctype.journal_entry.journal_entry import get_default_bank_cash_account, get_balance_on
 
 
@@ -386,5 +387,14 @@ def move_room(reservation, room_no):
 
 @frappe.whitelist(allow_guest=True)
 def get_rooms_available(**args):
+    args["company"] = get_default_company()
+    args["room_type"] = frappe.db.get_value("Item", {"name": args.get("package", None)}, 'room_type_cf')
     rooms = get_available_rooms(None, "", None, 0, 100, args)
     return rooms and len(rooms) or 0
+
+
+def validate_contact(doc, method):
+    if doc.is_new():
+        parts = doc.name.split("-")
+        if len(parts) > 1 and parts[0] == parts[1]:
+            doc.name = parts[0]

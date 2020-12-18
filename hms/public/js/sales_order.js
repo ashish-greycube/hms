@@ -122,6 +122,7 @@ frappe.ui.form.on("Sales Order", {
 
   service_item_cf: function (frm) {
     frm.events.set_rates(frm);
+    frm.trigger("_room_no_cf");
   },
 
   room_rate_cf: function (frm) {

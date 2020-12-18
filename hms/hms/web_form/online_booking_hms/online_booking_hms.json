@@ -20,7 +20,7 @@
  "is_standard": 1,
  "login_required": 0,
  "max_attachment_size": 0,
- "modified": "2020-12-16 19:43:28.445735",
+ "modified": "2020-12-18 02:05:01.507939",
  "modified_by": "Administrator",
  "module": "HMS",
  "name": "online-booking-hms",
@@ -47,20 +47,6 @@
    "max_value": 0,
    "read_only": 0,
    "reqd": 0,
-   "show_in_filter": 0
-  },
-  {
-   "allow_read_on_all_link_options": 0,
-   "default": "",
-   "fieldname": "room_type",
-   "fieldtype": "Link",
-   "hidden": 0,
-   "label": "Room Type",
-   "max_length": 0,
-   "max_value": 0,
-   "options": "Room Type HMS",
-   "read_only": 0,
-   "reqd": 1,
    "show_in_filter": 0
   },
   {

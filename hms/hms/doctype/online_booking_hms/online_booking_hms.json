@@ -29,6 +29,7 @@
  ],
  "fields": [
   {
+   "fetch_from": "package.room_type_cf",
    "fieldname": "room_type",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -146,7 +147,7 @@
    "label": "Guest Name"
   }
  ],
- "modified": "2020-12-16 19:10:54.133746",
+ "modified": "2020-12-18 02:25:08.865081",
  "modified_by": "Administrator",
  "module": "HMS",
  "name": "Online Booking HMS",

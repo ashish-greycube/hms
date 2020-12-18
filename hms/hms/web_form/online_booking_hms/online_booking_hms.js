@@ -32,7 +32,8 @@ set_items_description = function () {
 
 clear_buttons = function () {
   $(".web-form-actions .btn").remove();
-  frappe.web_form.add_button("Make New Booking", "light", function () {
+  $(".web-form-footer .btn").remove();
+  frappe.web_form.add_button("Make New Booking", "primary", function () {
     window.location.reload();
   });
 };
@@ -59,9 +60,15 @@ function check_availability() {
       method: "hms.hms.controllers.reservation.get_rooms_available",
       args: frappe.web_form.doc,
       callback: function (r) {
-        frappe.web_form.set_form_description(
+        let msg = __(
           `${r.message} rooms are available for the selected dates.`
         );
+        frappe.web_form.set_form_description(msg);
+        frappe.msgprint({
+          message: msg,
+          indicator: "green",
+          title: __("Rooms Available"),
+        });
       },
     });
   }
@@ -69,7 +76,7 @@ function check_availability() {
 
 function validate() {
   let doc = frappe.web_form.doc;
-  let fields = ["room_type", "package", "check_in", "check_out"];
+  let fields = ["package", "check_in", "check_out"];
   let missing = [];
   for (const f of fields) {
     if (!doc[f]) missing.push(frappe.model.unscrub(f));
@@ -151,6 +158,13 @@ function _save() {
         // Success
         let msg = __("Your booking has been submitted successfully.");
         frappe.web_form.set_form_description(msg);
+        frappe.web_form.set_form_description(msg);
+        frappe.msgprint({
+          message: msg,
+          indicator: "green",
+          title: __("Room Booking successful"),
+        });
+
         clear_buttons();
         // console.log(response.message);
       }
