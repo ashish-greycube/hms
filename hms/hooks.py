@@ -115,7 +115,7 @@ doc_events = {
         "validate": "hms.hms.controllers.reservation.validate_item_price",
     },
     "Contact": {
-        "validate": "hms.hms.controllers.reservation.validate_contact",
+        "autoname": "hms.hms.controllers.reservation.autoname_contact",
     }
 
 }

@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 from frappe import _
-from frappe.utils import (formatdate, get_link_to_form,
+from frappe.utils import (formatdate, get_link_to_form, cstr,
                           getdate, date_diff, add_to_date, add_days, cint, flt, today)
 import erpnext
 from erpnext import get_company_currency, get_default_company
@@ -393,8 +393,10 @@ def get_rooms_available(**args):
     return rooms and len(rooms) or 0
 
 
-def validate_contact(doc, method):
-    if doc.is_new():
-        parts = doc.name.split("-")
-        if len(parts) > 1 and parts[0] == parts[1]:
-            doc.name = parts[0]
+def autoname_contact(doc, method):
+    # concat first and last name
+    doc.name = " ".join(filter(None,
+        [cstr(doc.get(f)).strip() for f in ["first_name", "last_name"]]))
+    from frappe.model.naming import append_number_if_name_exists
+    if frappe.db.exists("Contact", doc.name):
+        doc.name = append_number_if_name_exists('Contact', doc.name)
