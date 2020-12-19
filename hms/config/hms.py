@@ -99,7 +99,13 @@ def get_data():
                     "label": _("Room Folio Statement"),
                     "route": "#ag-report/Room Folio Statement"
                 },
-
+                {
+                    "name": "Rooms To Checkout",
+                    "type": "report",
+                    "module_name": "hms",
+                    "label": _("Rooms To Checkout"),
+                    "route": "#ag-report/Rooms To Checkout"
+                },
             ]
         }
     ]
