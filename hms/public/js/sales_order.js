@@ -222,7 +222,7 @@ frappe.ui.form.on("Sales Order", {
         },
         callback: (r) => {
           //
-          frappe.dom.freeze();
+          // frappe.dom.freeze();
           for (let i = 0; i < frm.doc.no_of_nights_cf; i++) {
             let new_row = frm.add_child("items");
             new_row.item_code = frm.doc.service_item_cf;
@@ -462,7 +462,9 @@ function apply_holiday_pricing_list(price_list, reset_plc_conversion) {
     .always(() => {
       me.in_apply_price_list = false;
       set_holiday_rows(me.frm);
-      frappe.dom.unfreeze();
+      setTimeout(() => {
+        frappe.dom.unfreeze();
+      }, 200);
     });
 }
 window.apply_holiday_pricing_list = apply_holiday_pricing_list;

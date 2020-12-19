@@ -15,6 +15,8 @@
   "guest_name",
   "email",
   "phone_no",
+  "customer",
+  "create_customer",
   "column_break_8",
   "address_line_1",
   "address_line_2",
@@ -145,9 +147,21 @@
    "fieldname": "guest_name",
    "fieldtype": "Data",
    "label": "Guest Name"
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "label": "Customer",
+   "options": "Customer"
+  },
+  {
+   "depends_on": "eval:!doc.customer",
+   "fieldname": "create_customer",
+   "fieldtype": "Button",
+   "label": "Create Customer"
   }
  ],
- "modified": "2020-12-18 02:25:08.865081",
+ "modified": "2020-12-19 05:38:31.131026",
  "modified_by": "Administrator",
  "module": "HMS",
  "name": "Online Booking HMS",
