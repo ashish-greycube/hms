@@ -5,8 +5,10 @@
  "engine": "InnoDB",
  "field_order": [
   "guest",
+  "first_name",
   "mobile",
   "column_break_3",
+  "last_name",
   "gender",
   "email"
  ],
@@ -47,10 +49,24 @@
   {
    "fieldname": "column_break_3",
    "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "guest.first_name",
+   "fieldname": "first_name",
+   "fieldtype": "Data",
+   "label": "First Name",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "guest.last_name",
+   "fieldname": "last_name",
+   "fieldtype": "Data",
+   "label": "Last Name",
+   "read_only": 1
   }
  ],
  "istable": 1,
- "modified": "2020-02-15 05:56:35.248442",
+ "modified": "2020-12-21 09:30:34.591858",
  "modified_by": "Administrator",
  "module": "HMS",
  "name": "Room Guest Detail HMS",
