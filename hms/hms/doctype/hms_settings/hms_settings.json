@@ -1,0 +1,51 @@
+{
+ "creation": "2020-12-22 10:03:40.988629",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "sign_in_terms_and_conditions",
+  "online_booking_terms_and_conditions",
+  "data_3"
+ ],
+ "fields": [
+  {
+   "fieldname": "sign_in_terms_and_conditions",
+   "fieldtype": "Link",
+   "label": "Sign In Terms and Conditions",
+   "options": "Terms and Conditions"
+  },
+  {
+   "fieldname": "online_booking_terms_and_conditions",
+   "fieldtype": "Link",
+   "label": "Online Booking Terms and Conditions",
+   "options": "Terms and Conditions"
+  },
+  {
+   "fieldname": "data_3",
+   "fieldtype": "Data"
+  }
+ ],
+ "issingle": 1,
+ "modified": "2020-12-22 10:03:40.988629",
+ "modified_by": "Administrator",
+ "module": "HMS",
+ "name": "HMS Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}
