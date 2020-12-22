@@ -28,6 +28,12 @@ def get_data():
                     "label": "Room Folio",
                     "description": "Room Folio"
                 },
+                                {
+                    "type": "doctype",
+                    "name": "Online Booking HMS",
+                    "label": "Online Booking",
+                    "description": "Website Online Booking"
+                },
                 {
                     "name": "Night-Audit",
                     "type": "report",

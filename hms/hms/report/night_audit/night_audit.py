@@ -21,7 +21,10 @@ def get_data(filters):
 
     else:
         if op == "Rooms to CheckOut":
-            where_clause += [" and date(f.check_out) = %(audit_date)s and f.status='Checked In'"]
+            where_clause += [" and date(f.check_out) <= %(audit_date)s and f.status='Checked In'"]
+        elif op == "Rooms to Charge":
+            where_clause += [" and f.status='Checked In' and %(audit_date)s between date(f.check_in) and date(f.check_out)"]
+
         data = frappe.db.sql("""
     select g.reference_name name, g.room_no, f.room_type, f.status, g.reference_name folio, f.customer,
     f.check_in, f.check_out, f.total_charges, f.total_advance_paid, f.balance, gu.guests guest, '' mobile,
@@ -91,7 +94,7 @@ def get_data_rooms_to_checkin(filters):
             inner join `tabRoom HMS` rm on rm.name = so.room_no_cf
             left outer join `tabRoom Folio HMS` x on x.reservation = so.name
         where 
-            so.docstatus = 1 and so.check_in_cf >= %(audit_date)s""", filters, as_dict=True)
+            so.docstatus = 1 and date(so.check_in_cf) = %(audit_date)s""", filters, as_dict=True)
 
     columns += [dict(label="Reservation", fieldname="name", fieldtype="Link/Sales Order", width=150,)]
     columns += [dict(label="Room #", fieldname="room_no", width=120,)]

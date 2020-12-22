@@ -158,7 +158,6 @@ function _save() {
         // Success
         let msg = __("Your booking has been submitted successfully.");
         frappe.web_form.set_form_description(msg);
-        frappe.web_form.set_form_description(msg);
         frappe.msgprint({
           message: msg,
           indicator: "green",

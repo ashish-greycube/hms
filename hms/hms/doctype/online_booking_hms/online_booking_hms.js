@@ -9,14 +9,31 @@ frappe.ui.form.on("Online Booking HMS", {
         frm.doc.check_out,
         frm.doc.check_in
       );
-      frappe.new_doc("Sales Order", {}).then((f) => {
-        cur_frm.set_value("customer", frm.doc.customer || "");
-        cur_frm.set_value("check_in_cf", frm.doc.check_in);
-        cur_frm.set_value("no_of_nights_cf", no_nights);
-        cur_frm.set_value("service_item_cf", frm.doc.package);
-        cur_frm.set_value("source", "Website Online");
-        cur_frm.set_value("reservation_reference_cf", frm.doc.name);
+      let new_booking = frappe.model.make_new_doc_and_get_name("Sales Order");
+      new_booking = locals["Sales Order"][new_booking];
+      Object.assign(new_booking, {
+        naming_series: "RES-.YYYY.-",
+        company: frappe.defaults.get_default("company"),
+        customer: frm.doc.customer || "",
+        check_in_cf: frm.doc.check_in,
+        check_out_cf: frm.doc.check_out,
+        no_of_nights_cf: no_nights,
+        service_item_cf: frm.doc.package,
+        source: "Website Online",
+        reservation_reference_cf: frm.doc.name,
       });
+      frappe.set_route("Form", "Sales Order", new_booking.name);
+      // frappe.new_doc("Sales Order", {}).then((f) => {
+      //   setTimeout(() => {
+      //     console.log("setting values");
+      //     cur_frm.set_value("customer", frm.doc.customer || "");
+      //     cur_frm.set_value("check_in_cf", frm.doc.check_in);
+      //     cur_frm.set_value("no_of_nights_cf", no_nights);
+      //     cur_frm.set_value("service_item_cf", frm.doc.package);
+      //     cur_frm.set_value("source", "Website Online");
+      //     cur_frm.set_value("reservation_reference_cf", frm.doc.name);
+      //   }, 1000);
+      // });
     });
   },
 
