@@ -13,29 +13,36 @@ def execute(filters=None):
 
 
 def get_data(filters):
+    data, columns, where_clause = [], [], []
 
-    data = frappe.db.sql("""
-select g.reference_name name, g.room_no, f.room_type, f.status, g.reference_name folio, f.customer,
-f.check_in, f.check_out, f.total_charges, f.total_advance_paid, f.balance, gu.guests guest, '' mobile,
-coalesce(si.name,'') invoice, coalesce(si.outstanding_amount, 0) outstanding_amount
-from `tabRoom Status Ledger Entry HMS` g
-inner join `tabRoom Folio HMS` f on f.name = g.reference_name 
-and date(f.check_in) <= %(audit_date)s
-left outer join 
-(
-	select parent, concat_ws(',',guest)guests from `tabRoom Guest Detail HMS`
-	group by parent
-) gu on gu.parent = f.name
-left outer join
-(
-    select name, room_date_cf, room_folio_cf, outstanding_amount
-    from `tabSales Invoice`
-    where docstatus = 1 and room_folio_cf is not null and room_date_cf = %(audit_date)s
-) si on room_folio_cf = f.name
-where g.docstatus <> 2 and g.status = 'Occupied' and f.status = 'Checked In'
-""", filters, as_dict=True, debug=False)
+    op = filters.get("operation")
+    if op == "Rooms to CheckIn":
+        return get_data_rooms_to_checkin(filters)
 
-    columns = []
+    else:
+        if op == "Rooms to CheckOut":
+            where_clause += [" and date(f.check_out) = %(audit_date)s and f.status='Checked In'"]
+        data = frappe.db.sql("""
+    select g.reference_name name, g.room_no, f.room_type, f.status, g.reference_name folio, f.customer,
+    f.check_in, f.check_out, f.total_charges, f.total_advance_paid, f.balance, gu.guests guest, '' mobile,
+    coalesce(si.name,'') invoice, coalesce(si.outstanding_amount, 0) outstanding_amount
+    from `tabRoom Status Ledger Entry HMS` g
+    inner join `tabRoom Folio HMS` f on f.name = g.reference_name 
+    and date(f.check_in) <= %(audit_date)s
+    left outer join 
+    (
+        select parent, concat_ws(',',guest)guests from `tabRoom Guest Detail HMS`
+        group by parent
+    ) gu on gu.parent = f.name
+    left outer join
+    (
+        select name, room_date_cf, room_folio_cf, outstanding_amount
+        from `tabSales Invoice`
+        where docstatus = 1 and room_folio_cf is not null and room_date_cf = %(audit_date)s
+    ) si on room_folio_cf = f.name
+    where g.docstatus <> 2 and g.status = 'Occupied' and f.status = 'Checked In'
+    {where_clause}""".format(where_clause=" and ".join(where_clause)), filters, as_dict=True, debug=False)
+
     # employee
     columns += [dict(label="Room No", fieldname="room_no",
                      fieldtype="Data", width=130, pinned='left', group="Room",
@@ -47,7 +54,7 @@ where g.docstatus <> 2 and g.status = 'Occupied' and f.status = 'Checked In'
                      fieldtype="Data", width=90, pinned='left', group="Room")]
 #
     columns += [dict(label="Folio", fieldname="folio",
-                     fieldtype="Link/Room Folio HMS", width=130,)]
+                     fieldtype="Link/Room Folio HMS", width=140,)]
     columns += [dict(label="Guest", fieldname="guest",
                      fieldtype="Link/Contact", width=180,)]
     columns += [dict(label="In", fieldname="check_in",
@@ -68,6 +75,37 @@ where g.docstatus <> 2 and g.status = 'Occupied' and f.status = 'Checked In'
                      fieldtype="Currency", width=100,)]
     # columns += [dict(label="Mobile", fieldname="mobile",
     #                  fieldtype="Data", width=120,)]
+
+    return columns, data
+
+
+def get_data_rooms_to_checkin(filters):
+    data, columns = [], []
+
+    data = frappe.db.sql("""
+        select 
+            so.name, so.room_no_cf room_no, rm.room_type, so.check_in_cf check_in, so.check_out_cf check_out, 
+            so.guest_cf guest, so.customer, so.advance_paid
+        from 
+            `tabSales Order` so
+            inner join `tabRoom HMS` rm on rm.name = so.room_no_cf
+            left outer join `tabRoom Folio HMS` x on x.reservation = so.name
+        where 
+            so.docstatus = 1 and so.check_in_cf >= %(audit_date)s""", filters, as_dict=True)
+
+    columns += [dict(label="Reservation", fieldname="name", fieldtype="Link/Sales Order", width=150,)]
+    columns += [dict(label="Room #", fieldname="room_no", width=120,)]
+    columns += [dict(label="Room Type", fieldname="room_type", width=120,)]
+    columns += [dict(label="Guest", fieldname="guest",
+                    fieldtype="Link/Contact", width=180,)]
+    columns += [dict(label="In", fieldname="check_in",
+                    fieldtype="DateTime", width=140,)]
+    columns += [dict(label="Out", fieldname="check_out",
+                    fieldtype="DateTime", width=140,)]
+    columns += [dict(label="Customer", fieldname="customer",
+                    fieldtype="Link/Customer", width=180,)]
+    columns += [dict(label="Advance", fieldname="total_advance_paid",
+                    fieldtype="Currency", width=100,)]
 
     return columns, data
 

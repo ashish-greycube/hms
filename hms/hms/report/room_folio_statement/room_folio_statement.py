@@ -15,11 +15,11 @@ def execute(filters=None):
 def get_columns(filters):
     return [
         dict(label="Folio", fieldname="folio",
-                     fieldtype="Link/Room Folio HMS", width=130,),
+                     fieldtype="Link/Room Folio HMS", width=140,),
         dict(label="Customer", fieldname="customer",
                      fieldtype="Link/Customer", width=140,),
         dict(label="Voucher No", fieldname="voucher_no",
-                     fieldtype="Data", width=160,),
+                     fieldtype="Data", width=170,),
         dict(label="Room No", fieldname="room_no",
                      fieldtype="Data", width=110,),
         dict(label="Room Type", fieldname="room_type",
@@ -27,7 +27,7 @@ def get_columns(filters):
         dict(label="Date", fieldname="date",
                      fieldtype="Data", width=110,),
         dict(label="Description", fieldname="description",
-                     fieldtype="Data", width=230,),
+                     fieldtype="Data", width=280,),
         # dict(label="Payment", fieldname="payment_entry",
         #              fieldtype="Link/Payment Entry", width=130,),
         dict(label="Dr", fieldname="debit",

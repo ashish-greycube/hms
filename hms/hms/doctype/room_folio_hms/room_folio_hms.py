@@ -184,7 +184,7 @@ select status, reference_type, reference_name
             'default_folio_receivable_account')
 
         if args.get('payment_type') == "Receive":
-            je.remark = 'Room Folio advance against: ' + self.name
+            je.remark = f"Room Folio advance ({mode_of_payment}) against: {self.name}"
             je.append("accounts", {
                 "account": folio_account,
                 "party_type": "Customer",

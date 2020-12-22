@@ -8,23 +8,31 @@ frappe.query_reports["Night-Audit"] = {
       fieldname: "audit_date",
       label: __("Date"),
       fieldtype: "Date",
-      // default: "2020-02-20",
       default: [frappe.datetime.get_today()],
-      reqd: 1
+      reqd: 1,
+    },
+    {
+      fieldname: "operation",
+      label: __("Operation"),
+      fieldtype: "Select",
+      options: "Rooms to Charge\nRooms to CheckIn\nRooms to CheckOut",
+      default: "Rooms to Charge",
+      reqd: 1,
     },
     {
       fieldname: "status",
       label: __("Status"),
       fieldtype: "Select",
-      options: "\nNot Charged\nCheck In\nCheck Out"
-    }
+      options: "\nNot Charged\nCheck In\nCheck Out",
+      hidden: 1,
+    },
   ],
 
   onload(report) {
     //
     frappe.set_redirect_to_ag_report();
 
-    report.page.add_inner_button(__("Post Charges"), function() {
+    report.page.add_inner_button(__("Post Charges"), function () {
       let doclist = [];
       let filters = report.get_filter_values();
 
@@ -35,15 +43,15 @@ frappe.query_reports["Night-Audit"] = {
       return frappe.call({
         method: "hms.hms.report.night_audit.night_audit.post_charges",
         args: { doclist: doclist, filters: filters },
-        callback: function(r) {
+        callback: function (r) {
           frappe.ag_report.refresh();
-        }
+        },
       });
     });
 
     report.page.add_inner_button(
       __("<b>Select / Unselect All</b>"),
-      function() {
+      function () {
         hms.utils.toggle_selection(report);
       }
     );
@@ -56,25 +64,25 @@ frappe.query_reports["Night-Audit"] = {
     let me = this;
     gridOptions.defaultColDef = {
       sortable: true,
-      resizable: true
+      resizable: true,
     };
 
+    gridOptions.context = { always_recreate: true };
     // gridOptions.getContextMenuItems = hms.utils.get_context_menu;
-    gridOptions.context = { always_recreate: false };
     gridOptions.rowSelection = "multiple";
 
-    gridOptions.isRowSelectable = function(rowNode) {
+    gridOptions.isRowSelectable = function (rowNode) {
       return rowNode.data.invoice ? false : true;
     };
 
-    gridOptions.onRowDataChanged = function(params) {};
+    gridOptions.onRowDataChanged = function (params) {};
 
-    gridOptions.onCellDoubleClicked = function(params) {};
+    gridOptions.onCellDoubleClicked = function (params) {};
 
-    gridOptions.getRowClass = function(params) {
+    gridOptions.getRowClass = function (params) {
       if (params.node.isSelected()) return null;
       return params.node.data.invoice ? "" : frappe.scrub(`hms-to-charge`);
     };
     //
-  }
+  },
 };
