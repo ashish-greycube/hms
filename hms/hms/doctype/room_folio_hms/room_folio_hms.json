@@ -10,6 +10,8 @@
   "reservation",
   "customer",
   "master_folio",
+  "customer_email",
+  "customer_mobile",
   "is_split_bill",
   "room_no",
   "room_type",
@@ -252,10 +254,20 @@
    "fieldname": "guest_purchase_balance",
    "fieldtype": "Currency",
    "label": "Guest Outstanding Amount"
+  },
+  {
+   "fieldname": "customer_email",
+   "fieldtype": "Data",
+   "label": "Customer Email"
+  },
+  {
+   "fieldname": "customer_mobile",
+   "fieldtype": "Data",
+   "label": "Customer Mobile"
   }
  ],
  "is_submittable": 1,
- "modified": "2020-11-23 10:44:17.465285",
+ "modified": "2020-12-22 10:35:35.466472",
  "modified_by": "Administrator",
  "module": "HMS",
  "name": "Room Folio HMS",

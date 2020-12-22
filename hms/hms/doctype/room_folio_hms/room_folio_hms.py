@@ -9,6 +9,7 @@ from frappe.model.document import Document
 from frappe.utils import (nowdate, flt, cint, today, date_diff,
                           getdate, cstr, now, get_link_to_form)
 from erpnext.accounts.party import get_party_account, get_party_bank_account
+from frappe.contacts.doctype.contact.contact import get_contact_details, get_default_contact
 from erpnext.accounts.utils import get_outstanding_invoices
 import json
 from hms.hms.doctype.room_status_ledger_entry_hms.room_status_ledger_entry_hms import update_room_status_ledger
@@ -29,9 +30,17 @@ class RoomFolioHMS(Document):
             self.validate_room_reservation()
             self.validate_room_status()
 
+        self.set_missing_values()
         self.validate_checklist()
         self.validate_duplicate_checkin()
         self.update_charges_and_amounts()
+
+    def set_missing_values(self):
+        contact_person = get_default_contact("Customer", self.customer)
+        if contact_person:
+            details = get_contact_details(contact_person)
+            self.customer_email = details.get("contact_email")
+            self.customer_mobile = details.get("contact_mobile") or details.get("phone")
 
     def validate_duplicate_checkin(self):
         for d in frappe.db.sql("""select name from `tabRoom Folio HMS`
