@@ -1,164 +1,191 @@
-<div style="position: relative">
+<div class="sign-in">
+    <div class="row">
+        <div class="col col-sm-5">
+            <div class="boxed">
+                <div class="row">
+                    <div class="col col-sm-12 section-title">
+                        GUEST INFORMATION
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col col-sm-12 border-bot">
+                        <h6>Full Name </h6> {{ctx.guest_full_name}}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col col-sm-12 border-bot">
+                        <h6>Address </h6> {{ctx.guest_address_display or "No Address"}}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col col-sm-7">
+            <div class="boxed">
 
-    {%- from "templates/print_formats/standard_macros.html" import add_header -%}
-    <div class="page-break">
-        {%- if not doc.get("print_heading") and not doc.get("select_print_heading") 
-        and doc.set("select_print_heading", _("Sign In Form")) -%}{%- endif -%}
-        {{ doc.set("sub_heading", doc.name) or ""}}
-        {{ add_header(0, 1, doc, letter_head, no_letterhead, print_settings = {"add_draft_heading" : 0}) }}
+
+                <div class="col col-sm-12 section-title">
+                    STAY INFORMATION
+                </div>
+                <div class="row">
+                    <div class="col col-sm-4 border-bot">
+                        <h6>Check In</h6> {{frappe.utils.format_datetime(doc.check_in,"MM/dd/yyyy E")}}
+                    </div>
+                    <div class="col col-sm-4 border-bot">
+                        <h6>Check Out</h6> {{frappe.utils.format_datetime(doc.check_out,"MM/dd/yyyy E")}}
+                    </div>
+                    <div class="col col-sm-4 border-bot">
+                        <h6>Adults/Child</h6> {{ctx.total_guest}}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col col-sm-4 border-bot">
+                        <h6>Weekday</h6> {{ctx.total_amount_weekdays | int}}
+                    </div>
+                    <div class="col col-sm-4 border-bot">
+                        <h6>Weekend</h6> {{ctx.total_amount_weekends | int}}
+                    </div>
+                    <div class="col col-sm-4 border-bot">
+                        <h6>Tax Exempt</h6> NO
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col col-sm-4 border-bot">
+                        <h6>Conf #</h6> {{doc.room_no}}
+                    </div>
+                    <div class="col col-sm-8 border-bot">
+                        <h6>Room/Room Type </h6> {{doc.room_type}}
+                    </div>
+                </div>
+
+            </div>
+        </div>
     </div>
+
+    <div class="row" style="margin-top: 15px;">
+        <div class="col col-sm-8">
+            <div class="boxed">
+                <div class="row">
+                    <div class="col col-sm-12 section-title">
+                        OTHER INFORMATION
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col col-sm-6 border-bot">
+                        <h6>Car Make/Model</h6> {{doc.car_make_model or "-"}}
+                    </div>
+                    <div class="col col-sm-6 border-bot">
+                        <h6>Plate </h6> {{doc.registration_plate_no or "-"}}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col col-sm-12 border-bot">
+                        <h6>Payment Information </h6> {{doc.payment_information or "-"}}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col col-sm-6 border-bot">
+                        <h6>Email</h6> {{ctx.guest_email or ""}}
+                    </div>
+                    <div class="col col-sm-6 border-bot">
+                        <h6>Phone No </h6> {{ctx.guest_mobile or ""}}
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <div class="col col-sm-4">
+            <div class="boxed">
+                <div class="row">
+                    <div class="col col-sm-12 section-title">
+                        TOTAL STAY INFORMATION
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col col-sm-12">
+                        <table class="table table-condensed">
+                            <colgroup>
+                                <col style="width:60%;">
+                                <col style="width:40%;">
+                            </colgroup>
+                            <tbody>
+                                <tr>
+                                    <td>Total Room</td>
+                                    <td class="text-right">{{ctx.total_room_charges}}</td>
+                                </tr>
+                                <tr>
+                                    <td>Other Charges</td>
+                                    <td class="text-right">{{ctx.total_other_charges}}</td>
+                                </tr>
+                                <tr>
+                                    <td>Total Tax</td>
+                                    <td class="text-right">{{ctx.total_taxes_and_charges}}</td>
+                                </tr>
+                                {% if frappe.utils.cint(doc.discount_amount) %}
+                                <tr>
+                                    <td>Discount Amount</td>
+                                    <td class="text-right">{{ctx.discount_amount}}</td>
+                                </tr>
+                                {% endif %}
+                                <tr>
+                                    <td>Total Stay</td>
+                                    <td class="text-right">{{ctx.total_charges}}</td>
+                                </tr>
+                                <!-- <tr>
+                                    <td>Payments</td>
+                                    <td class="text-right"></td>
+                                </tr>
+                                <tr>
+                                    <td>Balance Due</td>
+                                    <td class="text-right"></td>
+                                </tr> -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <!-- terms -->
+    <div>
+        <p><strong>{{frappe.utils.format_datetime(ctx.sign_in_date, "MM/dd/yyyy E")}}</strong></p>
+        <center>
+            <h4>PLEASE READ AND SIGN</h4>
+        </center>
+        {{ctx.terms}}
+    </div>
+
 </div>
-<style type="text/css">
-    .tg {
-        border-collapse: collapse;
-        border-spacing: 0;
+
+<style>
+    .sign-in {
+        font-size: 12px;
     }
 
-    .tg td {
-        font-family: Arial, sans-serif;
+    .sign-in h6 {
+        margin-bottom: 3px;
+    }
+
+    .section-title {
+        /* background-color: #cccccc; */
         font-size: 14px;
-        padding: 10px 5px;
-        border-style: solid;
-        border-width: 1px;
-        overflow: hidden;
-        word-break: normal;
-        border-color: black;
+        font-weight: bold;
     }
 
-    .tg th {
-        font-family: Arial, sans-serif;
-        font-size: 14px;
-        font-weight: normal;
-        padding: 10px 5px;
-        border-style: solid;
-        border-width: 1px;
-        overflow: hidden;
-        word-break: normal;
-        border-color: black;
+    .border-bot {
+        margin-bottom: 5px;
+        border-bottom: 1px solid #cecece;
     }
 
-    .tg .tg-y6fn {
-        background-color: #c0c0c0;
-        text-align: left;
-        vertical-align: top
+    .boxed {
+        border: 1px solid darkgray;
+        padding: 6px;
+        /* background-color: peru; */
     }
 
-    .tg .tg-0lax {
-        text-align: left;
-        vertical-align: top
-    }
-
-    .tg .tg-qika {
-        background-color: #c0c0c0;
-        color: #efefef;
-        text-align: left;
-        vertical-align: top
+    .boxed .row {
+        /* background-color: pink; */
+        margin: 0px;
+        padding: 3px;
     }
 </style>
-<table class="tg" style="undefined;table-layout: fixed; width: 690px">
-    <colgroup>
-        <col style="width: 161px">
-        <col style="width: 25px">
-        <col style="width: 25px">
-        <col style="width: 91px">
-        <col style="width: 21px">
-        <col style="width: 106px">
-        <col style="width: 120px">
-        <col style="width: 141px">
-    </colgroup>
-    <tr>
-        <th class="tg-y6fn" colspan="4">GUEST INFORMATION</th>
-        <th class="tg-0lax" rowspan="7"></th>
-        <th class="tg-qika" colspan="3"><span style="color:rgb(51, 51, 51)">STAY INFORMATION</span><br></th>
-    </tr>
-    <tr>
-        <td class="tg-0lax" colspan="4">Full Name : </td>
-        <td class="tg-0lax">Check In</td>
-        <td class="tg-0lax">Check Out</td>
-        <td class="tg-0lax">Adults/Child</td>
-    </tr>
-    <tr>
-        <td class="tg-0lax" colspan="4">{{ctx.guest_full_name}}</td>
-        <td class="tg-0lax">{{doc.check_in}}</td>
-        <td class="tg-0lax">{{doc.check_out}}</td>
-        <td class="tg-0lax">{{ctx.total_guest}}</td>
-    </tr>
-    <tr>
-        <td class="tg-0lax" colspan="4">Address :</td>
-        <td class="tg-0lax">Weekday</td>
-        <td class="tg-0lax">Weekend</td>
-        <td class="tg-0lax">Tax Exempt</td>
-    </tr>
-    <tr>
-        <td class="tg-0lax" colspan="4" rowspan="3">{{ctx.guest_address_display}}</td>
-        <td class="tg-0lax">{{ctx.total_amount_weekdays}}</td>
-        <td class="tg-0lax">{{ctx.total_amount_weekends}}</td>
-        <td class="tg-0lax">NO</td>
-    </tr>
-    <tr>
-        <td class="tg-0lax">Conf#</td>
-        <td class="tg-0lax" colspan="2">Room/Room Type</td>
-    </tr>
-    <tr>
-        <td class="tg-0lax">{{doc.name}}</td>
-        <td class="tg-0lax" colspan="2">{{doc.room_no}}/{{doc.room_type}}</td>
-    </tr>
-    <tr>
-        <td class="tg-y6fn" colspan="5">OTHER INFORMATION</td>
-        <td class="tg-0lax"></td>
-        <td class="tg-y6fn" colspan="2">TOTAL STAY INFORMATION</td>
-    </tr>
-    <tr>
-        <td class="tg-0lax" colspan="3">Car Make/Model</td>
-        <td class="tg-0lax" colspan="2">Plate</td>
-        <td class="tg-0lax"></td>
-        <td class="tg-0lax">Total Room:</td>
-        <td class="tg-0lax">{{ctx.total_room_charges}}</td>
-    </tr>
-    <tr>
-        <td class="tg-0lax" colspan="3">{{doc.car_make_model or "" }}</td>
-        <td class="tg-0lax" colspan="2">{{doc.registration_plate_no or ""}}</td>
-        <td class="tg-0lax"></td>
-        <td class="tg-0lax">Other Charges:</td>
-        <td class="tg-0lax">{{ctx.total_other_charges}}</td>
-    </tr>
-    <tr>
-        <td class="tg-0lax" colspan="5">Payment Information</td>
-        <td class="tg-0lax"></td>
-        <td class="tg-0lax">Total Tax:</td>
-        <td class="tg-0lax">{{ctx.total_taxes_and_charges}}</td>
-    </tr>
-    {% if frappe.utils.cint(doc.discount_amount) %}
-    <tr>
-        <td class="tg-0lax" colspan="5">Cash/Bank Transfer/Credit</td>
-        <td class="tg-0lax"></td>
-        <td class="tg-0lax">Total Discount:</td>
-        <td class="tg-0lax">{{ctx.discount_amount}}</td>
-    </tr>
-    {% endif %}
-    <tr>
-        <td class="tg-0lax" colspan="5">{% if not frappe.utils.cint(doc.discount_amount) %}
-            {{ctx.get("mode_of_payment") or ""}}
-            {% endif %}</td>
-        <td class="tg-0lax"></td>
-        <td class="tg-0lax">Total Stay:</td>
-        <td class="tg-0lax">{{ctx.total_charges}}</td>
-    </tr>
-    <tr>
-        <td class="tg-0lax" colspan="3">Email Addresses:</td>
-        <td class="tg-0lax" colspan="2">Phone No</td>
-        <td class="tg-0lax"></td>
-        <td class="tg-0lax">Payments:</td>
-        <td class="tg-0lax">{{ctx.total_advance_paid}}</td>
-    </tr>
-    <tr>
-        <td class="tg-0lax" colspan="3">{{ctx.guest_email}}</td>
-        <td class="tg-0lax" colspan="2">{{ctx.guest_mobile}}</td>
-        <td class="tg-0lax"></td>
-        <td class="tg-0lax"><span style="font-weight:bold">Balance Due:</span></td>
-        <td class="tg-0lax">{{ctx.balance}}</td>
-    </tr>
-</table>
-<div>
-    {{ctx.terms}}
-</div>

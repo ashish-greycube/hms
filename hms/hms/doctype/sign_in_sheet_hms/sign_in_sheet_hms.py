@@ -13,9 +13,19 @@ class SignInSheetHMS(Document):
     def validate(self):
         if self.db_get('signature'):
             frappe.throw("Cannot modify Sign In Sheet after signature")
-
+        # self.content = make_sign_in_sheet(self.folio)
 
 def make_sign_in_sheet(room_folio, no_letterhead=False):
+    doc = frappe.new_doc("Sign In Sheet HMS")
+    doc.folio = room_folio
+    doc.content = get_content_html(room_folio, no_letterhead)
+    doc.save()
+
+    folio = frappe.get_doc("Room Folio HMS", room_folio)
+    folio.db_set("sign_in_sheet", doc.name)
+    return doc
+
+def get_content_html(room_folio, no_letterhead=False):
     # from bs4 import BeautifulSoup
     # bench execute .hms.hms.doctype.sign_in_sheet_hms.sign_in_sheet_hms.make_sign_in_sheet('HMS-RR-20-00018')
     folio = frappe.get_doc("Room Folio HMS", room_folio)
@@ -84,6 +94,7 @@ def make_sign_in_sheet(room_folio, no_letterhead=False):
         print_context.setdefault('mode_of_payment', d[0])
 
     print_context.setdefault('guest_address_display', "-")
+    print_context.setdefault('sign_in_date', getdate())
 
     if print_context['address_name']:
         print_context['guest_address_display'] = get_address_display(
@@ -91,8 +102,6 @@ def make_sign_in_sheet(room_folio, no_letterhead=False):
     html = frappe.render_template(
         template, {"doc": folio, "ctx": print_context})
 
-    doc = frappe.new_doc("Sign In Sheet HMS")
-    doc.content = html
-    doc.save()
-    folio.db_set("sign_in_sheet", doc.name)
-    return doc
+    print(html, "*" * 100)
+
+    return html
