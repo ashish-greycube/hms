@@ -21,6 +21,9 @@ def validate_sales_order(doc, method):
     if not doc.guest_cf:
         frappe.throw(_("Please select guest for Reservation."))
 
+    if not doc.tc_name:
+        doc.tc_name = frappe.db.get_single_value("HMS Settings", "sign_in_terms_and_conditions")
+
 def validate_item_price(doc, method):
     if not doc.weekend_rate_cf:
         doc.weekend_rate_cf = doc.price_list_rate

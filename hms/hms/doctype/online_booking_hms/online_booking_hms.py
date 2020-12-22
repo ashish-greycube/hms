@@ -24,3 +24,5 @@ class OnlineBookingHMS(Document):
             limit 1 """, (self.email, self.phone_no), as_dict=True):
                 if not self.customer:
                     self.customer = d.customer
+        if not self.terms:
+            self.terms = frappe.db.get_single_value("HMS Settings", "online_booking_terms_and_conditions")
