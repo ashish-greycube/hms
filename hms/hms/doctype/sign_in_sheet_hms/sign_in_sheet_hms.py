@@ -11,9 +11,10 @@ from frappe.utils import nowdate, flt, cint, today, getdate, cstr
 
 class SignInSheetHMS(Document):
     def validate(self):
-        if self.db_get('signature'):
+        if not self.db_get('signature'):
             frappe.throw("Cannot modify Sign In Sheet after signature")
-        # self.content = make_sign_in_sheet(self.folio)
+        self.content = get_content_html(self.folio)
+
 
 def make_sign_in_sheet(room_folio, no_letterhead=False):
     doc = frappe.new_doc("Sign In Sheet HMS")

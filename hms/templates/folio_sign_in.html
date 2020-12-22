@@ -1,18 +1,18 @@
 <div class="sign-in">
-    <div class="row">
+    <div class="row highlight">
         <div class="col col-sm-5">
             <div class="boxed">
-                <div class="row">
+                <div class="row highlight">
                     <div class="col col-sm-12 section-title">
                         GUEST INFORMATION
                     </div>
                 </div>
-                <div class="row">
+                <div class="row highlight">
                     <div class="col col-sm-12 border-bot">
                         <h6>Full Name </h6> {{ctx.guest_full_name}}
                     </div>
                 </div>
-                <div class="row">
+                <div class="row highlight">
                     <div class="col col-sm-12 border-bot">
                         <h6>Address </h6> {{ctx.guest_address_display or "No Address"}}
                     </div>
@@ -21,12 +21,12 @@
         </div>
         <div class="col col-sm-7">
             <div class="boxed">
-
-
-                <div class="col col-sm-12 section-title">
-                    STAY INFORMATION
+                <div class="row highlight">
+                    <div class="col col-sm-12 section-title">
+                        STAY INFORMATION
+                    </div>
                 </div>
-                <div class="row">
+                <div class="row highlight">
                     <div class="col col-sm-4 border-bot">
                         <h6>Check In</h6> {{frappe.utils.format_datetime(doc.check_in,"MM/dd/yyyy E")}}
                     </div>
@@ -37,7 +37,7 @@
                         <h6>Adults/Child</h6> {{ctx.total_guest}}
                     </div>
                 </div>
-                <div class="row">
+                <div class="row highlight">
                     <div class="col col-sm-4 border-bot">
                         <h6>Weekday</h6> {{ctx.total_amount_weekdays | int}}
                     </div>
@@ -48,7 +48,7 @@
                         <h6>Tax Exempt</h6> NO
                     </div>
                 </div>
-                <div class="row">
+                <div class="row highlight">
                     <div class="col col-sm-4 border-bot">
                         <h6>Conf #</h6> {{doc.room_no}}
                     </div>
@@ -61,10 +61,10 @@
         </div>
     </div>
 
-    <div class="row" style="margin-top: 15px;">
+    <div class="row highlight" style="margin-top: 15px;">
         <div class="col col-sm-8">
             <div class="boxed">
-                <div class="row">
+                <div class="row highlight">
                     <div class="col col-sm-12 section-title">
                         OTHER INFORMATION
                     </div>
@@ -95,7 +95,7 @@
         </div>
         <div class="col col-sm-4">
             <div class="boxed">
-                <div class="row">
+                <div class="row highlight">
                     <div class="col col-sm-12 section-title">
                         TOTAL STAY INFORMATION
                     </div>
@@ -162,6 +162,10 @@
         font-size: 12px;
     }
 
+    .sign-in table {
+        margin: 0px;
+    }
+
     .sign-in h6 {
         margin-bottom: 3px;
     }
@@ -174,18 +178,20 @@
 
     .border-bot {
         margin-bottom: 5px;
-        border-bottom: 1px solid #cecece;
+        border-top: 1px solid #cecece;
     }
 
     .boxed {
-        border: 1px solid darkgray;
+        /* border: 1px solid darkgray; */
         padding: 6px;
-        /* background-color: peru; */
     }
 
     .boxed .row {
-        /* background-color: pink; */
         margin: 0px;
         padding: 3px;
+    }
+
+    .highlight {
+        background-color: #efefef;
     }
 </style>
