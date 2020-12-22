@@ -25,4 +25,5 @@ class OnlineBookingHMS(Document):
                 if not self.customer:
                     self.customer = d.customer
         if not self.terms:
-            self.terms = frappe.db.get_single_value("HMS Settings", "online_booking_terms_and_conditions")
+            self.terms_and_conditions = frappe.db.get_single_value("HMS Settings", "online_booking_terms_and_conditions")
+            self.terms = frappe.db.get_value('Terms and Conditions', self.terms_and_conditions, 'terms') or ''

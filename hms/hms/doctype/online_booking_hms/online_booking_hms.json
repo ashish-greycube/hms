@@ -97,10 +97,8 @@
    "fieldtype": "Section Break"
   },
   {
-   "default": "Online Booking",
    "fieldname": "terms_and_conditions",
    "fieldtype": "Link",
-   "hidden": 1,
    "label": "Terms and Conditions",
    "options": "Terms and Conditions"
   },
@@ -161,7 +159,7 @@
    "label": "Create Customer"
   }
  ],
- "modified": "2020-12-19 05:38:31.131026",
+ "modified": "2020-12-22 10:17:53.077760",
  "modified_by": "Administrator",
  "module": "HMS",
  "name": "Online Booking HMS",
