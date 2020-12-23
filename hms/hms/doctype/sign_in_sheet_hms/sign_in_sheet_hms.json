@@ -23,13 +23,12 @@
   },
   {
    "fieldname": "folio",
-   "fieldtype": "Link",
+   "fieldtype": "Data",
    "label": "Folio",
-   "options": "Room Folio HMS",
    "read_only": 1
   }
  ],
- "modified": "2020-12-22 15:17:44.853017",
+ "modified": "2020-12-22 17:49:13.396240",
  "modified_by": "Administrator",
  "module": "HMS",
  "name": "Sign In Sheet HMS",
