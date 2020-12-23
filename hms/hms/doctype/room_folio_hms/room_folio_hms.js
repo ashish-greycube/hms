@@ -145,6 +145,8 @@ frappe.ui.form.on("Room Folio HMS", {
       "default_folio_receivable_account"
     );
 
+    let balance = frm.doc.balance;
+
     const fields = [
       {
         fieldtype: "Data",
@@ -194,7 +196,7 @@ frappe.ui.form.on("Room Folio HMS", {
         fieldtype: "Select",
         reqd: 1,
         options: ["Transfer to Room", "Transfer to Desk"].join("\n"),
-        default: "Transfer to Room",
+        default: balance > 0 ? "Transfer to Desk" : "Transfer to Room",
         onchange: () => {},
       },
       { fieldtype: "Column Break" },
@@ -202,7 +204,7 @@ frappe.ui.form.on("Room Folio HMS", {
         fieldtype: "Currency",
         fieldname: "amount_to_transfer",
         label: "Amount to Transfer",
-        default: "0",
+        default: balance,
       },
     ];
     var d = new frappe.ui.Dialog({
