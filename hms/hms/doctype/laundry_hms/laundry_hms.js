@@ -3,7 +3,7 @@
 
 frappe.ui.form.on("Laundry HMS", {
   refresh: function (frm) {
-    if (frm.doc.docstatus == 0) {
+    if (frm.doc.docstatus == 1) {
       frm.page.add_inner_button(__("Make Delivery & Invoice"), function () {
         return frappe.call({
           doc: frm.doc,

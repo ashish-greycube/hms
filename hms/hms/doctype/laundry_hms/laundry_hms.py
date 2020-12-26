@@ -73,7 +73,7 @@ class LaundryHMS(Document):
         si.calculate_taxes_and_totals()
         si.set_missing_values(for_validate=True)
         si.insert()
-        # si.submit()
+        si.submit()
         return si
 
 
