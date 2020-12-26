@@ -1,0 +1,146 @@
+{
+ "autoname": "LAUN-.YY.-.MM.-.DD.-.#",
+ "creation": "2020-12-26 06:05:40.783035",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "company",
+  "room_folio",
+  "room_no",
+  "customer",
+  "guest",
+  "column_break_6",
+  "status",
+  "received_datetime",
+  "delivered_datetime",
+  "total_qty",
+  "invoiced",
+  "laundry_items_section",
+  "items",
+  "remarks",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "room_folio",
+   "fieldtype": "Link",
+   "label": "Room Folio",
+   "options": "Room Folio HMS"
+  },
+  {
+   "fetch_from": "room_folio.room_no",
+   "fieldname": "room_no",
+   "fieldtype": "Data",
+   "label": "Room No",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "foom_folio.customer",
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "label": "Customer",
+   "options": "Customer",
+   "read_only": 1
+  },
+  {
+   "fieldname": "guest",
+   "fieldtype": "Link",
+   "label": "Guest",
+   "options": "Contact",
+   "read_only": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "IN\nOUT",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_6",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "received_datetime",
+   "fieldtype": "Datetime",
+   "label": " Received Datetime",
+   "read_only": 1
+  },
+  {
+   "fieldname": "delivered_datetime",
+   "fieldtype": "Datetime",
+   "label": "Delivered Datetime",
+   "read_only": 1
+  },
+  {
+   "fieldname": "remarks",
+   "fieldtype": "Long Text",
+   "label": "Remarks"
+  },
+  {
+   "default": "0",
+   "fieldname": "invoiced",
+   "fieldtype": "Check",
+   "label": "Invoiced",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_qty",
+   "fieldtype": "Data",
+   "label": "Total Qty",
+   "read_only": 1
+  },
+  {
+   "fieldname": "laundry_items_section",
+   "fieldtype": "Section Break",
+   "label": "Laundry Items"
+  },
+  {
+   "fieldname": "items",
+   "fieldtype": "Table",
+   "label": "Items",
+   "options": "Laundry Item HMS",
+   "reqd": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Laundry HMS",
+   "print_hide": 1,
+   "read_only": 1
+  }
+ ],
+ "is_submittable": 1,
+ "modified": "2020-12-26 07:56:25.146319",
+ "modified_by": "Administrator",
+ "module": "HMS",
+ "name": "Laundry HMS",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}
