@@ -28,7 +28,13 @@ def get_data():
                     "label": "Room Folio",
                     "description": "Room Folio"
                 },
-                                {
+                {
+                    "type": "doctype",
+                    "name": "Laundry HMS",
+                    "label": "Laundry",
+                    "description": "Laundry Entries"
+                },
+                {
                     "type": "doctype",
                     "name": "Online Booking HMS",
                     "label": "Online Booking",

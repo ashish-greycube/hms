@@ -75,17 +75,17 @@ hms.make_grid_charge_and_purchase = function (frm) {
           return `<a href='#Form/Sales Invoice/${params.value}' target="_blank">${params.value}</a>`;
         },
       },
-      {
-        headerName: "Folio",
-        field: "room_folio",
-        width: 160,
-        cellRenderer: function (params) {
-          return `<a href='#Form/Room Folio HMS/${params.value}' target="_blank">${params.value}</a>`;
-        },
-      },
+      // {
+      //   headerName: "Folio",
+      //   field: "room_folio",
+      //   width: 160,
+      //   cellRenderer: function (params) {
+      //     return `<a href='#Form/Room Folio HMS/${params.value}' target="_blank">${params.value}</a>`;
+      //   },
+      // },
       { headerName: "Room", field: "room_no", width: 90 },
       { headerName: "Date", field: "room_date_cf", width: 90 },
-      { headerName: "Time", field: "posting_time", width: 90 },
+      { headerName: "Time", field: "posting_time", width: 75 },
       {
         headerName: "Total",
         field: "rounded_total",
@@ -96,12 +96,12 @@ hms.make_grid_charge_and_purchase = function (frm) {
         headerName: "Outstanding",
         field: "outstanding_amount",
         type: "numericColumn",
-        width: 100,
+        width: 90,
       },
       {
         headerName: "Charges For",
         field: "charges_for",
-        width: 300,
+        width: 320,
       },
     ],
     rowData: [],

@@ -29,11 +29,11 @@ class LaundryHMS(Document):
             for d in folio.room_guest_detail:
                 self.guest = d.guest
                 break
-        self.create_sales_invoice()
 
     def on_submit(self):
         self.status == "IN"
         self.received_datetime = now_datetime()
+        # self.create_sales_invoice()
 
     def make_delivery_and_invoice(self):
         self.status == "OUT"
