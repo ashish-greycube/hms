@@ -403,3 +403,27 @@ def autoname_contact(doc, method):
     from frappe.model.naming import append_number_if_name_exists
     if frappe.db.exists("Contact", doc.name):
         doc.name = append_number_if_name_exists('Contact', doc.name)
+
+
+@frappe.whitelist(allow_guest=True)
+def __get_online_packages():
+    return frappe.db.sql("""
+    select i.item_code label, i.item_code value, i.room_type_cf, 
+    123 room_rate, '₦ 250.00' description
+    from tabItem i
+    where i.item_group = 'Room Charges'""", as_dict=True)
+
+
+@frappe.whitelist(allow_guest=True)
+def get_online_packages():
+    return frappe.db.sql("""
+        select i.item_code label, i.item_code value, 
+        i.room_type_cf, 
+        COALESCE(ip.price_list_rate,0) room_rate,
+        concat(i.item_name, ', ₦', round(COALESCE(ip.price_list_rate,0))) description
+        from tabItem i
+        inner join `tabItem Price` ip on ip.item_code = i.item_code and ip.selling = 1
+        and %(today)s BETWEEN  ifnull(ip.valid_from, '1900-01-01') and ifnull(valid_upto, '2500-12-31')
+        and ip.price_list = (select default_online_booking_price_list from tabCompany 
+        where name = %(company)s)
+        where i.item_group = 'Room Charges'""", dict(company=get_default_company(), today=getdate()), as_dict=True)

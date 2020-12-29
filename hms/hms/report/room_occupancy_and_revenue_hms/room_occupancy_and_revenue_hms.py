@@ -61,7 +61,7 @@ union all
 select 'Total', '', '', sum(fn.no_of_rooms), sum(fn.total_rooms), sum(occupancy), 
 round(sum(fn.total_rooms)/ndays,2),sum(empty), round(sum(empty/ndays),2),
 0, 0, sum(revenue), round(sum(revenue)/ndays,2), ndays
-from fn""", filters, as_dict=1, debug=True)
+from fn""", filters, as_dict=1, debug=False)
 
     return data
 

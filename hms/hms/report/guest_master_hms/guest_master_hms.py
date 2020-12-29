@@ -16,7 +16,7 @@ def get_data(filters=None):
     data = frappe.db.sql("""
 select name, first_name , last_name , gender ,
 mobile_no , email_id , status 
-from tabContact""", filters, as_dict=True, debug=True)
+from tabContact""", filters, as_dict=True, debug=False)
 
     columns = []
     # pinned columns

@@ -1,5 +1,7 @@
 frappe.ready(function () {
   setTimeout(() => {
+    // debugger;
+    set_filters();
     add_custom_buttons();
     set_items_description();
   }, 600);
@@ -37,6 +39,35 @@ clear_buttons = function () {
     window.location.reload();
   });
 };
+
+function set_filters() {
+  let package = frappe.web_form.fields_dict["package"];
+
+  package.df.onchange = function () {
+    let rate = package.df.options.filter((t) => {
+      return t.value == frappe.web_form.doc.package;
+    });
+    frappe.web_form.set_value("room_rate", rate.length ? rate[0].room_rate : 0);
+  };
+
+  frappe.call({
+    method: "hms.hms.controllers.reservation.get_online_packages",
+    callback: function (r) {
+      package.df.options = r.message;
+      package.set_options();
+    },
+  });
+
+  package.awesomplete.filter = function (text, input) {
+    return (package.df.options || []).some((t) => {
+      return (
+        t.room_type_cf === frappe.web_form.doc.room_type &&
+        text.label === t.value &&
+        text.label.indexOf(input) === 0
+      );
+    });
+  };
+}
 
 function add_custom_buttons() {
   frappe.web_form.add_button_to_header(

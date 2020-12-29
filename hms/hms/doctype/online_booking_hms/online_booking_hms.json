@@ -7,6 +7,7 @@
  "field_order": [
   "room_type",
   "package",
+  "room_rate",
   "column_break_3",
   "check_in",
   "check_out",
@@ -157,9 +158,14 @@
    "fieldname": "create_customer",
    "fieldtype": "Button",
    "label": "Create Customer"
+  },
+  {
+   "fieldname": "room_rate",
+   "fieldtype": "Currency",
+   "label": "Room Rate"
   }
  ],
- "modified": "2020-12-22 10:17:53.077760",
+ "modified": "2020-12-29 14:24:10.621240",
  "modified_by": "Administrator",
  "module": "HMS",
  "name": "Online Booking HMS",

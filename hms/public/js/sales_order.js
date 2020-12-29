@@ -66,7 +66,16 @@ frappe.ui.form.on("Sales Order", {
 
     if (frm.is_new()) {
       frappe.timeout(0.8).then(() => {
-        frm.set_value("tc_name", "Sign-In Sheet");
+        frappe.db.get_value(
+          "Company",
+          {
+            name: frm.doc.company,
+          },
+          "sign_in_sheet_t_c_cf",
+          (r) => {
+            frm.set_value("tc_name", r.sign_in_sheet_t_c_cf);
+          }
+        );
       });
     }
 

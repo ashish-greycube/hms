@@ -79,7 +79,7 @@ def get_data(filters=None):
             ) c on c.room_no = r.name 
             where {where_clause}
             order by d.date, r.room_type, r.room_no
-    """.format(where_clause=where_clause), filters, as_dict=True, debug=1)
+    """.format(where_clause=where_clause), filters, as_dict=True, debug=0)
 
     rows = {}
     for i, d in enumerate(data):

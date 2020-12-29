@@ -28,7 +28,7 @@ from `tabRoom Guest Detail HMS` g
 inner join `tabRoom Folio HMS` f on f.name = g.parent and f.docstatus <> 2
 where f.check_in >= %(from_date)s
 order by f.check_in, guest
-    """, filters, as_dict=True, debug=True)
+    """, filters, as_dict=True, debug=False)
 
     columns = []
     # pinned columns

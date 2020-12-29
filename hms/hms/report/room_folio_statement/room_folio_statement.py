@@ -63,7 +63,7 @@ def get_data(filters):
         inner join `tabRoom HMS` rm on rm.name = rf.room_no
     where si.docstatus = 1  {where_clause}
     order by si.posting_date
-    """.format(where_clause=where_clause), filters, as_dict=True, debug=True)
+    """.format(where_clause=where_clause), filters, as_dict=True, debug=False)
 
     where_clause = []
     if filters.get("company"):
