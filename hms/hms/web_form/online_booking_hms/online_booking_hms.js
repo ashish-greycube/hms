@@ -1,6 +1,6 @@
 frappe.ready(function () {
   setTimeout(() => {
-    // debugger;
+    // setup_pricing_table();
     set_filters();
     add_custom_buttons();
     set_items_description();
@@ -204,4 +204,65 @@ function _save() {
     },
   });
   return true;
+}
+
+function setup_pricing_table() {
+  $(`<div class="card-deck mb-3 text-center">
+  <div class="card mb-3 box-shadow">
+    <div class="card-header">
+      <h4 class="my-0 font-weight-normal">Standard Premium</h4>
+    </div>
+    <div class="card-body">
+      <h1 class="card-title pricing-card-title">$1200 <small class="text-muted">/ night</small></h1>
+      <ul class="list-unstyled mt-3 mb-3">
+        <li>Breakfast included</li>
+        <li>Spa for 2</li>
+        <li>Saloon and Gym</li>
+      </ul>
+      <button type="button" class="btn btn-lg btn-block btn-outline-primary">Select</button>
+    </div>
+  </div>
+  <div class="card mb-3 box-shadow">
+    <div class="card-header">
+      <h4 class="my-0 font-weight-normal">Standard Premium</h4>
+    </div>
+    <div class="card-body">
+      <h1 class="card-title pricing-card-title">$1200 <small class="text-muted">/ night</small></h1>
+      <ul class="list-unstyled mt-3 mb-3">
+        <li>Breakfast included</li>
+        <li>Spa for 2</li>
+        <li>Saloon and Gym</li>
+      </ul>
+      <button type="button" class="btn btn-lg btn-block btn-outline-primary">Select</button>
+    </div>
+  </div>
+  <div class="card mb-3 box-shadow">
+    <div class="card-header">
+      <h4 class="my-0 font-weight-normal">Standard Premium</h4>
+    </div>
+    <div class="card-body">
+      <h1 class="card-title pricing-card-title">$1200 <small class="text-muted">/ night</small></h1>
+      <ul class="list-unstyled mt-3 mb-3">
+        <li>Breakfast included</li>
+        <li>Spa for 2</li>
+        <li>Saloon and Gym</li>
+      </ul>
+      <button type="button" class="btn btn-lg btn-block btn-outline-primary">Select</button>
+    </div>
+  </div>
+  <div class="card mb-3 box-shadow">
+  <div class="card-header">
+    <h4 class="my-0 font-weight-normal">Standard Premium</h4>
+  </div>
+  <div class="card-body">
+    <h1 class="card-title pricing-card-title">$1200 <small class="text-muted">/ night</small></h1>
+    <ul class="list-unstyled mt-3 mb-3">
+      <li>Breakfast included</li>
+      <li>Spa for 2</li>
+      <li>Saloon and Gym</li>
+    </ul>
+    <button type="button" class="btn btn-lg btn-block btn-outline-primary">Select</button>
+  </div>
+</div>
+</div>`).insertBefore(".web-form-wrapper");
 }

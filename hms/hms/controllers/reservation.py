@@ -424,6 +424,6 @@ def get_online_packages():
         from tabItem i
         inner join `tabItem Price` ip on ip.item_code = i.item_code and ip.selling = 1
         and %(today)s BETWEEN  ifnull(ip.valid_from, '1900-01-01') and ifnull(valid_upto, '2500-12-31')
-        and ip.price_list = (select default_online_booking_price_list from tabCompany 
-        where name = %(company)s)
+        and ip.price_list = (select sing.value from tabSingles sing where sing.field = 'selling_price_list'
+        and sing.doctype = 'Selling Settings')
         where i.item_group = 'Room Charges'""", dict(company=get_default_company(), today=getdate()), as_dict=True)
