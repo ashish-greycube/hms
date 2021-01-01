@@ -15,12 +15,6 @@ frappe.ready(function () {
   frappe.web_form.events.on("after_load", function () {
     $(".btn.btn-primary:contains('Save')").remove();
     frappe.web_form.fields_dict["items"].grid.remove_all();
-    // for testing
-    // frappe.web_form.set_value("room_type", "LUX-SH");
-    // frappe.web_form.set_value("package", "Gold Membership - 12");
-    // frappe.web_form.set_value("check_in", "2020-12-16");
-    // frappe.web_form.set_value("check_out", "2020-12-18");
-    // frappe.web_form.set_value("items", []);
   });
 });
 
@@ -41,6 +35,20 @@ clear_buttons = function () {
 };
 
 function set_filters() {
+  let room_type = frappe.web_form.fields_dict["room_type"];
+
+  frappe.call({
+    method: "frappe.client.get_list",
+    args: {
+      doctype: "Room Type HMS",
+      fields: ["room_type as value", "room_type as label", "name"],
+    },
+    callback: function (r) {
+      room_type.df.options = r.message;
+      room_type.set_options();
+    },
+  });
+
   let package = frappe.web_form.fields_dict["package"];
 
   package.df.onchange = function () {
@@ -61,9 +69,9 @@ function set_filters() {
   package.awesomplete.filter = function (text, input) {
     return (package.df.options || []).some((t) => {
       return (
-        t.room_type_cf === frappe.web_form.doc.room_type &&
+        t.room_type === frappe.web_form.doc.room_type &&
         text.label === t.value &&
-        text.label.indexOf(input) === 0
+        text.label.search(/input/i)
       );
     });
   };
@@ -131,7 +139,6 @@ function validate_confirm() {
     "address_line_1",
     "address_line_2",
     "city",
-    "pincode",
   ];
 
   let missing = [];
@@ -170,6 +177,12 @@ function _save() {
   wf.doc.doctype = wf.doc_type;
   wf.doc.web_form_name = wf.name;
 
+  let room_types = frappe.web_form.fields_dict["room_type"].df.options.filter(
+    (f) => f.label == wf.doc.room_type
+  );
+
+  wf.doc.room_type = room_types[0].name;
+
   // Save
   window.saving = true;
   frappe.form_dirty = false;
@@ -194,9 +207,7 @@ function _save() {
           indicator: "green",
           title: __("Room Booking successful"),
         });
-
         clear_buttons();
-        // console.log(response.message);
       }
     },
     always: function () {

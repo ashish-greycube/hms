@@ -429,10 +429,11 @@ def __get_online_packages():
 def get_online_packages():
     return frappe.db.sql("""
         select i.item_code label, i.item_code value, 
-        i.room_type_cf, 
+        rt.room_type, 
         COALESCE(ip.price_list_rate,0) room_rate,
         concat(i.item_name, ', ₦', round(COALESCE(ip.price_list_rate,0))) description
         from tabItem i
+        inner join `tabRoom Type HMS` rt on rt.name = i.room_type_cf
         inner join `tabItem Price` ip on ip.item_code = i.item_code and ip.selling = 1
         and %(today)s BETWEEN  ifnull(ip.valid_from, '1900-01-01') and ifnull(valid_upto, '2500-12-31')
         and ip.price_list = (select sing.value from tabSingles sing where sing.field = 'selling_price_list'
