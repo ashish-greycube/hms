@@ -38,12 +38,9 @@ function set_filters() {
   let room_type = frappe.web_form.fields_dict["room_type"];
 
   frappe.call({
-    method: "frappe.client.get_list",
-    args: {
-      doctype: "Room Type HMS",
-      fields: ["room_type as value", "room_type as label", "name"],
-    },
+    method: "hms.hms.controllers.reservation.get_online_room_types",
     callback: function (r) {
+      console.log(r.message);
       room_type.df.options = r.message;
       room_type.set_options();
     },

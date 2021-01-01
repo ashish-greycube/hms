@@ -426,6 +426,10 @@ def __get_online_packages():
 
 
 @frappe.whitelist(allow_guest=True)
+def get_online_room_types():
+    return frappe.get_all("Room Type HMS", fields=["room_type as value", "room_type as label", "name"])
+
+@frappe.whitelist(allow_guest=True)
 def get_online_packages():
     return frappe.db.sql("""
         select i.item_code label, i.item_code value, 
