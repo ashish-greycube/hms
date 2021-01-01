@@ -1,7 +1,28 @@
 frappe.ui.form.on("Sales Order", {
   onload_post_render: function (frm) {},
 
-  onload: function (frm) {},
+  onload: function (frm) {
+    frm.set_query("room_no_cf", () => {
+      return {
+        filters: {
+          item_code: frm.doc.service_item_cf,
+          room_type: frm.doc.room_type_cf,
+          check_in: frm.doc.check_in_cf,
+          check_out: frm.doc.check_out_cf,
+          company: frm.doc.company,
+        },
+        query: "hms.hms.controllers.reservation.get_available_rooms",
+      };
+    });
+
+    frm.set_query("service_item_cf", () => {
+      return {
+        filters: {
+          room_type_cf: frm.doc.room_type_cf,
+        },
+      };
+    });
+  },
 
   change_room: function (frm) {
     if (
@@ -512,6 +533,7 @@ function make_payment_entry(frm) {
       label: "Cheque/Reference Date",
       fieldtype: "Date",
       fieldname: "reference_date",
+      default: frappe.datetime.get_today(),
     },
   ];
   var dlg = new frappe.ui.Dialog({

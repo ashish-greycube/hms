@@ -41,6 +41,12 @@ def get_data():
                     "description": "Website Online Booking"
                 },
                 {
+                    "type": "page",
+                    "name": "point-of-sale",
+                    "label": _("Point Of Sale"),
+                    "route": "#point-of-sale"
+                },
+                {
                     "name": "Night-Audit",
                     "type": "report",
                     "module_name": "hms",

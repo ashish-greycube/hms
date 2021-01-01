@@ -34,7 +34,8 @@ def get_data(filters=None):
     data = frappe.db.sql("""
             select d.date, r.name name, r.room_no room_no, r.room_type, c.room_status,
             case
-            when a.name is not null  and (a.status='Checked In' or a.status='Pre-Check In') then 'hms-in-house'
+            when a.name is not null  and a.status ='Pre-Check In' then 'hms-pre-check-in'
+            when a.name is not null  and a.status='Checked In' then 'hms-in-house'
             when a.name is not null  and a.status = 'Checked Out' then 'hms-checked-out'
             when a.name is null and b.name is not null 
                 then case when b.advance_paid > 0 then 'hms-gtd-reservation' else 'hms-ngtd-reservation' end

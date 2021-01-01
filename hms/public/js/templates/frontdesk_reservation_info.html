@@ -30,11 +30,15 @@
         </tr>
         <tr>
             <td>Total Stay Cost</td>
-            <td>{{total_charges}}</td>
+            <td class="text-right">{{total_charges}}</td>
         </tr>
         <tr>
             <td>Advance</td>
-            <td>{{total_advance_paid}}</td>
+            <td class="text-right">{{total_advance_paid}}</td>
+        </tr>
+        <tr>
+            <td>Desk Folio Balance</td>
+            <td class="text-right">{{ Math.abs(balance.desk.balance)}} {{balance.desk.balance < 0 ? "CR" :"DR"}}</td>
         </tr>
     </tbody>
 </table>

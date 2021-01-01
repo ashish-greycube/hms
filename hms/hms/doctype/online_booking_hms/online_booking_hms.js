@@ -25,6 +25,7 @@ frappe.ui.form.on("Online Booking HMS", {
         check_out_cf: frm.doc.check_out,
         no_of_guest_cf: guest_count,
         no_of_nights_cf: no_nights || 1,
+        room_type_cf: frm.doc.room_type,
         service_item_cf: frm.doc.package,
         source: "Website Online",
         reservation_reference_cf: frm.doc.name,

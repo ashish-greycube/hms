@@ -148,7 +148,7 @@ function open_reservation(params) {
   let data = params.data,
     date = params.colDef.colId;
 
-  console.log(data);
+  // console.log(data);
 
   // goto folio
   if (data[`${date}_folio`]) {
@@ -168,6 +168,14 @@ function open_reservation(params) {
     );
     cur_frm.set_value("check_in_cf", date);
     cur_frm.set_value("room_no_cf", data["name"]);
+    frappe.db.get_value(
+      "Room HMS",
+      { name: data["name"] },
+      "room_type",
+      (r) => {
+        cur_frm.set_value("room_type_cf", r.room_type);
+      }
+    );
   });
 }
 
@@ -256,6 +264,7 @@ const legend = `
   <div class="col-md-12">
     <ul class="legend">
         <li class="title">  Booking Status </li>
+        <li><span class="hms-pre-check-in"></span> Pre CheckIn</li>
         <li><span class="hms-in-house"></span> In House</li>
         <li><span class="hms-gtd-reservation"></span>Deposit Reservation</li>
         <li><span class="hms-ngtd-reservation"></span>NGTD Reservation</li>

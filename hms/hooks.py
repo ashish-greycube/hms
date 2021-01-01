@@ -68,7 +68,7 @@ doctype_list_js = {"Sales Order": "public/js/sales_order_list.js"}
 # ------------
 
 # before_install = "hms.install.before_install"
-# after_install = "hms.install.after_install"
+after_install = "hms.install.after_install"
 
 # Desk Notifications
 # ------------------

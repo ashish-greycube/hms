@@ -144,6 +144,8 @@ order by d.date, r.room_type, r.room_no
         from frappe.contacts.doctype.contact.contact import get_contact_details, get_default_contact
         details["guest"] = get_contact_details(details['guest'])[
             'contact_display']
+        from hms.hms.doctype.room_folio_hms.room_folio_hms import get_folio_balance
+        details["balance"] = get_folio_balance(party=details.customer, folio=details.folio)
 
     return details
 
@@ -328,6 +330,7 @@ def get_checked_in_folios():
 def get_available_rooms(doctype, txt, searchfield, start, page_len, filters):
     """
     filters = {
+            item_code='Luxury Room Charge',
             room_type='DLX-SH',
             check_in='2020-10-01',
             check_out='2020-10-02',
@@ -336,6 +339,15 @@ def get_available_rooms(doctype, txt, searchfield, start, page_len, filters):
     """
     filters['txt'] = "%%%s%%" % txt
 
+    if not filters.get("check_in") or not filters.get("check_out"):
+        frappe.msgprint(_("Please select dates for resevation."))
+
+    where_clause = ""
+    if filters.get("item_code"):
+        where_clause = " where room_type = (select room_type_cf from tabItem where name = %(item_code)s)"
+    elif filters.get("room_type"):
+        where_clause = " where r.room_type = %(room_type)s"
+
     return frappe.db.sql("""
         select *
         from
@@ -343,8 +355,7 @@ def get_available_rooms(doctype, txt, searchfield, start, page_len, filters):
             select name
             from
                 `tabRoom HMS` r
-            where
-                room_type = %(room_type)s
+            {where_clause}
             except
             select fo.room_no
             from
@@ -369,7 +380,7 @@ def get_available_rooms(doctype, txt, searchfield, start, page_len, filters):
             ) t
         where
             t.name like %(txt)s
-        """, filters)
+        """.format(where_clause=where_clause), filters, debug=0)
 
 @frappe.whitelist()
 def move_room(reservation, room_no):

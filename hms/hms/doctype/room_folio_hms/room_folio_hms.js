@@ -296,6 +296,7 @@ frappe.ui.form.on("Room Folio HMS", {
         label: "Cheque/Reference Date",
         fieldtype: "Date",
         fieldname: "reference_date",
+        default: frappe.datetime.get_today(),
       },
     ];
     var dlg = new frappe.ui.Dialog({
