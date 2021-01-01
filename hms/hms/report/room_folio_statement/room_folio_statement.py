@@ -37,6 +37,11 @@ def get_columns(filters):
     ]
 
 def get_data(filters):
+    if not filters:
+        filters = dict()
+
+    filters["default_folio_receivable_account"] = frappe.defaults.get_user_default("default_folio_receivable_account")
+
     where_clause = []
     if filters.get("company"):
         where_clause += ["si.company = %(company)s"]
@@ -90,7 +95,7 @@ def get_data(filters):
         left outer join `tabRoom HMS` rm on rm.name = rf.room_no
     where 
         je.docstatus = 1
-        and account = 'Room Folio Debtors - SH'
+        and account = %(default_folio_receivable_account)s
         and reference_type = 'Room Folio HMS'
         and jea.party_type = 'Customer'
     {where_clause}

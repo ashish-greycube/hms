@@ -242,14 +242,16 @@ select sum(si.rounded_total)
         where NULLIF(si.room_folio_cf, '') = %s""", (self.name)):
             total_charges = d[0]
 
+        default_folio_receivable_account = frappe.defaults.get_user_default("default_folio_receivable_account")
+
         for d in frappe.db.sql("""
             select 0-sum(debit-credit) total_advance
             from `tabGL Entry`
-            where account = 'Room Folio Debtors - SH'
+            where account = %(receivable_account)s
             and party = %(customer)s
             and against_voucher_type = 'Room Folio HMS'
             and against_voucher = %(folio)s
-        """, dict(folio=self.name, customer=self.customer)):
+        """, dict(folio=self.name, customer=self.customer, receivable_account=default_folio_receivable_account)):
             total_advance_paid += flt(d[0])
 
         total_charges = total_charges or 0
