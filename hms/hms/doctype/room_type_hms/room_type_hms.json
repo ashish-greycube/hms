@@ -1,5 +1,6 @@
 {
- "autoname": "format:{room_type_code}-{abbr}",
+ "allow_rename": 1,
+ "autoname": "format:{room_type_code}",
  "creation": "2020-01-31 14:18:52.270437",
  "description": "Room Type for HMS",
  "doctype": "DocType",
@@ -121,8 +122,8 @@
    "reqd": 1
   }
  ],
- "modified": "2020-02-01 15:41:51.133521",
- "modified_by": "Administrator",
+ "modified": "2021-01-01 12:26:01.046845",
+ "modified_by": "aman@greycube.in",
  "module": "HMS",
  "name": "Room Type HMS",
  "owner": "Administrator",
