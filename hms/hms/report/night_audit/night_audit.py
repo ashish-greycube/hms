@@ -129,6 +129,7 @@ def post_charges(filters=None, doclist=None):
 @frappe.whitelist()
 def validate_system_date(system_date, raise_exception=0):
     messages = []
+    audit_date = add_days(getdate(system_date), -1)
     # check night audit complete till system date
     rooms_to_check_in = frappe.db.sql("""
     select
@@ -139,9 +140,9 @@ def validate_system_date(system_date, raise_exception=0):
             inner join `tabRoom HMS` rm on rm.name = so.room_no_cf
         where
             so.docstatus = 1 
-            and date(so.check_in_cf) < %(system_date)s
+            and date(so.check_in_cf) = %(audit_date)s
             and not exists (select 1 from `tabRoom Folio HMS` x where x.reservation = so.name)""",
-            dict(system_date=system_date), as_dict=True)
+            dict(audit_date=audit_date), as_dict=True)
 
     if rooms_to_check_in:
         message = "<h6>Please check-in or cancel the reservations.</h6>"
@@ -158,7 +159,7 @@ def validate_system_date(system_date, raise_exception=0):
         and  exists(
             select 1 from `tabSales Invoice` x 
             where x.room_folio_cf = f.name and x.docstatus = 1)
-        and dt.date <= %(system_date)s""", dict(system_date=system_date), as_dict=True)
+        and dt.date = %(audit_date)s""", dict(audit_date=audit_date), as_dict=True)
     if rooms_to_charge:
         message = "<h6>Please create invoice for these folios.</h6>"
         message += ", ".join([frappe.utils.get_link_to_form("Room Folio HMS", d['folio']) + f"{d['room_no']} {d['date']}" for d in rooms_to_charge])
@@ -169,7 +170,7 @@ def validate_system_date(system_date, raise_exception=0):
         from `tabRoom Folio HMS` f
         where
         f.docstatus =1
-        and f.status = 'Checked In' and date(f.check_out) = %(system_date)s""", dict(system_date=system_date), as_dict=True)
+        and f.status = 'Checked In' and date(f.check_out) = %(audit_date)s""", dict(audit_date=audit_date), as_dict=True)
     if rooms_to_check_out:
         message = "<h6>Please check out these folios.</h6>"
         message += ", ".join([f"{d['folio']} {d['room_no']}" for d in rooms_to_check_out])
