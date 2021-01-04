@@ -2,6 +2,16 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on("Online Booking HMS", {
+  onload: function (frm) {
+    frm.set_query("package", function () {
+      return {
+        filters: {
+          item_group: "Room Charges",
+          room_type_cf: frm.doc.room_type,
+        },
+      };
+    });
+  },
   refresh: function (frm) {
     let grid = frm.fields_dict["items"].grid;
     grid.add_custom_button("Make Reservation", () => {
