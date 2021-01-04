@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import (nowdate, flt, cint, today, date_diff,
+from frappe.utils import (nowdate, flt, cint, today, date_diff, add_days,
                           getdate, cstr, now, get_link_to_form)
 from erpnext.accounts.party import get_party_account, get_party_bank_account
 from frappe.contacts.doctype.contact.contact import get_contact_details, get_default_contact
@@ -19,13 +19,17 @@ import erpnext
 from six import iteritems, string_types
 from frappe.utils.formatters import format_value
 from erpnext.setup.doctype.item_group.item_group import get_child_item_groups
-
+from hms.hms.report.night_audit.night_audit import validate_system_date
 
 class RoomFolioHMS(Document):
+    def before_insert(self):
+        if getdate(self.check_in) == getdate():
+            validate_system_date(getdate(), raise_exception=1)
+
     def validate(self):
-        if self.is_new() and date_diff(getdate(), getdate(self.check_in)) > 0:
+        # check night audit completed for previous date
+        # if self.is_new() and date_diff(getdate(), getdate(self.check_in)) > 0:
             # frappe.throw(_("Check In date cannot be earlier than today."))
-            pass
 
         if self.is_new() and self.status == "Checked In":
             self.validate_room_reservation()
@@ -115,6 +119,9 @@ select status, reference_type, reference_name
 
     def make_check_in(self):
         "check in"
+        if getdate(self.check_in) == getdate():
+            validate_system_date(getdate(), raise_exception=1)
+
         self.db_set("status", "Checked In", update_modified=True)
         update_room_status_ledger(self.as_dict(), action="check_in")
 
@@ -145,7 +152,7 @@ select status, reference_type, reference_name
         from `tabRoom Folio HMS` f
         inner join `tabSales Order Item` soi on soi.parent = f.reservation
         and ifnull(soi.reservation_date_cf,'') = %s
-        where f.name = %s""", (getdate(room_date), self.name, ), debug=False)
+        where f.name = %s""", (getdate(room_date), self.name, ), debug=1)
         so_detail = so_detail and so_detail[0][0] or []
         out.items = [d for d in out.items if d.so_detail == so_detail]
 
@@ -557,8 +564,8 @@ where f.name = %(name)s or f.master_folio = %(name)s
             from
                 `tabSales Invoice` si
                 inner join (
-                		select parent, group_concat(item.item_code) voucher from `tabSales Invoice Item` item
-						group by parent) sit on sit.parent = si.name
+                        select parent, group_concat(item.item_code) voucher from `tabSales Invoice Item` item
+                        group by parent) sit on sit.parent = si.name
                 inner join `tabRoom Folio HMS` fo on fo.name = si.room_folio_cf
                 inner join `tabRoom HMS` rm on rm.name = fo.room_no
             where

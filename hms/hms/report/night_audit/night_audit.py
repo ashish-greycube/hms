@@ -178,7 +178,7 @@ def validate_system_date(system_date, raise_exception=0):
 
     if messages:
         if cint(raise_exception):
-            frappe.throw("<br>".join(messages))
+            frappe.throw(_("Night Audit is not completed for " + "%s.<br>" % audit_date) + "<br>".join(messages))
         else:
             return "<br>".join(messages)
 
