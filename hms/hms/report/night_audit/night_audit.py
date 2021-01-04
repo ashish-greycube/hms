@@ -131,15 +131,18 @@ def validate_system_date(system_date, raise_exception=0):
     messages = []
     # check night audit complete till system date
     rooms_to_check_in = frappe.db.sql("""
-        select
+    select
             so.name, so.room_no_cf room_no, rm.room_type, so.check_in_cf check_in, so.check_out_cf check_out,
             so.guest_cf guest, so.customer, so.advance_paid
         from
             `tabSales Order` so
             inner join `tabRoom HMS` rm on rm.name = so.room_no_cf
-            left outer join `tabRoom Folio HMS` x on x.reservation = so.name
         where
-            so.docstatus = 1 and date(so.check_in_cf) < %(system_date)s""", dict(system_date=system_date), as_dict=True)
+            so.docstatus = 1 
+            and date(so.check_in_cf) < %(system_date)s
+            and not exists (select 1 from `tabRoom Folio HMS` x where x.reservation = so.name)""",
+            dict(system_date=system_date), as_dict=True)
+
     if rooms_to_check_in:
         message = "<h6>Please check-in or cancel the reservations.</h6>"
         message += ", ".join([frappe.utils.get_link_to_form("Sales Order", d['name']) + f": {d['customer']} {d['room_no']} " for d in rooms_to_check_in])
