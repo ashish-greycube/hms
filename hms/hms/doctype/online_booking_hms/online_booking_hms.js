@@ -6,7 +6,6 @@ frappe.ui.form.on("Online Booking HMS", {
     frm.set_query("package", function () {
       return {
         filters: {
-          item_group: "Room Charges",
           room_type_cf: frm.doc.room_type,
         },
       };
