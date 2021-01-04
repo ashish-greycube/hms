@@ -67,7 +67,7 @@ function set_filters() {
     return (package.df.options || []).some((t) => {
       return (
         t.room_type === frappe.web_form.doc.room_type &&
-        text.label === t.value &&
+        text.label === t.label &&
         text.label.search(/input/i)
       );
     });

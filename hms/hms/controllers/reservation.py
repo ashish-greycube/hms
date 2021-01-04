@@ -15,7 +15,8 @@ from erpnext.accounts.doctype.journal_entry.journal_entry import get_default_ban
 
 def validate_sales_order(doc, method):
     if doc.docstatus == 0 and date_diff(today(), doc.check_in_cf) > 0:
-        frappe.throw(_("Check In date cannot be earlier than today."))
+        # frappe.throw(_("Check In date cannot be earlier than today."))
+        pass
 
     validate_availability(doc.check_in_cf, doc.check_out_cf, doc.room_no_cf)
     if not doc.guest_cf:

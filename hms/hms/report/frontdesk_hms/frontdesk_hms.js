@@ -66,6 +66,8 @@ frappe.query_reports["Frontdesk HMS"] = {
         report.refresh();
       }
     });
+
+    check_night_audit(frappe.datetime.get_today());
   },
 
   set_cached_filters(report) {
@@ -255,6 +257,23 @@ function show_booking_details() {
         title = `Reservation#: ${link}`;
       }
       frappe.msgprint(info, title);
+    },
+  });
+}
+
+function check_night_audit() {
+  frappe.call({
+    method: "hms.hms.report.night_audit.night_audit.validate_system_date",
+    args: { system_date: frappe.datetime.get_today() },
+    callback: function (r) {
+      if (r.message) {
+        let message = frappe.render_template(`
+      <div style="background-color:#c0e3dc;text-align:left;padding:15px;color:#363636">
+        ${r.message}
+      </div>
+      `);
+        frappe.ag_report.page.add_inner_message(message);
+      }
     },
   });
 }

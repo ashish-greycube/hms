@@ -2,7 +2,7 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
-from frappe.utils import getdate, date_diff, add_to_date, add_days
+from frappe.utils import getdate, date_diff, add_to_date, add_days, cint
 import frappe
 import json
 from six import string_types, iteritems
@@ -30,9 +30,9 @@ def get_data(filters):
     f.check_in, f.check_out, f.total_charges, f.total_advance_paid, f.balance, gu.guests guest, '' mobile,
     coalesce(si.name,'') invoice, coalesce(si.outstanding_amount, 0) outstanding_amount
     from `tabRoom Status Ledger Entry HMS` g
-    inner join `tabRoom Folio HMS` f on f.name = g.reference_name 
+    inner join `tabRoom Folio HMS` f on f.name = g.reference_name
     and date(f.check_in) <= %(audit_date)s
-    left outer join 
+    left outer join
     (
         select parent, concat_ws(',',guest)guests from `tabRoom Guest Detail HMS`
         group by parent
@@ -86,14 +86,14 @@ def get_data_rooms_to_checkin(filters):
     data, columns = [], []
 
     data = frappe.db.sql("""
-        select 
-            so.name, so.room_no_cf room_no, rm.room_type, so.check_in_cf check_in, so.check_out_cf check_out, 
+        select
+            so.name, so.room_no_cf room_no, rm.room_type, so.check_in_cf check_in, so.check_out_cf check_out,
             so.guest_cf guest, so.customer, so.advance_paid
-        from 
+        from
             `tabSales Order` so
             inner join `tabRoom HMS` rm on rm.name = so.room_no_cf
             left outer join `tabRoom Folio HMS` x on x.reservation = so.name
-        where 
+        where
             so.docstatus = 1 and date(so.check_in_cf) = %(audit_date)s""", filters, as_dict=True)
 
     columns += [dict(label="Reservation", fieldname="name", fieldtype="Link/Sales Order", width=150,)]
@@ -125,3 +125,61 @@ def post_charges(filters=None, doclist=None):
         if doc.create_charge_purchase(filters.get("audit_date")):
             count += 1
     frappe.msgprint(f"Posted charges for {count} rooms.", alert=True)
+
+@frappe.whitelist()
+def validate_system_date(system_date, raise_exception=0):
+    messages = []
+    # check night audit complete till system date
+    rooms_to_check_in = frappe.db.sql("""
+        select
+            so.name, so.room_no_cf room_no, rm.room_type, so.check_in_cf check_in, so.check_out_cf check_out,
+            so.guest_cf guest, so.customer, so.advance_paid
+        from
+            `tabSales Order` so
+            inner join `tabRoom HMS` rm on rm.name = so.room_no_cf
+            left outer join `tabRoom Folio HMS` x on x.reservation = so.name
+        where
+            so.docstatus = 1 and date(so.check_in_cf) < %(system_date)s""", dict(system_date=system_date), as_dict=True)
+    if rooms_to_check_in:
+        message = "<h6>Please check-in or cancel the reservations.</h6>"
+        message += ", ".join([frappe.utils.get_link_to_form("Sales Order", d['name']) + f": {d['customer']} {d['room_no']} " for d in rooms_to_check_in])
+        messages += [message]
+
+    rooms_to_charge = frappe.db.sql("""
+        select f.name folio, f.room_no, dt.date
+        from `tabRoom Folio HMS` f
+        inner join `tabDate Lookup HMS` dt on date(f.check_in) <= dt.date and date(f.check_out) > dt.date
+        where
+        f.docstatus =1
+        and f.status = 'Checked In'
+        and  exists(
+            select 1 from `tabSales Invoice` x 
+            where x.room_folio_cf = f.name and x.docstatus = 1)
+        and dt.date <= %(system_date)s""", dict(system_date=system_date), as_dict=True)
+    if rooms_to_charge:
+        message = "<h6>Please create invoice for these folios.</h6>"
+        message += ", ".join([frappe.utils.get_link_to_form("Room Folio HMS", d['folio']) + f"{d['room_no']} {d['date']}" for d in rooms_to_charge])
+        messages += [message]
+
+    rooms_to_check_out = frappe.db.sql("""
+        select f.name folio, f.room_no
+        from `tabRoom Folio HMS` f
+        where
+        f.docstatus =1
+        and f.status = 'Checked In' and date(f.check_out) = %(system_date)s""", dict(system_date=system_date), as_dict=True)
+    if rooms_to_check_out:
+        message = "<h6>Please check out these folios.</h6>"
+        message += ", ".join([f"{d['folio']} {d['room_no']}" for d in rooms_to_check_out])
+        messages += [message]
+
+    if messages:
+        if cint(raise_exception):
+            frappe.throw("<br>".join(messages))
+        else:
+            return "<br>".join(messages)
+
+    # set System Date in HMS Settings
+    # frappe.db.set_value("HMS Settings", None, "hms_system_date", system_date)
+    # frappe.db.commit()
+
+    return True

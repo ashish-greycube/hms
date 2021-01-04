@@ -56,6 +56,28 @@ frappe.query_reports["Night-Audit"] = {
       }
     );
 
+    // report.page.add_inner_button(__("<b>Set System Date</b>"), function () {
+    //   let fields = [
+    //     {
+    //       fieldtype: "Date",
+    //       label: __("System Date"),
+    //       fieldname: "system_date",
+    //       default: frappe.datetime.get_today(),
+    //     },
+    //   ];
+
+    //   frappe.prompt(fields, function (filters) {
+    //     //
+    //     return frappe.call({
+    //       method: "hms.hms.report.night_audit.night_audit.set_system_date",
+    //       args: filters,
+    //       callback: function (r) {
+    //         frappe.msgprint(`System date is set to ${filters.system_date}`);
+    //       },
+    //     });
+    //   });
+    // });
+
     //
   },
 

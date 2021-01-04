@@ -24,7 +24,8 @@ from erpnext.setup.doctype.item_group.item_group import get_child_item_groups
 class RoomFolioHMS(Document):
     def validate(self):
         if self.is_new() and date_diff(getdate(), getdate(self.check_in)) > 0:
-            frappe.throw(_("Check In date cannot be earlier than today."))
+            # frappe.throw(_("Check In date cannot be earlier than today."))
+            pass
 
         if self.is_new() and self.status == "Checked In":
             self.validate_room_reservation()
