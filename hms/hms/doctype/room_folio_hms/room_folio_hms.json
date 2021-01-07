@@ -258,16 +258,18 @@
   {
    "fieldname": "customer_email",
    "fieldtype": "Data",
-   "label": "Customer Email"
+   "label": "Customer Email",
+   "options": "Email"
   },
   {
    "fieldname": "customer_mobile",
    "fieldtype": "Data",
-   "label": "Customer Mobile"
+   "label": "Customer Mobile",
+   "options": "Phone"
   }
  ],
  "is_submittable": 1,
- "modified": "2020-12-22 10:35:35.466472",
+ "modified": "2021-01-07 11:54:46.535683",
  "modified_by": "Administrator",
  "module": "HMS",
  "name": "Room Folio HMS",

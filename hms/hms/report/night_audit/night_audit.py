@@ -265,9 +265,9 @@ def validate_system_date(system_date, raise_exception=0):
         where
         f.docstatus =1
         and f.status = 'Checked In'
-        and  exists(
+        and  not exists(
             select 1 from `tabSales Invoice` x 
-            where x.room_folio_cf = f.name and x.docstatus = 1)
+            where x.room_date_cf = %(audit_date)s and x.room_folio_cf = f.name and x.docstatus = 1)
         and dt.date = %(audit_date)s""",
         dict(audit_date=audit_date),
         as_dict=True,
