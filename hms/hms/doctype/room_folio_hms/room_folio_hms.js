@@ -54,13 +54,25 @@ frappe.ui.form.on("Room Folio HMS", {
       );
     }
 
-    if (!frm.doc.sign_in_sheet && flt(frm.doc.total_advance_paid) > 0) {
-      frm.page.add_inner_button(
-        __("Make Sign In Sheet"),
-        function () {
-          frm.events.make_sign_in_sheet(frm);
-        },
-        __("Actions")
+    if (!frm.doc.sign_in_sheet) {
+      frappe.db.get_value(
+        "Customer",
+        { name: frm.doc.customer },
+        "allow_checkin_without_advance_cf",
+        (r) => {
+          if (
+            flt(frm.doc.total_advance_paid) > 0 ||
+            r.allow_checkin_without_advance_cf == 1
+          ) {
+            frm.page.add_inner_button(
+              __("Make Sign In Sheet"),
+              function () {
+                frm.events.make_sign_in_sheet(frm);
+              },
+              __("Actions")
+            );
+          }
+        }
       );
     }
 

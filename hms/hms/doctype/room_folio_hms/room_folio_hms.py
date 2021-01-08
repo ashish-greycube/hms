@@ -6,20 +6,38 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import (nowdate, flt, cint, today, date_diff, add_days,
-                          getdate, cstr, now, get_link_to_form)
+from frappe.utils import (
+    nowdate,
+    flt,
+    cint,
+    today,
+    date_diff,
+    add_days,
+    getdate,
+    cstr,
+    now,
+    get_link_to_form,
+)
 from erpnext.accounts.party import get_party_account, get_party_bank_account
-from frappe.contacts.doctype.contact.contact import get_contact_details, get_default_contact
+from frappe.contacts.doctype.contact.contact import (
+    get_contact_details,
+    get_default_contact,
+)
 from erpnext.accounts.utils import get_outstanding_invoices
 import json
-from hms.hms.doctype.room_status_ledger_entry_hms.room_status_ledger_entry_hms import update_room_status_ledger
+from hms.hms.doctype.room_status_ledger_entry_hms.room_status_ledger_entry_hms import (
+    update_room_status_ledger,
+)
 from hms.hms.controllers.reservation import get_room_service_item
-from erpnext.accounts.doctype.journal_entry.journal_entry import get_default_bank_cash_account
+from erpnext.accounts.doctype.journal_entry.journal_entry import (
+    get_default_bank_cash_account,
+)
 import erpnext
 from six import iteritems, string_types
 from frappe.utils.formatters import format_value
 from erpnext.setup.doctype.item_group.item_group import get_child_item_groups
 from hms.hms.report.night_audit.night_audit import validate_system_date
+
 
 class RoomFolioHMS(Document):
     def before_insert(self):
@@ -29,7 +47,7 @@ class RoomFolioHMS(Document):
     def validate(self):
         # check night audit completed for previous date
         # if self.is_new() and date_diff(getdate(), getdate(self.check_in)) > 0:
-            # frappe.throw(_("Check In date cannot be earlier than today."))
+        # frappe.throw(_("Check In date cannot be earlier than today."))
 
         if self.is_new() and self.status == "Checked In":
             self.validate_room_reservation()
@@ -48,74 +66,107 @@ class RoomFolioHMS(Document):
             self.customer_mobile = details.get("contact_mobile") or details.get("phone")
 
     def validate_duplicate_checkin(self):
-        for d in frappe.db.sql("""select name from `tabRoom Folio HMS`
-        where reservation = %s and name <> %s limit 1""", (self.reservation, self.name)):
+        for d in frappe.db.sql(
+            """select name from `tabRoom Folio HMS`
+        where reservation = %s and name <> %s limit 1""",
+            (self.reservation, self.name),
+        ):
             rf_link = get_link_to_form("Room Folio HMS", d[0])
             so_link = get_link_to_form("Sales Order", self.reservation)
-            frappe.throw(_("Room Folio {} already created for reservation {}.").format(
-                rf_link, so_link))
-        for d in frappe.db.sql("""
+            frappe.throw(
+                _("Room Folio {} already created for reservation {}.").format(
+                    rf_link, so_link
+                )
+            )
+        for d in frappe.db.sql(
+            """
 select name
         from `tabRoom Folio HMS`
         where name <> %s
         and room_no = %s
         and status <> 'Checked Out'
         and not (check_in >= %s or check_out <= %s)
-        limit 1""", (self.name, self.room_no, self.check_out, self.check_in)):
-            frappe.throw(_("Room Folio dates overlap with existing room folio {}.").format(
-                get_link_to_form("Room Folio HMS", d[0])))
+        limit 1""",
+            (self.name, self.room_no, self.check_out, self.check_in),
+        ):
+            frappe.throw(
+                _("Room Folio dates overlap with existing room folio {}.").format(
+                    get_link_to_form("Room Folio HMS", d[0])
+                )
+            )
 
     def make_sign_in_sheet(self):
-        from hms.hms.doctype.sign_in_sheet_hms.sign_in_sheet_hms import make_sign_in_sheet
+        from hms.hms.doctype.sign_in_sheet_hms.sign_in_sheet_hms import (
+            make_sign_in_sheet,
+        )
+
         return make_sign_in_sheet(self.name)
 
     def validate_room_reservation(self):
         """WHERE NOT (From_date > @RangeTill OR To_date < @RangeFrom)"""
-        for d in frappe.db.sql("""
+        for d in frappe.db.sql(
+            """
 select name reservation, room_no_cf, check_in_cf, check_out_cf
         from `tabSales Order`
         where docstatus = 1 and room_no_cf = %s and name <> %s
         and not (check_in_cf >= %s or check_out_cf <= %s)
-        """, (self.room_no, self.reservation, self.check_out, self.check_in), as_dict=True):
+        """,
+            (self.room_no, self.reservation, self.check_out, self.check_in),
+            as_dict=True,
+        ):
             frappe.throw(
-                f"Reservation {d.reservation} exists for room {d.room_no} between {d.check_in_cf} and {d.check_out_cf} ")
+                f"Reservation {d.reservation} exists for room {d.room_no} between {d.check_in_cf} and {d.check_out_cf} "
+            )
 
     def validate_room_status(self):
-        for d in frappe.db.sql("""
+        for d in frappe.db.sql(
+            """
 select status, reference_type, reference_name
         from `tabRoom Status Ledger Entry HMS`
-        where room_no = %s and docstatus <> 2""", (self.room_no), as_dict=True):
-            frappe.throw(
-                f"Room {self.room_no} is {d.status} for {self.check_in} ")
+        where room_no = %s and docstatus <> 2""",
+            (self.room_no),
+            as_dict=True,
+        ):
+            frappe.throw(f"Room {self.room_no} is {d.status} for {self.check_in} ")
 
     def validate_checklist(self):
-        '''
+        """
         1. Guest ID
         2. advance paid
-        3. Sign In Sheet signed'''
+        3. Sign In Sheet signed"""
         if cint(self.is_checklist_done):
             return ""
 
         checklist = []
-        valid = frappe.db.sql("""
+        valid = frappe.db.sql(
+            """
             select
-            if(f.total_advance_paid>0,1,0) advance_amount,
+            if(f.total_advance_paid > 0 or coalesce(cu.allow_checkin_without_advance_cf,0)=1,1,0) advance_amount,
             if(con.name is not null,1,0) guest_id,
             if(sg.name is not null,1,0) sign_in_sheet
             from `tabRoom Folio HMS` f
+            inner join tabCustomer cu on cu.name = f.customer
             inner join `tabSales Order` so on so.name = f.reservation
             left outer join tabContact con on con.name = so.guest_cf and con.image is not null
             left outer join `tabSign In Sheet HMS` sg on sg.name = f.sign_in_sheet and sg.signature is not null
-            where f.name = %s limit 1""", (self.name,), as_dict=True)
-        valid = valid and valid[0] or {
-            'advance_amount': 0, "guest_id": 0, 'sign_in_sheet': 0}
-        for k, v in valid.items():
-            if not cint(v):
-                checklist.append(folio_checklist[k])
-        if not checklist:
-            self.db_set('is_checklist_done', 1)
+            where f.name = %s limit 1""",
+            (self.name,),
+            as_dict=True,
+        )
+        valid = (
+            valid
+            and valid[0]
+            or {"advance_amount": 0, "guest_id": 0, "sign_in_sheet": 0}
+        )
 
-        return checklist and "<br>".join(checklist) or ""
+        if not valid:
+            return "<br>".join(folio_checklist.values())
+
+        checklist = [folio_checklist.get(k) for k, v in valid.items() if not cint(v)]
+        if not checklist:
+            self.db_set("is_checklist_done", 1)
+        else:
+            return "<br>".join(checklist)
 
     def make_check_in(self):
         "check in"
@@ -140,101 +191,141 @@ select status, reference_type, reference_name
         #     return
 
         from erpnext.selling.doctype.sales_order.sales_order import make_sales_invoice
+
         out = make_sales_invoice(source_name=self.reservation)
         out.room_folio_cf = self.name
         out.due_date = max(getdate(self.check_out), getdate(now()))
         out.room_date_cf = room_date
         out.debit_to = frappe.defaults.get_user_default(
-            'default_folio_receivable_account')
-        # remove lines for other dates in Sales Invoice, only bill for room_date
-        so_detail = frappe.db.sql("""
-        select soi.name 
-        from `tabRoom Folio HMS` f
-        inner join `tabSales Order Item` soi on soi.parent = f.reservation
-        and ifnull(soi.reservation_date_cf,'') = %s
-        where f.name = %s""", (getdate(room_date), self.name, ), debug=1)
-        so_detail = so_detail and so_detail[0][0] or []
-        out.items = [d for d in out.items if d.so_detail == so_detail]
-
-        if not out.items:
-            frappe.throw("No billable room charges for %s." % room_date)
-
+            "default_folio_receivable_account"
+        )
+        out.ignore_pricing_rule = 1
+        items = self.get_invoice_items(room_date, out)
+        out.items = []
+        for d in items:
+            out.append(
+                "items",
+                {
+                    "qty": d.qty,
+                    "item_code": d.item_code,
+                    "sales_order": d.sales_order,
+                    "so_detail": d.so_detail,
+                    # set rate as per rate in Room Folio
+                    "rate": self.room_rate,
+                },
+            )
         out.save()
         out.submit()
         return out.name
 
+    def get_invoice_items(self, room_date, out):
+        # remove lines for other dates in Sales Invoice, only bill for room_date
+        so_items = frappe.db.get_all(
+            "Sales Order Item",
+            filters={"parent": self.reservation, "reservation_date_cf": room_date,},
+            fields=["name", "qty"],
+        )
+        # qty will be less than 1 in cases where room rate was changed in Sales Invoice from Sales Order
+        # filters dates that have already been invoiced
+        items = [
+            d
+            for d in out.items
+            if so_items and d.so_detail == so_items[0]["name"] and not d.qty < 1
+        ]
+        if not items:
+            frappe.throw("No billable room charges for %s." % room_date)
+        return items
+
     def make_check_out(self):
         self.update_charges_and_amounts()
         self.validate_room_folio_balance()
-        self.db_set('status', "Checked Out", update_modified=True)
-        self.db_set('check_out', frappe.utils.now_datetime(), update_modified=True)
+        self.db_set("status", "Checked Out", update_modified=True)
+        self.db_set("check_out", frappe.utils.now_datetime(), update_modified=True)
         update_room_status_ledger(self.as_dict(), action="check_out")
         return self.as_dict()
 
     def validate_room_folio_balance(self):
         if not self.guest_purchase_balance == 0:
             frappe.throw(
-                _('Unsettled Guest Purchases in folio. Please settle outstanding amount {} before checkout.').format(
-                    format_value(self.guest_purchase_balance, df="Currency")))
+                _(
+                    "Unsettled Guest Purchases in folio. Please settle outstanding amount {} before checkout."
+                ).format(format_value(self.guest_purchase_balance, df="Currency"))
+            )
         if not self.balance == 0:
             frappe.throw(
-                _('Unsettled balance {} exists in folio. Please settle balance before checkout.').format(
-                    format_value(self.balance, df="Currency")))
+                _(
+                    "Unsettled balance {} exists in folio. Please settle balance before checkout."
+                ).format(format_value(self.balance, df="Currency"))
+            )
 
     def make_folio_advance_entry(self):
-        args = json.loads(frappe.local.form_dict['args'] or "{}")
-        mode_of_payment = args.get('mode_of_payment')
-        amount = flt(args.get('paid_amount', 0))
+        args = json.loads(frappe.local.form_dict["args"] or "{}")
+        mode_of_payment = args.get("mode_of_payment")
+        amount = flt(args.get("paid_amount", 0))
         je = frappe.new_doc("Journal Entry")
         je.posting_date = nowdate()
         je.mode_of_payment = mode_of_payment
-        je.voucher_type = 'Journal Entry'
+        je.voucher_type = "Journal Entry"
         je.company = self.company
         if not mode_of_payment == "Cash":
-            je.cheque_no = args.get('reference_no')
-            je.cheque_date = args.get('reference_date')
+            je.cheque_no = args.get("reference_no")
+            je.cheque_date = args.get("reference_date")
 
         cash_bank_account = get_default_bank_cash_account(
-            self.company, mode_of_payment=mode_of_payment)
+            self.company, mode_of_payment=mode_of_payment
+        )
 
         folio_account = frappe.defaults.get_user_default(
-            'default_folio_receivable_account')
+            "default_folio_receivable_account"
+        )
 
-        if args.get('payment_type') == "Receive":
+        if args.get("payment_type") == "Receive":
             je.remark = f"Room Folio advance ({mode_of_payment}) against: {self.name}"
-            je.append("accounts", {
-                "account": folio_account,
-                "party_type": "Customer",
-                "party": self.customer,
-                "reference_type": self.doctype,
-                "reference_name": self.name,
-                "is_advance": "Yes",
-                "credit_in_account_currency": amount,
-            })
+            je.append(
+                "accounts",
+                {
+                    "account": folio_account,
+                    "party_type": "Customer",
+                    "party": self.customer,
+                    "reference_type": self.doctype,
+                    "reference_name": self.name,
+                    "is_advance": "Yes",
+                    "credit_in_account_currency": amount,
+                },
+            )
 
-            je.append("accounts", {
-                "account": cash_bank_account.account,
-                "account_currency": cash_bank_account.account_currency,
-                "account_type": cash_bank_account.account_type,
-                "debit_in_account_currency": amount,
-            })
+            je.append(
+                "accounts",
+                {
+                    "account": cash_bank_account.account,
+                    "account_currency": cash_bank_account.account_currency,
+                    "account_type": cash_bank_account.account_type,
+                    "debit_in_account_currency": amount,
+                },
+            )
         else:
-            je.remark = 'Room Folio refund against: ' + self.name
-            je.append("accounts", {
-                "account": cash_bank_account.account,
-                "account_currency": cash_bank_account.account_currency,
-                "account_type": cash_bank_account.account_type,
-                "credit_in_account_currency": amount,
-            })
+            je.remark = "Room Folio refund against: " + self.name
+            je.append(
+                "accounts",
+                {
+                    "account": cash_bank_account.account,
+                    "account_currency": cash_bank_account.account_currency,
+                    "account_type": cash_bank_account.account_type,
+                    "credit_in_account_currency": amount,
+                },
+            )
 
-            je.append("accounts", {
-                "account": folio_account,
-                "party_type": "Customer",
-                "party": self.customer,
-                "debit_in_account_currency": amount,
-                "reference_type": self.doctype,
-                "reference_name": self.name,
-            })
+            je.append(
+                "accounts",
+                {
+                    "account": folio_account,
+                    "party_type": "Customer",
+                    "party": self.customer,
+                    "debit_in_account_currency": amount,
+                    "reference_type": self.doctype,
+                    "reference_name": self.name,
+                },
+            )
 
         je.insert(ignore_permissions=True)
         je.submit()
@@ -244,40 +335,59 @@ select status, reference_type, reference_name
     def update_charges_and_amounts(self):
         total_charges, total_advance_paid = 0, 0
         # set totals from charge purchase and advances
-        for d in frappe.db.sql("""
+        for d in frappe.db.sql(
+            """
 select sum(si.rounded_total)
         from `tabSales Invoice` si
-        where NULLIF(si.room_folio_cf, '') = %s""", (self.name)):
+        where NULLIF(si.room_folio_cf, '') = %s""",
+            (self.name),
+        ):
             total_charges = d[0]
 
-        default_folio_receivable_account = frappe.defaults.get_user_default("default_folio_receivable_account")
+        default_folio_receivable_account = frappe.defaults.get_user_default(
+            "default_folio_receivable_account"
+        )
 
-        for d in frappe.db.sql("""
+        for d in frappe.db.sql(
+            """
             select 0-sum(debit-credit) total_advance
             from `tabGL Entry`
             where account = %(receivable_account)s
             and party = %(customer)s
             and against_voucher_type = 'Room Folio HMS'
             and against_voucher = %(folio)s
-        """, dict(folio=self.name, customer=self.customer, receivable_account=default_folio_receivable_account)):
+        """,
+            dict(
+                folio=self.name,
+                customer=self.customer,
+                receivable_account=default_folio_receivable_account,
+            ),
+        ):
             total_advance_paid += flt(d[0])
 
         total_charges = total_charges or 0
         total_advance_paid = total_advance_paid or 0
 
-        self.db_set('total_charges', total_charges, update_modified=False)
-        self.db_set('total_advance_paid', total_advance_paid,
-                    update_modified=False)
-        self.db_set('balance', total_advance_paid -
-                    total_charges, update_modified=False)
+        self.db_set("total_charges", total_charges, update_modified=False)
+        self.db_set("total_advance_paid", total_advance_paid, update_modified=False)
+        self.db_set(
+            "balance", total_advance_paid - total_charges, update_modified=False
+        )
 
-        guest_purchase_balance = frappe.db.sql("""
+        guest_purchase_balance = frappe.db.sql(
+            """
         select sum(si.outstanding_amount)
         from `tabSales Invoice` si
         inner join `tabRoom Folio HMS` rf on rf.name = si.room_folio_cf and rf.customer <> si.customer
-        where si.docstatus = 1 and si.is_pos = 1 and si.room_folio_cf = %s""", (self.name,))
+        where si.docstatus = 1 and si.is_pos = 1 and si.room_folio_cf = %s""",
+            (self.name,),
+        )
         if guest_purchase_balance:
-            self.db_set('guest_purchase_balance', guest_purchase_balance[0][0] or 0, update_modified=False)
+            self.db_set(
+                "guest_purchase_balance",
+                guest_purchase_balance[0][0] or 0,
+                update_modified=False,
+            )
 
     def get_print_doc(self):
         return get_folio_invoice_summary(self.name)
@@ -285,7 +395,8 @@ select sum(si.rounded_total)
 
 @frappe.whitelist()
 def get_charge_and_purchase(docname):
-    return frappe.db.sql("""
+    return frappe.db.sql(
+        """
     select si.name, rf.name room_folio, rf.room_no, 
     date_format(coalesce(room_date_cf, posting_date),'%%d %%b, %%y') room_date_cf,
     date_format(posting_time,'%%H:%%i') posting_time, rounded_total, outstanding_amount,
@@ -297,7 +408,10 @@ def get_charge_and_purchase(docname):
         from `tabSales Invoice Item`
         group by parent
     ) sit on sit.parent = si.name
-    where rf.name = %(folio)s or rf.master_folio = %(folio)s""", dict(folio=docname, ), as_dict=True)
+    where rf.name = %(folio)s or rf.master_folio = %(folio)s""",
+        dict(folio=docname,),
+        as_dict=True,
+    )
 
 
 @frappe.whitelist()
@@ -311,7 +425,7 @@ def make_transfer_jv(**args):
 
     against_voucher, against_voucher_type = None, None
 
-    if args.get('transfer_type') == "Transfer to Room":
+    if args.get("transfer_type") == "Transfer to Room":
         debit_account = args.desk_account
         credit_account = args.folio_account
     else:
@@ -319,28 +433,34 @@ def make_transfer_jv(**args):
         debit_account = args.folio_account
 
     against_voucher = args.folio
-    against_voucher_type = 'Room Folio HMS'
+    against_voucher_type = "Room Folio HMS"
 
-    je.append("accounts", {
-        "account": credit_account,
-        "party_type": 'Customer',
-        'party': args.customer,
-        'debit_in_account_currency': 0,
-        'credit_in_account_currency': flt(args.amount_to_transfer),
-        'is_advance': 'Yes',
-        'reference_name': against_voucher,
-        'reference_type': against_voucher_type
-    })
+    je.append(
+        "accounts",
+        {
+            "account": credit_account,
+            "party_type": "Customer",
+            "party": args.customer,
+            "debit_in_account_currency": 0,
+            "credit_in_account_currency": flt(args.amount_to_transfer),
+            "is_advance": "Yes",
+            "reference_name": against_voucher,
+            "reference_type": against_voucher_type,
+        },
+    )
 
-    je.append("accounts", {
-        "account": debit_account,
-        "party_type": 'Customer',
-        'party': args.customer,
-        'debit_in_account_currency': flt(args.amount_to_transfer),
-        'credit_in_account_currency': 0,
-        'reference_name': against_voucher,
-        'reference_type': against_voucher_type
-    })
+    je.append(
+        "accounts",
+        {
+            "account": debit_account,
+            "party_type": "Customer",
+            "party": args.customer,
+            "debit_in_account_currency": flt(args.amount_to_transfer),
+            "credit_in_account_currency": 0,
+            "reference_name": against_voucher,
+            "reference_type": against_voucher_type,
+        },
+    )
 
     je.insert(ignore_permissions=True)
     je.submit()
@@ -350,16 +470,20 @@ def make_transfer_jv(**args):
 @frappe.whitelist()
 def get_folio_balance(party, company=None, folio=None):
     from erpnext.accounts.utils import get_balance_on
+
     default_desk_account = frappe.defaults.get_user_default(
-        'default_desk_receivable_account')
+        "default_desk_receivable_account"
+    )
     default_folio_account = frappe.defaults.get_user_default(
-        'default_folio_receivable_account')
+        "default_folio_receivable_account"
+    )
 
     company = company or erpnext.get_default_company()
     folio_balance, balance = None, dict()
 
     if folio:
-        for d in frappe.db.sql("""
+        for d in frappe.db.sql(
+            """
 select sum(debit - credit) balance
         from `tabGL Entry`
         where company = %(company)s
@@ -367,31 +491,38 @@ select sum(debit - credit) balance
         and account = %(account)s
         and party =%(party)s
         and against_voucher = %(voucher)s""",
-                               dict(account=default_folio_account,
-                                    company=company, voucher=folio, party=party)):
+            dict(
+                account=default_folio_account,
+                company=company,
+                voucher=folio,
+                party=party,
+            ),
+        ):
             folio_balance = d[0]
 
-    balance["folio"] = {
-        'account': default_folio_account,
-        'balance': flt(folio_balance)
-    }
+    balance["folio"] = {"account": default_folio_account, "balance": flt(folio_balance)}
     balance["desk"] = {
-        'account': default_desk_account,
-        'balance': get_balance_on(account=default_desk_account, date=today(),
-                                  party_type="Customer", party=party,
-                                  ignore_account_permission=True,
-                                  company=company),
+        "account": default_desk_account,
+        "balance": get_balance_on(
+            account=default_desk_account,
+            date=today(),
+            party_type="Customer",
+            party=party,
+            ignore_account_permission=True,
+            company=company,
+        ),
     }
     return balance
 
 
 @frappe.whitelist()
 def get_nonreconciled_payment_entries(**args):
-    '''Only JVs against this room folio.
-    Does not consider Payment Entries, other party advances without reference of this room_folio '''
+    """Only JVs against this room folio.
+    Does not consider Payment Entries, other party advances without reference of this room_folio """
 
     dr_or_cr = "credit_in_account_currency"
-    journal_entries = frappe.db.sql("""
+    journal_entries = frappe.db.sql(
+        """
         select
             "Journal Entry" as reference_type, t1.name as reference_name,
             t1.posting_date, t1.remark as remarks, t2.name as reference_row,
@@ -404,40 +535,47 @@ def get_nonreconciled_payment_entries(**args):
             and t2.account = %(account)s and {dr_or_cr} > 0
             and t2.reference_type = 'Room Folio HMS' and t2.reference_name = %(room_folio)s
         order by t1.posting_date
-    """.format(**{
-        "dr_or_cr": dr_or_cr,
-    }), args, as_dict=1,)
+    """.format(
+            **{"dr_or_cr": dr_or_cr,}
+        ),
+        args,
+        as_dict=1,
+    )
     return list(journal_entries)
 
 
 folio_checklist = {
     "guest_id": _("Please attach Identification for guest"),
     "advance_amount": _("Please make an advance payment for the folio."),
-    "sign_in_sheet": "Please complete Sign In Sheet for guest"
+    "sign_in_sheet": "Please complete Sign In Sheet for guest",
 }
 
 
 def update_checklist_status(sign_in_sheet=None):
     if sign_in_sheet:
-        for d in frappe.db.sql("""select name
-        from `tabRoom Folio HMS` where sign_in_sheet = %s""", (sign_in_sheet)):
-            frappe.get_doc('Room Folio HMS', d[0]).validate_checklist()
+        for d in frappe.db.sql(
+            """select name
+        from `tabRoom Folio HMS` where sign_in_sheet = %s""",
+            (sign_in_sheet),
+        ):
+            frappe.get_doc("Room Folio HMS", d[0]).validate_checklist()
 
 
 def on_submit_sales_invoice(doc, method=None):
     if doc.room_folio_cf:
-        frappe.get_doc("Room Folio HMS",
-                       doc.room_folio_cf).update_charges_and_amounts()
+        frappe.get_doc("Room Folio HMS", doc.room_folio_cf).update_charges_and_amounts()
+
 
 def on_validate_sales_invoice(doc, method=None):
     if doc.room_folio_cf and doc.is_pos:
         if doc.paid_amount > 0:
             frappe.throw("Cannot recieve payment when charging to folio.")
         doc.debit_to = frappe.defaults.get_user_default(
-            'default_folio_receivable_account')
+            "default_folio_receivable_account"
+        )
 
         def _make_split_invoice(doc, customer, items):
-            '''split POS Invoice based on item-group set in reservation split bill.'''
+            """split POS Invoice based on item-group set in reservation split bill."""
             si = frappe.new_doc("Sales Invoice")
             si.flags.is_split_bill = True
             si.room_folio_cf = doc.room_folio_cf
@@ -450,33 +588,43 @@ def on_validate_sales_invoice(doc, method=None):
             si.currency = doc.currency
             si.conversion_rate = doc.conversion_rate
             for d in doc.payments:
-                si.append("payments", {
-                    "mode_of_payment": d.mode_of_payment,
-                    "account": d.account,
-                    "type": d.type,
-                })
+                si.append(
+                    "payments",
+                    {
+                        "mode_of_payment": d.mode_of_payment,
+                        "account": d.account,
+                        "type": d.type,
+                    },
+                )
             for item in items:
-                si.append("items", {
-                    "item_code": item.item_code,
-                    "warehouse": item.warehouse,
-                    "qty": item.qty,
-                    "rate": item.rate,
-                    "income_account": item.income_account,
-                    "expense_account": item.expense_account,
-                    "cost_center": item.cost_center,
-                })
+                si.append(
+                    "items",
+                    {
+                        "item_code": item.item_code,
+                        "warehouse": item.warehouse,
+                        "qty": item.qty,
+                        "rate": item.rate,
+                        "income_account": item.income_account,
+                        "expense_account": item.expense_account,
+                        "cost_center": item.cost_center,
+                    },
+                )
             si.calculate_taxes_and_totals()
             si.insert()
             si.submit()
             frappe.msgprint("Split Invoice %s created." % si.name, alert=True)
 
     if cint(doc.is_pos) and doc.room_folio_cf and not doc.flags.is_split_bill:
-        customer_item_groups = frappe.db.sql("""
+        customer_item_groups = frappe.db.sql(
+            """
         select  a.customer, group_concat(a.item_group)
         from `tabRoom Folio Split Bill Detail HMS` a
         inner join `tabRoom Folio HMS` b on b.name = a.parent
         and b.name = %s and a.customer <> %s
-        group by a.customer""", (doc.room_folio_cf, doc.customer), as_dict=False)
+        group by a.customer""",
+            (doc.room_folio_cf, doc.customer),
+            as_dict=False,
+        )
         if customer_item_groups:
             split_invoices = []
             for customer, item_groups in customer_item_groups:
@@ -490,14 +638,16 @@ def on_validate_sales_invoice(doc, method=None):
 
             if not doc.items:
                 doc.customer = split_invoices[0][0]
-                doc.update({
-                    "title": None,
-                    "customer_name": None,
-                    "contact_person": None,
-                    "contact_display": None,
-                    "contact_mobile": None,
-                    "contact_email": None,
-                })
+                doc.update(
+                    {
+                        "title": None,
+                        "customer_name": None,
+                        "contact_person": None,
+                        "contact_display": None,
+                        "contact_mobile": None,
+                        "contact_email": None,
+                    }
+                )
                 doc.set_missing_values()
                 doc.items = split_invoices[0][1]
                 split_invoices = split_invoices[1:]
@@ -509,12 +659,13 @@ def on_validate_sales_invoice(doc, method=None):
 
 @frappe.whitelist()
 def update_room_folio_status(name, status):
-    frappe.db.set_value("Room Folio HMS", name, "status",
-                        status, update_modified=True)
+    frappe.db.set_value("Room Folio HMS", name, "status", status, update_modified=True)
+
 
 @frappe.whitelist()
 def get_guest_purchase(room_folio):
-    return frappe.db.sql("""
+    return frappe.db.sql(
+        """
         select si.name invoice, concat(si.posting_date, ' ', left(si.posting_time,5)) posting_date,
         si.base_rounded_total, si.remarks, si.customer_name, si.status, group_concat(distinct sit.item_group) items
         from `tabSales Invoice` si
@@ -523,7 +674,10 @@ def get_guest_purchase(room_folio):
         where si.docstatus = 1 and si.is_pos = 1 and si.room_folio_cf = %s
         group by si.name, si.posting_date, si.posting_time, si.base_rounded_total,
         si.remarks, si.customer_name, si.status
-        """, (room_folio), as_dict=True)
+        """,
+        (room_folio),
+        as_dict=True,
+    )
 
 
 @frappe.whitelist()
@@ -533,29 +687,36 @@ def get_folio_invoice_summary(docname):
     print_args = dict()
 
     print_args["company_description"] = frappe.db.get_value(
-        "Company", doc['company'], "company_description")
+        "Company", doc["company"], "company_description"
+    )
 
     print_args["currency"] = frappe.get_cached_value(
-        'Company', doc['company'], 'default_currency')
+        "Company", doc["company"], "default_currency"
+    )
 
-    folios = frappe.db.sql("""
+    folios = frappe.db.sql(
+        """
 select f.name folio, r.room_no, f.check_in, f.check_out, f.balance, f.customer, case when f.master_folio is null then 1 else 0 end is_master
 from `tabRoom Folio HMS` f
 inner join `tabRoom HMS` r on r.name = f.room_no
 where f.name = %(name)s or f.master_folio = %(name)s
-    """, {"name": docname}, as_dict=True)
+    """,
+        {"name": docname},
+        as_dict=True,
+    )
 
     print_args["folios"] = folios
 
-    filters = dict(room_folio=doc["name"],
-                   company=doc["company"],
-                   party_type="Customer",
-                   party=doc["customer"],
-                   account=frappe.defaults.get_user_default(
-        'default_folio_receivable_account')
+    filters = dict(
+        room_folio=doc["name"],
+        company=doc["company"],
+        party_type="Customer",
+        party=doc["customer"],
+        account=frappe.defaults.get_user_default("default_folio_receivable_account"),
     )
 
-    items = frappe.db.sql("""
+    items = frappe.db.sql(
+        """
     with data as
     (
         select si.name invoice,
@@ -590,7 +751,10 @@ where f.name = %(name)s or f.master_folio = %(name)s
     )
 select invoice, date, room_no, voucher, charges, credits, 
 sum(credits-charges) over (order by creation) balance from data
-""", filters, as_dict=True)
+""",
+        filters,
+        as_dict=True,
+    )
 
     print_args["items"] = items
 
@@ -598,8 +762,9 @@ sum(credits-charges) over (order by creation) balance from data
     for d in items:
         if not d["invoice"]:
             continue
-        invoice_html += frappe.get_print("Sales Invoice",
-                                         d["invoice"], "Standard", no_letterhead=0)
+        invoice_html += frappe.get_print(
+            "Sales Invoice", d["invoice"], "Standard", no_letterhead=0
+        )
 
     print_args["invoice_html"] = invoice_html or "**" * 10
 

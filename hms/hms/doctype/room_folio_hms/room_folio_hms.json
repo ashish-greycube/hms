@@ -13,10 +13,11 @@
   "customer_email",
   "customer_mobile",
   "is_split_bill",
-  "room_no",
-  "room_type",
   "column_break_4",
   "company",
+  "room_no",
+  "room_type",
+  "room_rate",
   "check_in",
   "check_out",
   "status",
@@ -258,18 +259,24 @@
   {
    "fieldname": "customer_email",
    "fieldtype": "Data",
-   "label": "Customer Email",
-   "options": "Email"
+   "label": "Customer Email"
   },
   {
    "fieldname": "customer_mobile",
    "fieldtype": "Data",
    "label": "Customer Mobile",
    "options": "Phone"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "room_rate",
+   "fieldtype": "Currency",
+   "label": "Room Rate",
+   "no_copy": 1
   }
  ],
  "is_submittable": 1,
- "modified": "2021-01-07 11:54:46.535683",
+ "modified": "2021-01-08 16:01:09.570593",
  "modified_by": "Administrator",
  "module": "HMS",
  "name": "Room Folio HMS",

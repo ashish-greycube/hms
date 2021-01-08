@@ -8,7 +8,7 @@ frappe.query_reports["Night-Audit"] = {
       fieldname: "audit_date",
       label: __("Date"),
       fieldtype: "Date",
-      default: [frappe.datetime.get_today()],
+      default: [frappe.datetime.add_days(frappe.datetime.get_today(), -1)],
       reqd: 1,
     },
     {

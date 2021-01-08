@@ -310,6 +310,7 @@ function _make_room_folio(frm, docname) {
     customer: frm.doc.customer,
     company: frm.doc.company,
     room_no: frm.doc.room_no_cf,
+    room_rate: frm.doc.room_rate_cf,
     naming_series: "HMS-RR-.YY.-",
     status: "Pre-Check In",
   });

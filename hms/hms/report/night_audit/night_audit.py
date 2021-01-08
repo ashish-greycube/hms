@@ -265,9 +265,11 @@ def validate_system_date(system_date, raise_exception=0):
         where
         f.docstatus =1
         and f.status = 'Checked In'
-        and  not exists(
+        and not exists(
             select 1 from `tabSales Invoice` x 
-            where x.room_date_cf = %(audit_date)s and x.room_folio_cf = f.name and x.docstatus = 1)
+            where x.docstatus = 1 
+            and ifnull(x.room_folio_cf,'') = f.name
+            and x.room_date_cf = %(audit_date)s)
         and dt.date = %(audit_date)s""",
         dict(audit_date=audit_date),
         as_dict=True,
@@ -313,4 +315,4 @@ def validate_system_date(system_date, raise_exception=0):
     # frappe.db.set_value("HMS Settings", None, "hms_system_date", system_date)
     # frappe.db.commit()
 
-    return True
+    return ""

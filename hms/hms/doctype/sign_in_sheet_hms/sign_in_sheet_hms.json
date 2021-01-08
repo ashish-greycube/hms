@@ -6,7 +6,8 @@
  "field_order": [
   "content",
   "signature",
-  "folio"
+  "folio",
+  "letter_head"
  ],
  "fields": [
   {
@@ -26,9 +27,15 @@
    "fieldtype": "Data",
    "label": "Folio",
    "read_only": 1
+  },
+  {
+   "fieldname": "letter_head",
+   "fieldtype": "Link",
+   "label": "Letter Head",
+   "options": "Letter Head"
   }
  ],
- "modified": "2020-12-22 17:49:13.396240",
+ "modified": "2021-01-08 13:22:31.691964",
  "modified_by": "Administrator",
  "module": "HMS",
  "name": "Sign In Sheet HMS",
