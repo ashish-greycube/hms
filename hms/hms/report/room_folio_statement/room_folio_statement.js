@@ -48,6 +48,7 @@ frappe.query_reports["Room Folio Statement"] = {
 
   onload(report) {
     frappe.set_redirect_to_ag_report();
+    set_print_folio_statement(report);
   },
 
   after_refresh(report) {
@@ -93,3 +94,36 @@ frappe.query_reports["Room Folio Statement"] = {
     //
   },
 };
+
+function set_print_folio_statement(report) {
+  report.page.page_actions
+    .find("li > a.grey-link span[data-label='Print']")
+    .parent()
+    .remove();
+  report.page.add_menu_item(
+    "Print",
+    () => {
+      let docname = report.get_filter_value("room_folio");
+      if (!docname) {
+        let selection = report.get_selected_rows_after_filter(
+          "Please select a folio to Print.",
+          true
+        );
+        docname = selection[0].folio;
+      }
+      if (!docname) {
+        frappe.throw("Please select a folio to Print.");
+      }
+      var w = window.open(
+        frappe.urllib.get_full_url(
+          `/api/method/frappe.utils.print_format.download_pdf?doctype=Room Folio HMS&name=${docname}&format=Folio Summary&no_letterhead=0`
+        )
+      );
+      if (!w) {
+        frappe.msgprint(__("Please enable pop-ups"));
+        return;
+      }
+    },
+    false
+  );
+}

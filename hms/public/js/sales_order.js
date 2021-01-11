@@ -594,7 +594,7 @@ function show_room_change(frm) {
         get_query: function () {
           return {
             filters: {
-              room_type: frm.doc.room_type_cf,
+              // room_type: frm.doc.room_type_cf,
               check_in: frm.doc.check_in_cf,
               check_out: frm.doc.check_out_cf,
               company: frm.doc.company,
