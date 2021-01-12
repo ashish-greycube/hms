@@ -1,0 +1,44 @@
+<div style="position: relative">
+    <div class="letter-head">
+        <div class="letter-head">{{ letter_head.content }}</div>
+    </div>
+</div>
+<div>
+    <div class="row">
+        <div class="col col-sm-2">
+            Printed: {{frappe.utils.format_datetime(frappe.utils.now(),"yyyy-MM-dd hh:mm a")}} <br>
+            Audit Date: {{ frappe.utils.today()}}
+        </div>
+        <div class="col col-sm-8">
+            <center>
+                SHIFT REPORT <br>
+                {{company}}
+            </center>
+        </div>
+        <div class="col col-sm-2"></div>
+    </div>
+
+    <div>
+        <h4>PAYMENTS/REFUNDS</h4>
+        <table class="table table-condensed">
+            <colgroup>
+                <col width="60%">
+                <col width="10%">
+                <col width="20%">
+            </colgroup>
+            <tbody>
+                {% for d in data %}
+                <tr>
+                    <td>{{d.mode_of_payment}}</td>
+                    <td>{{d.count}}</td>
+                    <td style="text-align: right;">{{d.amount}}</td>
+                </tr>
+                {% endfor %}
+                <tr style="background-color: #cccccc;">
+                    <td colspan="2">Total Payments</td>
+                    <td style="text-align: right;"> <strong>{{data | sum(attribute="amount")}}</strong></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
