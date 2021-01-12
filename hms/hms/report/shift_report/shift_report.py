@@ -25,6 +25,9 @@ def get_columns(filters=None):
             dict(
                 label="Audit Date", fieldname="audit_date", fieldtype="Date", width=100,
             ),
+            dict(
+                label="Cashier", fieldname="modified_by", fieldtype="Data", width=110,
+            ),
             dict(label="Account", fieldname="account", fieldtype="Data", width=210,),
             dict(label="Date", fieldname="posting_date", fieldtype="Date", width=100,),
             dict(label="Time", fieldname="time", fieldtype="Data", width=100,),
@@ -63,7 +66,7 @@ def get_data(filters=None):
     date_format(modified,'%%H:%%i %%p') `time`, 
     case when payment_type = 'Receive' then base_received_amount else 0 end debit, 
     case when payment_type = 'Pay' then base_received_amount else 0 end credit, 
-    party_name, mode_of_payment, base_received_amount, payment_type, remarks
+    party_name, mode_of_payment, base_received_amount, payment_type, remarks, modified_by
     from `tabPayment Entry`
     inner join (
         select per.parent, coalesce(si.room_folio_cf, concat(so.name,':',so.customer)) folio
@@ -78,7 +81,7 @@ def get_data(filters=None):
             ),
             filters,
             as_dict=True,
-            # debug=True,
+            debug=True,
         )
     else:
         data = frappe.db.sql(
@@ -92,7 +95,7 @@ def get_data(filters=None):
             ),
             filters,
             as_dict=True,
-            # debug=True,
+            debug=True,
         )
 
     return data
@@ -109,7 +112,7 @@ def get_conditions(filters):
         filters["user"] = frappe.session.user
 
     if filters.get("user"):
-        where_conditions += ["creation = %(user)s"]
+        where_conditions += ["modified_by = %(user)s"]
     if filters.get("shift_date"):
         where_conditions += ["posting_date = %(shift_date)s"]
     if filters.get("mode_of_payment"):
