@@ -15,6 +15,7 @@
   "is_split_bill",
   "column_break_4",
   "company",
+  "room_package",
   "room_no",
   "room_type",
   "room_rate",
@@ -81,6 +82,7 @@
    "reqd": 1
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "room_no",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -90,6 +92,7 @@
    "reqd": 1
   },
   {
+   "allow_on_submit": 1,
    "fetch_from": "room_no.room_type",
    "fieldname": "room_type",
    "fieldtype": "Link",
@@ -273,10 +276,18 @@
    "fieldtype": "Currency",
    "label": "Room Rate",
    "no_copy": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "room_package",
+   "fieldtype": "Link",
+   "label": "Room Package",
+   "options": "Item",
+   "reqd": 1
   }
  ],
  "is_submittable": 1,
- "modified": "2021-01-08 16:01:09.570593",
+ "modified": "2021-01-14 01:58:31.823898",
  "modified_by": "Administrator",
  "module": "HMS",
  "name": "Room Folio HMS",

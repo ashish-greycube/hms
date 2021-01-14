@@ -216,7 +216,7 @@ frappe.ui.form.on("Room Folio HMS", {
         fieldtype: "Currency",
         fieldname: "amount_to_transfer",
         label: "Amount to Transfer",
-        default: balance,
+        default: Math.abs(balance),
       },
     ];
     var d = new frappe.ui.Dialog({

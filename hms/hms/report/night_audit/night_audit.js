@@ -18,13 +18,14 @@ frappe.query_reports["Night-Audit"] = {
       options: "Rooms to Charge\nRooms to CheckIn\nRooms to CheckOut",
       default: "Rooms to Charge",
       reqd: 1,
-    },
-    {
-      fieldname: "status",
-      label: __("Status"),
-      fieldtype: "Select",
-      options: "\nNot Charged\nCheck In\nCheck Out",
-      hidden: 1,
+      on_change: function (me) {
+        me.page.inner_toolbar
+          .find(
+            'button[data-label="' + encodeURIComponent("Post Charges") + '"]'
+          )
+          .toggle(me.get_filter_value("operation") === "Rooms to Charge");
+        me.refresh();
+      },
     },
   ],
 
