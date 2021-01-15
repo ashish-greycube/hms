@@ -240,14 +240,17 @@ def validate_system_date(system_date, raise_exception=0):
             inner join `tabRoom HMS` rm on rm.name = so.room_no_cf
         where
             so.docstatus = 1 
-            and date(so.check_in_cf) > %(audit_date)s
+            and date(so.check_in_cf) = %(audit_date)s
             and not exists (select 1 from `tabRoom Folio HMS` x where x.reservation = so.name)""",
         dict(audit_date=audit_date),
         as_dict=True,
+        debug=True,
     )
 
     if rooms_to_check_in:
-        message = "<h6>Please check-in or cancel the reservations.</h6>"
+        message = "<h6>Please check-in or cancel the reservations for %s.</h6>" % (
+            audit_date,
+        )
         message += ", ".join(
             [
                 frappe.utils.get_link_to_form("Sales Order", d["name"])
@@ -269,7 +272,7 @@ def validate_system_date(system_date, raise_exception=0):
             select 1 from `tabSales Invoice` x 
             where x.docstatus = 1 
             and ifnull(x.room_folio_cf,'') = f.name
-            and x.room_date_cf > %(audit_date)s)
+            and x.room_date_cf = %(audit_date)s)
         and dt.date = %(audit_date)s""",
         dict(audit_date=audit_date),
         as_dict=True,
@@ -291,7 +294,7 @@ def validate_system_date(system_date, raise_exception=0):
         from `tabRoom Folio HMS` f
         where
         f.docstatus =1
-        and f.status = 'Checked In' and date(f.check_out) > %(audit_date)s""",
+        and f.status = 'Checked In' and date(f.check_out) = %(audit_date)s""",
         dict(audit_date=audit_date),
         as_dict=True,
     )
