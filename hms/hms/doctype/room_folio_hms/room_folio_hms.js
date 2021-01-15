@@ -19,6 +19,14 @@ frappe.ui.form.on("Room Folio HMS", {
       frm.events.validate_room_folio_checklist(frm);
     }
     frm.events.set_css(frm);
+
+    frm.set_query("room_package", () => {
+      return {
+        filters: {
+          room_type_cf: frm.doc.room_type,
+        },
+      };
+    });
   },
 
   set_css: function (frm) {

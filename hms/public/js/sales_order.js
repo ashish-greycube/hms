@@ -561,9 +561,9 @@ function make_payment_entry(frm) {
       }
 
       return frappe.call({
-        args: data,
         method:
           "hms.hms.controllers.reservation.make_payment_entry_from_sales_order",
+        args: data,
         callback: function (r) {
           if (!r.exc) {
             dlg.hide();
