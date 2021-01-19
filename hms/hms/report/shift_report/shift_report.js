@@ -8,8 +8,8 @@ frappe.query_reports["Shift Report"] = {
       fieldname: "shift_date",
       label: __("Date"),
       fieldtype: "Date",
-      //   default: [frappe.datetime.add_days(frappe.datetime.get_today(), -1)],
-      default: "2021-01-05",
+      default: [frappe.datetime.add_days(frappe.datetime.get_today(), 0)],
+      // default: "2021-01-05",
       reqd: 0,
     },
     {

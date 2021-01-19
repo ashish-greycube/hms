@@ -14,46 +14,45 @@ def get_data():
                     "type": "report",
                     "module_name": "hms",
                     "label": _("Frontdesk"),
-                    "route": "#ag-report/Frontdesk HMS"
+                    "route": "#ag-report/Frontdesk HMS",
                 },
                 {
                     "type": "doctype",
                     "name": "Sales Order",
                     "label": "Reservation",
-                    "description": "Reservation"
+                    "description": "Reservation",
                 },
                 {
                     "type": "doctype",
                     "name": "Room Folio HMS",
                     "label": "Room Folio",
-                    "description": "Room Folio"
+                    "description": "Room Folio",
                 },
                 {
                     "type": "doctype",
                     "name": "Laundry HMS",
                     "label": "Laundry",
-                    "description": "Laundry Entries"
+                    "description": "Laundry Entries",
                 },
                 {
                     "type": "doctype",
                     "name": "Online Booking HMS",
                     "label": "Online Booking",
-                    "description": "Website Online Booking"
+                    "description": "Website Online Booking",
                 },
                 {
                     "type": "page",
-                    "name": "point-of-sale",
+                    "name": "pos",  # have to use pos, because of moduleview.filter_by_restrict_to_domain
                     "label": _("Point Of Sale"),
-                    "route": "#point-of-sale"
                 },
                 {
                     "name": "Night-Audit",
                     "type": "report",
                     "module_name": "hms",
                     "label": _("Night Audit"),
-                    "route": "#ag-report/Night-Audit"
+                    "route": "#ag-report/Night-Audit",
                 },
-            ]
+            ],
         },
         {
             "label": _("Setup"),
@@ -83,16 +82,15 @@ def get_data():
                     "type": "doctype",
                     "name": "Room Type HMS",
                     "label": "Room Type",
-                    "description": "Room Type"
-
+                    "description": "Room Type",
                 },
                 {
                     "type": "doctype",
                     "name": "Date Lookup HMS",
                     "label": "Date Lookup",
-                    "description": "Date Lookup"
-                }
-            ]
+                    "description": "Date Lookup",
+                },
+            ],
         },
         {
             "label": _("Standard Reports"),
@@ -108,23 +106,37 @@ def get_data():
                     "type": "report",
                     "module_name": "hms",
                     "label": _("Room Occupancy and Revenue"),
-                    "route": "#ag-report/Room Occupancy and Revenue HMS"
+                    "route": "#ag-report/Room Occupancy and Revenue HMS",
                 },
                 {
                     "name": "Room Folio Statement",
                     "type": "report",
                     "module_name": "hms",
                     "label": _("Room Folio Statement"),
-                    "route": "#ag-report/Room Folio Statement"
+                    "route": "#ag-report/Room Folio Statement",
                 },
                 {
                     "name": "Rooms To Checkout",
                     "type": "report",
                     "module_name": "hms",
                     "label": _("Rooms To Checkout"),
-                    "route": "#ag-report/Rooms To Checkout"
+                    "route": "#ag-report/Rooms To Checkout",
                 },
-            ]
-        }
+                {
+                    "name": "Shift Report",
+                    "type": "report",
+                    "module_name": "hms",
+                    "label": _("Shift Report"),
+                    "route": "#query-report/Shift Report",
+                },
+                {
+                    "name": "Complimentary Item Sales",
+                    "type": "report",
+                    "module_name": "hms",
+                    "label": _("Complimentary Item Sales"),
+                    "route": "#ag-report/Complimentary Item Sales",
+                },
+            ],
+        },
     ]
     return config

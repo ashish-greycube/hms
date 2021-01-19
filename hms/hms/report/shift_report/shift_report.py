@@ -2,10 +2,15 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
+
+from numpy.core.fromnumeric import mean
 import frappe
 from erpnext import get_default_company
 from frappe.utils.pdf import get_pdf
 import json
+import pandas
+import numpy as np
+from operator import itemgetter
 
 
 def execute(filters=None):
@@ -36,19 +41,20 @@ def get_columns(filters=None):
             dict(
                 label="MoP", fieldname="mode_of_payment", fieldtype="Data", width=100,
             ),
-            dict(
-                label="Amount",
-                fieldname="base_received_amount",
-                fieldtype="Currency",
-                width=100,
-            ),
+            dict(label="Amount", fieldname="amount", fieldtype="Currency", width=100,),
         ]
     else:
         return [
+            dict(label="Date", fieldname="posting_date", fieldtype="Date", width=100,),
             dict(
                 label="MoP", fieldname="mode_of_payment", fieldtype="Data", width=100,
             ),
-            dict(label="Transactions", fieldname="count", fieldtype="Int", width=100,),
+            dict(
+                label="Transactions",
+                fieldname="transaction_count",
+                fieldtype="Int",
+                width=100,
+            ),
             dict(label="Amount", fieldname="amount", fieldtype="Currency", width=100,),
         ]
 
@@ -57,16 +63,17 @@ def get_data(filters=None):
     data = []
     where_conditions = get_conditions(filters)
 
-    if not filters.get("summary_view", 0):
-        data = frappe.db.sql(
-            """
+    data = frappe.db.sql(
+        """
+            with fn as (
     select  folio.folio, posting_date audit_date, '201' `type`, 
     case when mode_of_payment = 'Cash' then 'Cash'
     else concat(mode_of_payment, ' : ', remarks) end account, posting_date, 
     date_format(modified,'%%H:%%i %%p') `time`, 
-    case when payment_type = 'Receive' then base_received_amount else 0 end debit, 
-    case when payment_type = 'Pay' then base_received_amount else 0 end credit, 
-    party_name, mode_of_payment, base_received_amount, payment_type, remarks, modified_by
+    case when payment_type = 'Pay' then base_received_amount else 0 end debit, 
+    case when payment_type = 'Receive' then base_received_amount else 0 end credit, 
+    party_name, mode_of_payment, base_received_amount, payment_type, remarks, modified_by, company,
+    case when payment_type = 'Pay' then 0-base_received_amount else base_received_amount end amount
     from `tabPayment Entry`
     inner join (
         select per.parent, coalesce(si.room_folio_cf, concat(so.name,':',so.customer)) folio
@@ -75,36 +82,43 @@ def get_data(filters=None):
         left outer join `tabSales Order` so on so.name = per.reference_name and per.reference_doctype = 'Sales Order'
         group by parent
     ) folio on folio.parent = `tabPayment Entry`.name
-    {where_conditions}
-        """.format(
-                where_conditions=where_conditions
-            ),
-            filters,
-            as_dict=True,
-            debug=True,
+    where `tabPayment Entry`.docstatus = 1
+    union all
+    select concat_ws(':',t2.reference_name,t2.party) folio, t1.posting_date audit_date, '201' type,
+    mpa.parent account, t1.posting_date, date_format(t1.modified,'%%H:%%i %%p') `time`, 
+    t2.debit debit, t2.credit credit, 
+    t2.party party_name, mpa.parent mode_of_payment,  
+    abs(t2.credit-t2.debit) base_received_amount, case when debit > 0 then 'Receive' else 'Pay' end payment_type, 
+    t1.remark,  t1.modified_by, t1.company, t2.credit-t2.debit amount
+            from
+                `tabJournal Entry` t1, `tabJournal Entry Account` t2, `tabMode of Payment Account` mpa
+            where
+                t1.name = t2.parent and t1.docstatus = 1 
+                and mpa.default_account = t2.against_account
         )
-    else:
-        data = frappe.db.sql(
-            """
-    select mode_of_payment, count(*) `count`, sum(base_received_amount) amount
-    from `tabPayment Entry`
+    select * from fn
     {where_conditions}
-    group by mode_of_payment
+    order by posting_date,`time`
         """.format(
-                where_conditions=where_conditions
-            ),
-            filters,
-            as_dict=True,
-            debug=True,
+            where_conditions=where_conditions
+        ),
+        filters,
+        as_dict=True,
+        # debug=True,
+    )
+    if data and filters.get("summary_view", 0):
+        df = pandas.DataFrame.from_records(data)
+        g = (
+            df.groupby(["posting_date", "mode_of_payment"], as_index=False)
+            .agg({"amount": "sum", "payment_type": "count"})
+            .rename(columns={"amount": "amount", "payment_type": "transaction_count"})
         )
-
+        data = g.to_dict("r")
     return data
 
 
 def get_conditions(filters):
-    where_conditions = [
-        "docstatus = 1 and company = '{}' ".format(get_default_company())
-    ]
+    where_conditions = ["company = '{}' ".format(get_default_company())]
 
     if not frappe.utils.has_common(
         ["System Manager", "Accounts Manager", "Sales Manager"], frappe.get_roles()
@@ -116,7 +130,7 @@ def get_conditions(filters):
     if filters.get("shift_date"):
         where_conditions += ["posting_date = %(shift_date)s"]
     if filters.get("mode_of_payment"):
-        where_conditions += ["posting_date = %(mode_of_payment)s"]
+        where_conditions += ["mode_of_payment = %(mode_of_payment)s"]
 
     return where_conditions and " where {}".format(" and ".join(where_conditions)) or ""
 

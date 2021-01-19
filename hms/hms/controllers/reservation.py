@@ -342,9 +342,10 @@ def make_payment_entry_from_sales_order(
 
     if sales_order:
         payment = get_payment_entry("Sales Order", sales_order)
+        payment.paid_amount = payment.received_amount = abs(flt(paid_amount))
         if not payment.base_paid_amount == 0:
             for d in payment.references:
-                d.allocated_amount = d.outstanding_amount
+                d.allocated_amount = min(paid_amount, d.outstanding_amount)
             payments.append(payment)
 
         rounded_total, advance_paid = frappe.db.get_value(
@@ -376,9 +377,17 @@ def make_payment_entry_from_sales_order(
         payment.total_allocated_amount = (
             sum([d.allocated_amount for d in payment.get("references", [])]) or 0
         )
-        payment.difference_amount = 0
+        # payment.difference_amount = 0
+
+        # payment.base_paid_amount
+        # payment.received_amount
+        # payment.base_received_amount
+        # payment.total_allocated_amount
+        # payment.base_total_allocated_amount
+
         payment.setup_party_account_field()
         payment.set_missing_values()
+        print(payment.as_dict())
         payment.save()
         payment.submit()
     return payments[0]
