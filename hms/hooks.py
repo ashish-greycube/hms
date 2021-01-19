@@ -20,7 +20,7 @@ app_include_js = [
     "/assets/js/hms.min.js",
     "/assets/hms/js/ag_report.js",
     "/assets/hms/js/lib/ag-grid-community.min.js",
-    "/assets/hms/js/lib/mousetrap.min.js"
+    "/assets/hms/js/lib/mousetrap.min.js",
 ]
 app_include_css = "/assets/hms/css/hms.css"
 
@@ -32,13 +32,16 @@ web_include_css = "/assets/hms/css/hms.css"
 # page_js = {"page" : "public/js/file.js"}
 page_js = {
     "point-of-sale": "public/js/point_of_sale_custom.js",
-    "pos": "public/js/pos_custom.js"}
+    "pos": "public/js/pos_custom.js",
+}
 
 
 # include js in doctype views
 # doctype_js = {"doctype" : "public/js/doctype.js"}
-doctype_js = {"Sales Order": "public/js/sales_order.js",
-              "Contact": "public/js/contact.js"}
+doctype_js = {
+    "Sales Order": "public/js/sales_order.js",
+    "Contact": "public/js/contact.js",
+}
 
 doctype_list_js = {"Sales Order": "public/js/sales_order_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
@@ -52,7 +55,7 @@ doctype_list_js = {"Sales Order": "public/js/sales_order_list.js"}
 
 # website user home page (by Role)
 # role_home_page = {
-#	"Role": "home_page"
+# 	"Role": "home_page"
 # }
 
 # Website user home page (by function)
@@ -88,9 +91,7 @@ after_install = "hms.install.after_install"
 # 	"Event": "frappe.desk.doctype.event.event.has_permission",
 # }
 
-on_session_creation = [
-    "hms.set_session_defaults"
-]
+on_session_creation = ["hms.set_session_defaults"]
 # Document Events
 # ---------------
 # Hook on document methods and events
@@ -100,7 +101,7 @@ on_session_creation = [
 # 		"on_update": "method",
 # 		"on_cancel": "method",
 # 		"on_trash": "method"
-#	}
+# 	}
 # }
 
 doc_events = {
@@ -111,13 +112,8 @@ doc_events = {
         "on_submit": "hms.hms.doctype.room_folio_hms.room_folio_hms.on_submit_sales_invoice",
         "validate": "hms.hms.doctype.room_folio_hms.room_folio_hms.on_validate_sales_invoice",
     },
-    "Item Price": {
-        "validate": "hms.hms.controllers.reservation.validate_item_price",
-    },
-    "Contact": {
-        "autoname": "hms.hms.controllers.reservation.autoname_contact",
-    }
-
+    "Item Price": {"validate": "hms.hms.controllers.reservation.validate_item_price",},
+    "Contact": {"autoname": "hms.hms.controllers.reservation.autoname_contact",},
 }
 
 # Scheduled Tasks
@@ -159,3 +155,12 @@ doc_events = {
 # override_doctype_dashboards = {
 # 	"Task": "hms.task.get_dashboard_data"
 # }
+
+fixtures = [
+    {
+        "dt": "Print Format",
+        "filters": [
+            ["name", "in", ["Breakfast POS", "Folio Sign In", "Folio Summary"]]
+        ],
+    },
+]
