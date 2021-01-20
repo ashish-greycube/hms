@@ -27,6 +27,17 @@ frappe.ui.form.on("Room Folio HMS", {
         },
       };
     });
+
+    frm.set_query("room_no", () => {
+      return {
+        filters: {
+          check_in: frm.doc.check_in,
+          check_out: frm.doc.check_out,
+          company: frm.doc.company,
+        },
+        query: "hms.hms.controllers.reservation.get_available_rooms",
+      };
+    });
   },
 
   set_css: function (frm) {

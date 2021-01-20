@@ -72,7 +72,7 @@ def get_conditions(filters):
 
     if filters.get("room_date"):
         where_conditions += [
-            "rf.check_in >= %(room_date)s and rf.check_out <= %(room_date)s"
+            "date(rf.check_in) <= %(room_date)s and date(rf.check_out) >= %(room_date)s"
         ]
     if filters.get("item_code"):
         where_conditions += ["pbi.item_code = %(item_code)s"]
