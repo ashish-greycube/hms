@@ -38,15 +38,15 @@ def get_data(filters=None):
             rf.room_no, pbi.item_code, pbi.qty
         from 
             `tabRoom Folio HMS` rf  
-            left outer join `tabProduct Bundle Item` pbi on pbi.parent = rf.room_package 
-            left outer join `tabItem` it on it.item_code = pbi.item_code and it.room_type_cf is null
+            inner join `tabProduct Bundle Item` pbi on pbi.parent = rf.room_package 
+            inner join `tabItem` it on it.item_code = pbi.item_code and it.room_type_cf is null
         {where_conditions} 		
     """.format(
             where_conditions=where_conditions
         ),
         filters,
         as_dict=True,
-        debug=True,
+        debug=0,
     )
 
     if data and not cint(filters.get("show_room_no")):

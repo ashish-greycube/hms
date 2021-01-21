@@ -104,7 +104,7 @@ def get_data(filters=None):
         ),
         filters,
         as_dict=True,
-        # debug=True,
+        # debug=0,
     )
     if data and filters.get("summary_view", 0):
         df = pandas.DataFrame.from_records(data)

@@ -136,6 +136,13 @@ def get_data():
                     "label": _("Complimentary Item Sales"),
                     "route": "#ag-report/Complimentary Item Sales",
                 },
+                {
+                    "name": "Restaurant Chef Report",
+                    "type": "report",
+                    "module_name": "hms",
+                    "label": _("Restaurant Chef Report"),
+                    "route": "#ag-report/Restaurant Chef Report",
+                },
             ],
         },
     ]

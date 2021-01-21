@@ -244,7 +244,7 @@ def validate_system_date(system_date, raise_exception=0):
             and not exists (select 1 from `tabRoom Folio HMS` x where x.reservation = so.name)""",
         dict(audit_date=audit_date),
         as_dict=True,
-        debug=True,
+        # debug=0,
     )
 
     if rooms_to_check_in:
