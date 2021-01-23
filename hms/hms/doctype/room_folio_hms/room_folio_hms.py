@@ -42,7 +42,7 @@ from hms.hms.report.night_audit.night_audit import validate_system_date
 class RoomFolioHMS(Document):
     def before_insert(self):
         if getdate(self.check_in) == getdate():
-            validate_system_date(getdate(), raise_exception=1)
+            validate_system_date(getdate(), raise_exception=0)
 
     def validate(self):
         # check night audit completed for previous date
@@ -171,7 +171,7 @@ select status, reference_type, reference_name
     def make_check_in(self):
         "check in"
         if getdate(self.check_in) == getdate():
-            validate_system_date(getdate(), raise_exception=1)
+            validate_system_date(getdate(), raise_exception=0)
 
         self.db_set("status", "Checked In", update_modified=True)
         update_room_status_ledger(self.as_dict(), action="check_in")
