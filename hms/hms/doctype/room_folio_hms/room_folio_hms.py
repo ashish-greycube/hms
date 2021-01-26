@@ -143,12 +143,13 @@ select status, reference_type, reference_name
             select
             if(f.total_advance_paid > 0 or coalesce(cu.allow_checkin_without_advance_cf,0)=1,1,0) advance_amount,
             if(con.name is not null,1,0) guest_id,
-            if(sg.name is not null,1,0) sign_in_sheet
+            if(sg.name is not null,1,0) sign_in_sheet,
+            if(sg.signature is not null, 1, 0) sign_in_sheet_incomplete
             from `tabRoom Folio HMS` f
             inner join tabCustomer cu on cu.name = f.customer
             inner join `tabSales Order` so on so.name = f.reservation
             left outer join tabContact con on con.name = so.guest_cf and con.image is not null
-            left outer join `tabSign In Sheet HMS` sg on sg.name = f.sign_in_sheet and sg.signature is not null
+            left outer join `tabSign In Sheet HMS` sg on sg.name = f.sign_in_sheet
             where f.name = %s limit 1""",
             (self.name,),
             as_dict=True,
@@ -156,7 +157,12 @@ select status, reference_type, reference_name
         valid = (
             valid
             and valid[0]
-            or {"advance_amount": 0, "guest_id": 0, "sign_in_sheet": 0}
+            or {
+                "advance_amount": 0,
+                "guest_id": 0,
+                "sign_in_sheet": 0,
+                "sign_in_sheet_incomplete": 0,
+            }
         )
 
         if not valid:
@@ -222,7 +228,10 @@ select status, reference_type, reference_name
         # remove lines for other dates in Sales Invoice, only bill for room_date
         so_items = frappe.db.get_all(
             "Sales Order Item",
-            filters={"parent": self.reservation, "reservation_date_cf": room_date,},
+            filters={
+                "parent": self.reservation,
+                "reservation_date_cf": room_date,
+            },
             fields=["name", "qty"],
         )
         # qty will be less than 1 in cases where room rate was changed in Sales Invoice from Sales Order
@@ -409,7 +418,9 @@ def get_charge_and_purchase(docname):
         group by parent
     ) sit on sit.parent = si.name
     where rf.name = %(folio)s or rf.master_folio = %(folio)s""",
-        dict(folio=docname,),
+        dict(
+            folio=docname,
+        ),
         as_dict=True,
     )
 
@@ -518,7 +529,7 @@ select sum(debit - credit) balance
 @frappe.whitelist()
 def get_nonreconciled_payment_entries(**args):
     """Only JVs against this room folio.
-    Does not consider Payment Entries, other party advances without reference of this room_folio """
+    Does not consider Payment Entries, other party advances without reference of this room_folio"""
 
     dr_or_cr = "credit_in_account_currency"
     journal_entries = frappe.db.sql(
@@ -536,7 +547,9 @@ def get_nonreconciled_payment_entries(**args):
             and t2.reference_type = 'Room Folio HMS' and t2.reference_name = %(room_folio)s
         order by t1.posting_date
     """.format(
-            **{"dr_or_cr": dr_or_cr,}
+            **{
+                "dr_or_cr": dr_or_cr,
+            }
         ),
         args,
         as_dict=1,
@@ -547,7 +560,8 @@ def get_nonreconciled_payment_entries(**args):
 folio_checklist = {
     "guest_id": _("Please attach Identification for guest"),
     "advance_amount": _("Please make an advance payment for the folio."),
-    "sign_in_sheet": "Please complete Sign In Sheet for guest",
+    "sign_in_sheet": _("Please create Sign In Sheet for guest."),
+    "sign_in_sheet_incomplete": _("Please get Signature in Sign In Sheet."),
 }
 
 

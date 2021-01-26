@@ -93,6 +93,22 @@ frappe.ui.form.on("Room Folio HMS", {
           }
         }
       );
+    } else {
+      frappe.db.get_value(
+        "Sign In Sheet HMS",
+        frm.doc.sign_in_sheet,
+        "signature",
+        (r) => {
+          if (!r.signature)
+            frm.page.add_inner_button(
+              __("Make Sign In Sheet"),
+              function () {
+                frm.events.make_sign_in_sheet(frm);
+              },
+              __("Actions")
+            );
+        }
+      );
     }
 
     frm.page.add_inner_button(
