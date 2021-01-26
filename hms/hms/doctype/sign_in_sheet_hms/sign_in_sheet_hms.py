@@ -11,7 +11,7 @@ from frappe.utils import nowdate, flt, cint, today, getdate, cstr
 
 class SignInSheetHMS(Document):
     def validate(self):
-        if self.db_get('signature'):
+        if self.db_get("signature"):
             frappe.throw("Cannot modify Sign In Sheet after signature")
         self.content = self.get_content_html(self.folio)
 
@@ -32,7 +32,8 @@ class SignInSheetHMS(Document):
         print_context = {}
         # custom_fields = ["sub_heading", "guest_full_name", "total_guest", "guest_address_display", "total_amount_weekdays", "total_amount_weekends",
         #                  "total_room_charges", "total_other_charges", "mode_of_payment", "guest_mobile", "guest_email", "total_taxes_and_charges", ]
-        for d in frappe.db.sql("""
+        for d in frappe.db.sql(
+            """
                 select reservation,car_make_model,registration_plate_no, gu.*
                 from `tabRoom Folio HMS` f
                 left outer join
@@ -45,10 +46,14 @@ class SignInSheetHMS(Document):
                     limit 1
                 ) gu on gu.parent = f.name
                 where f.name = %s
-            """, (folio.name, folio.name), as_dict=True):
+            """,
+            (folio.name, folio.name),
+            as_dict=True,
+        ):
             print_context.update(d)
 
-        for d in frappe.db.sql("""
+        for d in frappe.db.sql(
+            """
                 select
                 terms,
                 so.customer_address address_name,
@@ -65,10 +70,14 @@ class SignInSheetHMS(Document):
                 from `tabSales Order` so
                 inner join `tabSales Order Item` soi on soi.parent = so.name
                 where so.name = %s
-            """, (print_context['reservation']), as_dict=True):
+            """,
+            (print_context["reservation"]),
+            as_dict=True,
+        ):
             print_context.update(d)
 
-        for d in frappe.db.sql("""
+        for d in frappe.db.sql(
+            """
         select t1.mode_of_payment
         from `tabPayment Entry`t1
         inner join `tabPayment Entry Reference` t2 on t2.parent = t1.name 
@@ -80,21 +89,29 @@ class SignInSheetHMS(Document):
         and t2.reference_type = 'Room Folio HMS' and t1.mode_of_payment is not null
         where reference_name = %s
         limit 1 
-        """, (folio.reservation, folio.name)):
-            print_context.setdefault('mode_of_payment', d[0])
+        """,
+            (folio.reservation, folio.name),
+        ):
+            print_context.setdefault("mode_of_payment", d[0])
 
-        print_context.setdefault('guest_address_display', "-")
-        print_context.setdefault('sign_in_date', getdate())
+        print_context.setdefault("guest_address_display", "-")
+        print_context.setdefault("sign_in_date", getdate())
 
-        if print_context['address_name']:
-            print_context['guest_address_display'] = get_address_display(
-                print_context['address_name'])
-        html = frappe.render_template(
-            template, {"doc": folio, "ctx": print_context})
+        if print_context["address_name"]:
+            print_context["guest_address_display"] = get_address_display(
+                print_context["address_name"]
+            )
+        html = frappe.render_template(template, {"doc": folio, "ctx": print_context})
 
         return html
 
+
 def make_sign_in_sheet(room_folio, no_letterhead=False):
+    sign_in_sheet = frappe.db.get_value("Room Folio HMS", room_folio, "sign_in_sheet")
+
+    if frappe.db.exists("Sign In Sheet HMS", sign_in_sheet):
+        return frappe.get_doc("Sign In Sheet HMS", sign_in_sheet)
+
     doc = frappe.new_doc("Sign In Sheet HMS")
     doc.folio = room_folio
     # doc.content = get_content_html(room_folio, no_letterhead)
