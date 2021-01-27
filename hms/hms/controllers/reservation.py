@@ -72,7 +72,11 @@ def validate_availability(check_in, check_out, room_no):
                 d["doctype"],
                 get_link_to_form(d["ref_type"], d["name"]),
                 frappe.bold(formatdate(d["check_in"])),
-                frappe.bold(formatdate(d["check_out"],)),
+                frappe.bold(
+                    formatdate(
+                        d["check_out"],
+                    )
+                ),
             )
         )
 
@@ -349,15 +353,17 @@ def make_payment_entry_from_sales_order(
             payments.append(payment)
 
         rounded_total, advance_paid = frappe.db.get_value(
-            "Sales Order", sales_order, ["rounded_total", "advance_paid"],
+            "Sales Order",
+            sales_order,
+            ["rounded_total", "advance_paid"],
         )
-        excess_amount = paid_amount + advance_paid - rounded_total
-        if excess_amount > 0:
-            # Allow Payment more than SO amount, create in Desk Folio
-            # create payment entry for excess amount with no reference
-            pe = frappe.new_doc("Payment Entry")
-            pe.paid_amount = pe.received_amount = abs(excess_amount)
-            payments.append(pe)
+        # excess_amount = paid_amount + advance_paid - rounded_total
+        # if excess_amount > 0:
+        #     # Allow Payment more than SO amount, create in Desk Folio
+        #     # create payment entry for excess amount with no reference
+        #     pe = frappe.new_doc("Payment Entry")
+        #     pe.paid_amount = pe.received_amount = abs(excess_amount)
+        #     payments.append(pe)
     else:
         payment = frappe.new_doc("Payment Entry")
         payment.paid_amount = payment.received_amount = abs(flt(paid_amount))
@@ -497,7 +503,9 @@ def get_available_rooms(doctype, txt, searchfield, start, page_len, filters):
 def move_room(reservation, room_no):
     so = frappe.db.get_value(
         "Sales Order",
-        filters={"name": reservation,},
+        filters={
+            "name": reservation,
+        },
         fieldname=["docstatus", "check_in_cf", "check_out_cf", "room_no_cf"],
         as_dict=True,
     )
@@ -572,4 +580,3 @@ def get_online_packages():
         dict(company=get_default_company(), today=getdate()),
         as_dict=True,
     )
-
