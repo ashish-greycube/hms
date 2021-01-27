@@ -39,6 +39,14 @@ from erpnext.setup.doctype.item_group.item_group import get_child_item_groups
 from hms.hms.report.night_audit.night_audit import validate_system_date
 
 
+folio_checklist = {
+    "guest_id": _("Please attach Identification for guest"),
+    "advance_amount": _("Please make an advance payment for the folio."),
+    "sign_in_sheet": _("Please create Sign In Sheet for guest."),
+    "sign_in_sheet_incomplete": _("Please get Signature in Sign In Sheet."),
+}
+
+
 class RoomFolioHMS(Document):
     def before_insert(self):
         if getdate(self.check_in) == getdate():
@@ -166,9 +174,19 @@ select status, reference_type, reference_name
         )
 
         if not valid:
-            return "<br>".join(folio_checklist.values())
+            checklist = "<br>".join(folio_checklist.values())
+        else:
+            checklist = [
+                folio_checklist.get(k) for k, v in valid.items() if not cint(v)
+            ]
 
-        checklist = [folio_checklist.get(k) for k, v in valid.items() if not cint(v)]
+        if folio_checklist.get("sign_in_sheet") in checklist:
+            checklist = [
+                d
+                for d in checklist
+                if not d == folio_checklist.get("sign_in_sheet_incomplete")
+            ]
+
         if not checklist:
             self.db_set("is_checklist_done", 1)
         else:
@@ -176,6 +194,9 @@ select status, reference_type, reference_name
 
     def make_check_in(self):
         "check in"
+        if not self.docstatus == 1:
+            frappe.throw("Please submit Folio before Check In.")
+
         if getdate(self.check_in) == getdate():
             validate_system_date(getdate(), raise_exception=0)
 
@@ -213,9 +234,10 @@ select status, reference_type, reference_name
                 "items",
                 {
                     "qty": d.qty,
-                    "item_code": d.item_code,
                     "sales_order": d.sales_order,
                     "so_detail": d.so_detail,
+                    # set item as Room Folio room_package
+                    "item_code": self.room_package,
                     # set rate as per rate in Room Folio
                     "rate": self.room_rate,
                 },
@@ -555,14 +577,6 @@ def get_nonreconciled_payment_entries(**args):
         as_dict=1,
     )
     return list(journal_entries)
-
-
-folio_checklist = {
-    "guest_id": _("Please attach Identification for guest"),
-    "advance_amount": _("Please make an advance payment for the folio."),
-    "sign_in_sheet": _("Please create Sign In Sheet for guest."),
-    "sign_in_sheet_incomplete": _("Please get Signature in Sign In Sheet."),
-}
 
 
 def update_checklist_status(sign_in_sheet=None):

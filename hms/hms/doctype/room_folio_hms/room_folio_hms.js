@@ -56,7 +56,10 @@ frappe.ui.form.on("Room Folio HMS", {
       return;
     }
 
-    if (frm.doc.status == "Pre-Check In" && frm.doc.is_checklist_done) {
+    if (
+      frm.doc.status == "Pre-Check In" &&
+      frm.doc.is_checklist_done & (frm.doc.docstatus == 1)
+    ) {
       frm.page.add_inner_button(
         __("Check In"),
         function () {
