@@ -22,9 +22,14 @@ frappe.query_reports["Shift Report"] = {
     },
     {
       fieldname: "mode_of_payment",
-      label: __("MoP"),
-      fieldtype: "Select",
-      options: "\nCash\nCredit",
+      label: __("Mode of Payment"),
+      fieldtype: "Link",
+      options: "Mode of Payment",
+      get_query: function () {
+        return {
+          filters: [["Mode of Payment", "enabled", "=", 1]],
+        };
+      },
     },
     {
       fieldname: "summary_view",

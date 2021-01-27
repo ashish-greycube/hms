@@ -103,21 +103,21 @@ function set_print_folio_statement(report) {
   report.page.add_menu_item(
     "Print",
     () => {
-      let docname = report.get_filter_value("room_folio");
-      if (!docname) {
-        let selection = report.get_selected_rows_after_filter(
-          "Please select a folio to Print.",
-          true
-        );
-        docname = selection[0].folio;
-      }
-      if (!docname) {
-        frappe.throw("Please select a folio to Print.");
-      }
-      var w = window.open(
-        frappe.urllib.get_full_url(
-          `/api/method/frappe.utils.print_format.download_pdf?doctype=Room Folio HMS&name=${docname}&format=Folio Summary&no_letterhead=0`
-        )
+      let selection = report.get_selected_rows_after_filter(
+        "Please select Folios to Print.",
+        true
+      );
+      let docnames = frappe.utils.unique(selection.map((doc) => doc.folio));
+
+      const w = window.open(
+        "/api/method/frappe.utils.print_format.download_multi_pdf?" +
+          "doctype=" +
+          encodeURIComponent("Room Folio HMS") +
+          "&name=" +
+          encodeURIComponent(JSON.stringify(docnames)) +
+          "&format=" +
+          encodeURIComponent("Folio Summary") +
+          "&no_letterhead=0"
       );
       if (!w) {
         frappe.msgprint(__("Please enable pop-ups"));
