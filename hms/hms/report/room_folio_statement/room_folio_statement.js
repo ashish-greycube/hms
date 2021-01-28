@@ -103,11 +103,16 @@ function set_print_folio_statement(report) {
   report.page.add_menu_item(
     "Print",
     () => {
-      let selection = report.get_selected_rows_after_filter(
-        "Please select Folios to Print.",
-        true
-      );
-      let docnames = frappe.utils.unique(selection.map((doc) => doc.folio));
+      // let selection = report.get_selected_rows_after_filter(
+      //   "Please select Folios to Print.",
+      //   true
+      // );
+      let docnames = [];
+      report.gridOptions.api.forEachNodeAfterFilter(function (rowNode, index) {
+        if (rowNode.data.folio) docnames.push(rowNode.data.folio);
+      });
+
+      docnames = frappe.utils.unique(docnames);
 
       const w = window.open(
         "/api/method/frappe.utils.print_format.download_multi_pdf?" +

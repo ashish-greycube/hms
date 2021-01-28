@@ -352,11 +352,11 @@ def make_payment_entry_from_sales_order(
                 d.allocated_amount = min(paid_amount, d.outstanding_amount)
             payments.append(payment)
 
-        rounded_total, advance_paid = frappe.db.get_value(
-            "Sales Order",
-            sales_order,
-            ["rounded_total", "advance_paid"],
-        )
+        # rounded_total, advance_paid = frappe.db.get_value(
+        #     "Sales Order",
+        #     sales_order,
+        #     ["rounded_total", "advance_paid"],
+        # )
         # excess_amount = paid_amount + advance_paid - rounded_total
         # if excess_amount > 0:
         #     # Allow Payment more than SO amount, create in Desk Folio
@@ -393,7 +393,6 @@ def make_payment_entry_from_sales_order(
 
         payment.setup_party_account_field()
         payment.set_missing_values()
-        print(payment.as_dict())
         payment.save()
         payment.submit()
     return payments[0]

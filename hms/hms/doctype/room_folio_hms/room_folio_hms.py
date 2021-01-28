@@ -271,7 +271,8 @@ select status, reference_type, reference_name
         self.update_charges_and_amounts()
         self.validate_room_folio_balance()
         self.db_set("status", "Checked Out", update_modified=True)
-        self.db_set("check_out", frappe.utils.now_datetime(), update_modified=True)
+        if getdate(self.check_out) > getdate(now()):
+            self.db_set("check_out", frappe.utils.now_datetime(), update_modified=True)
         update_room_status_ledger(self.as_dict(), action="check_out")
         return self.as_dict()
 
