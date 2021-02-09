@@ -277,18 +277,19 @@ select status, reference_type, reference_name
         return self.as_dict()
 
     def validate_room_folio_balance(self):
-        if not self.guest_purchase_balance == 0:
-            frappe.throw(
-                _(
-                    "Unsettled Guest Purchases in folio. Please settle outstanding amount {} before checkout."
-                ).format(format_value(self.guest_purchase_balance, df="Currency"))
-            )
-        if not self.balance == 0:
-            frappe.throw(
-                _(
-                    "Unsettled balance {} exists in folio. Please settle balance before checkout."
-                ).format(format_value(self.balance, df="Currency"))
-            )
+        if not self.master_folio:
+            if not self.guest_purchase_balance == 0:
+                frappe.throw(
+                    _(
+                        "Unsettled Guest Purchases in folio. Please settle outstanding amount {} before checkout."
+                    ).format(format_value(self.guest_purchase_balance, df="Currency"))
+                )
+            if not self.balance == 0:
+                frappe.throw(
+                    _(
+                        "Unsettled balance {} exists in folio. Please settle balance before checkout."
+                    ).format(format_value(self.balance, df="Currency"))
+                )
 
     def make_folio_advance_entry(self):
         args = json.loads(frappe.local.form_dict["args"] or "{}")
