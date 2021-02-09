@@ -21,6 +21,17 @@ class SignInSheetHMS(Document):
         folio = frappe.get_doc("Room Folio HMS", room_folio)
         template = "hms/templates/folio_sign_in.html"
 
+        letter_head = (
+            frappe.db.get_value(
+                "Letter Head",
+                {"is_default": 1},
+                [
+                    "content",
+                ],
+                as_dict=True,
+            )
+            or {}
+        )
         # html = frappe.get_print(self.doctype, self.name, print_format="Folio Sign In",
         #                         doc=self, no_letterhead=no_letterhead)
 
@@ -30,6 +41,7 @@ class SignInSheetHMS(Document):
         # html = soup.prettify()
 
         print_context = {}
+        print_context.update({"letter_head": letter_head})
         # custom_fields = ["sub_heading", "guest_full_name", "total_guest", "guest_address_display", "total_amount_weekdays", "total_amount_weekends",
         #                  "total_room_charges", "total_other_charges", "mode_of_payment", "guest_mobile", "guest_email", "total_taxes_and_charges", ]
         for d in frappe.db.sql(

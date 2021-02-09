@@ -411,19 +411,16 @@ def validate_sales_order_checklist(docname, guest, customer, company, advance_pa
     allow_checkin_without_advance = cint(
         frappe.db.get_value("Customer", customer, "allow_checkin_without_advance_cf")
     )
-
-    if (
-        not cint(advance_paid)
-        and not allow_checkin_without_advance
-        and not get_balance_on(
-            account=default_desk_account,
-            date=today(),
-            party_type="Customer",
-            party=customer,
-            company=company,
-            ignore_account_permission=True,
-        )
-    ):
+    balance = get_balance_on(
+        account=default_desk_account,
+        date=today(),
+        party_type="Customer",
+        party=customer,
+        company=company,
+        ignore_account_permission=True,
+    )
+    balance = balance and flt(balance) > 0
+    if not cint(advance_paid) and not allow_checkin_without_advance and not balance:
         validation += [
             "Please make payment against this Reservation to be able to Check In."
         ]

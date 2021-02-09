@@ -64,20 +64,25 @@ frappe.ui.form.on("Sales Order", {
       },
       callback: function (r) {
         if (!r.exc) {
+          console.log(r);
           if (r.message) {
             frm.set_intro(r.message, "yellow");
-          } else {
-            frm.trigger("add_checkin");
           }
+          frm.events.set_checkin(frm, r.message);
         }
       },
     });
   },
 
-  add_checkin(frm) {
-    frm.page.add_inner_button("Room Folio", function (params) {
-      on_checkin(frm);
-    });
+  set_checkin(frm, hide) {
+    console.log("hide", hide);
+    if (hide) {
+      frm.page.remove_inner_button("Room Folio");
+    } else {
+      frm.page.add_inner_button("Room Folio", function (params) {
+        on_checkin(frm);
+      });
+    }
   },
 
   refresh: function (frm) {
