@@ -69,7 +69,7 @@ function make_folio_dialog(pos) {
   let body = pos.folio_dialog.fields_dict["grid_html"].$wrapper;
   body.html(
     `
-    <p>Double click on item to select.</p>
+    <p>Double click on an item to select.</p>
     <div id="ag-items" class="ag-theme-balham" style="width:100%;height:350px;;"></div>
     `
   );
@@ -99,12 +99,6 @@ function make_folio_dialog(pos) {
       {
         field: "check_out",
         headerName: "Check Out",
-        width: 90,
-      },
-      {
-        field: "balance",
-        headerName: "Balance",
-        type: "numericColumn",
         width: 90,
       },
       {

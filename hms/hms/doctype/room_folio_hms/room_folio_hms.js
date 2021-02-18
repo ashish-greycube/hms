@@ -18,7 +18,10 @@ frappe.ui.form.on("Room Folio HMS", {
     if (!frm.is_new() && !cint(frm.doc.is_checklist_done)) {
       frm.events.validate_room_folio_checklist(frm);
     }
+
     frm.events.set_party_balance(frm);
+    frm.events.set_oustanding_charges(frm);
+    frm.events.set_advance_against_reservation(frm);
 
     frm.set_query("room_package", () => {
       return {
@@ -40,16 +43,41 @@ frappe.ui.form.on("Room Folio HMS", {
     });
   },
 
+  set_oustanding_charges: function (frm) {
+    frappe.call({
+      method:
+        "hms.hms.doctype.room_folio_hms.room_folio_hms.get_folio_outstanding_charges",
+      args: { folio: frm.doc.name },
+      callback: function (r) {
+        if (!r.exc) {
+          frm.fields_dict["outstanding_charges"].set_input(cint(r.message));
+        }
+      },
+    });
+  },
+
+  set_advance_against_reservation: function (frm) {
+    frappe.call({
+      method:
+        "hms.hms.doctype.room_folio_hms.room_folio_hms.get_advance_against_reservation",
+      args: { folio: frm.doc.name },
+      callback: function (r) {
+        if (!r.exc) {
+          frm.fields_dict["total_advance_paid"].set_input(cint(r.message));
+        }
+      },
+    });
+  },
+
   set_party_balance: function (frm) {
     frappe.call({
       method: "hms.hms.doctype.room_folio_hms.room_folio_hms.get_party_balance",
       args: { customer: frm.doc.customer, company: frm.doc.company },
       callback: function (r) {
         if (!r.exc) {
-          console.log("party balance", r.message);
           let party_balance = 0 - (r.message || 0);
-          frm.fields_dict["customer_balance"].set_input(party_balance);
-          frm.fields_dict["customer_balance"].$input_wrapper
+          frm.fields_dict["balance"].set_input(party_balance);
+          frm.fields_dict["balance"].$input_wrapper
             .find(".control-value, input")
             .css(
               "background-color",

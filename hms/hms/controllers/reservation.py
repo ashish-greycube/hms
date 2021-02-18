@@ -158,7 +158,7 @@ coalesce(a.no_nights,b.no_nights) total_nights, coalesce(a.customer,b.customer) 
 coalesce(gd.guest, b.guest, a.customer, b.customer) guest,
 a.name `folio`, b.name `reservation`, con.email_id, con.mobile_no, con.gender,
 coalesce(a.total_charges, b.rounded_total,0) total_charges, coalesce(b.room_rate_cf,0) rate,
-coalesce(b.weekend_rate_cf,0) as weekend_rate
+coalesce(b.weekend_rate_cf,0) as weekend_rate, 0 balance
 -- ,a.*, b.*
 from
 `tabDate Lookup HMS` d
@@ -199,6 +199,9 @@ order by d.date, r.room_type, r.room_no
         )
 
         details["guest"] = get_contact_details(details["guest"])["contact_display"]
+        from hms.hms.doctype.room_folio_hms.room_folio_hms import get_party_balance
+
+        details["balance"] = get_party_balance(customer=details["customer"])
     return details
 
 
@@ -428,9 +431,16 @@ def validate_sales_order_checklist(docname, guest, customer, company, advance_pa
 def get_checked_in_folios():
     return frappe.db.sql(
         """
-      select customer, room_type, room_no, date_format(check_in,'%d-%b') check_in,
-      date_format(check_out,'%d-%b') check_out, name folio
-      from `tabRoom Folio HMS` where status = 'Checked In'
+        select 
+            customer, room_type, room_no, date_format(check_in,'%d-%b') check_in,
+            date_format(check_out,'%d-%b') check_out, rf.name folio,
+            group_concat(REPLACE(REPLACE(gd.guest,rf.customer,''),'-','')) guest
+        from 
+            `tabRoom Folio HMS` rf
+            inner join `tabRoom Guest Detail HMS` gd on gd.parent = rf.name
+        where 
+            status = 'Checked In'
+        group by rf.name
     """,
         as_dict=True,
     )

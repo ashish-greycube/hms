@@ -40,8 +40,9 @@
   "finance_summary_section",
   "total_charges",
   "outstanding_charges",
-  "balance",
+  "column_break_35",
   "total_advance_paid",
+  "balance",
   "amended_from",
   "is_checklist_done"
  ],
@@ -164,13 +165,14 @@
   {
    "fieldname": "total_advance_paid",
    "fieldtype": "Currency",
-   "hidden": 1,
-   "label": "Total Advance Paid"
+   "label": "Advance against Reservation",
+   "read_only": 1
   },
   {
    "fieldname": "total_charges",
    "fieldtype": "Currency",
-   "label": "Total Charges"
+   "label": "Total Charges",
+   "read_only": 1
   },
   {
    "fieldname": "amended_from",
@@ -286,7 +288,7 @@
    "fieldtype": "Currency",
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Balance",
+   "label": "Customer Desk Balance",
    "read_only": 1
   },
   {
@@ -294,10 +296,14 @@
    "fieldtype": "Currency",
    "label": "Outstanding Charges",
    "read_only": 1
+  },
+  {
+   "fieldname": "column_break_35",
+   "fieldtype": "Column Break"
   }
  ],
  "is_submittable": 1,
- "modified": "2021-02-17 15:45:06.130578",
+ "modified": "2021-02-18 17:12:04.178684",
  "modified_by": "Administrator",
  "module": "HMS",
  "name": "Room Folio HMS",

@@ -157,17 +157,6 @@ def get_data(filters):
             width=100,
         )
     ]
-    # columns += [
-    #     dict(
-    #         label="Advance",
-    #         fieldname="total_advance_paid",
-    #         fieldtype="Currency",
-    #         width=100,
-    #     )
-    # ]
-    # columns += [dict(label="Mobile", fieldname="mobile",
-    #                  fieldtype="Data", width=120,)]
-
     return columns, data
 
 

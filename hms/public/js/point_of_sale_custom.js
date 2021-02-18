@@ -82,6 +82,11 @@ function make_folio_dialog(pos) {
         width: 150,
       },
       {
+        field: "guest",
+        headerName: "Guest",
+        width: 150,
+      },
+      {
         field: "room_type",
         headerName: "Room Type",
         width: 90,
@@ -102,16 +107,10 @@ function make_folio_dialog(pos) {
         width: 90,
       },
       {
-        field: "balance",
-        headerName: "Balance",
-        type: "numericColumn",
-        width: 90,
-      },
-      {
         field: "folio",
         headerName: "Folio",
         type: "Link/Room Folio HMS",
-        width: 120,
+        width: 140,
       },
     ],
     onGridReady: function () {

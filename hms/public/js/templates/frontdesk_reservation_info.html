@@ -20,10 +20,6 @@
             <td>R</td>
             <td>{{rate}}</td>
         </tr>
-        <!-- <tr>
-            <td>WNR</td>
-            <td>{{weekend_rate}}</td>
-        </tr> -->
         <tr>
             <td>Total Nights</td>
             <td>{{total_nights}}</td>
@@ -32,13 +28,9 @@
             <td>Total Stay Cost</td>
             <td class="text-right">{{total_charges}}</td>
         </tr>
-        <!-- <tr>
-            <td>Advance</td>
-            <td class="text-right">total_advance_paid</td>
-        </tr> -->
         <tr>
             <td>Desk Folio Balance</td>
-            <td class="text-right">{{ Math.abs(balance.desk.balance)}} {{balance.desk.balance < 0 ? "CR" :"DR"}}</td>
+            <td class="text-right">{{ Math.abs(balance) }} {{ balance < 0 ? "CR" :"DR"}}</td>
         </tr>
     </tbody>
 </table>

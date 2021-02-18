@@ -17,6 +17,7 @@ from frappe.utils import (
     cstr,
     now,
     get_link_to_form,
+    format_datetime,
 )
 from erpnext.accounts.party import get_party_account, get_party_bank_account
 from frappe.contacts.doctype.contact.contact import (
@@ -182,8 +183,6 @@ select status, reference_type, reference_name
         else:
             valid["advance_amount"] = 1
 
-        print("*" * 100, valid, party_balance)
-
         if not valid:
             checklist = "<br>".join(folio_checklist.values())
         else:
@@ -253,6 +252,11 @@ select status, reference_type, reference_name
                     "rate": self.room_rate,
                 },
             )
+        out.remarks = "%s Room Charges: %s for %s" % (
+            self.name,
+            self.room_package,
+            format_datetime(room_date, "d/m/Y"),
+        )
         out.save()
         out.submit()
         return out.name
@@ -371,9 +375,8 @@ select status, reference_type, reference_name
         frappe.msgprint(_("Payment created."), alert=True)
 
     def update_charges_and_amounts(self):
-        total_charges = 0
         # set totals from charge purchase and advances
-        for d in frappe.db.sql(
+        total_charges = frappe.db.sql(
             """
         select 
             sum(si.rounded_total)
@@ -382,14 +385,8 @@ select status, reference_type, reference_name
         where 
             NULLIF(si.room_folio_cf, '') = %s""",
             (self.name),
-        ):
-            total_charges = d[0]
-
-        default_folio_receivable_account = frappe.defaults.get_user_default(
-            "default_folio_receivable_account"
         )
-        total_charges = total_charges or 0
-
+        total_charges = total_charges and flt(total_charges[0][0]) or 0
         self.db_set("total_charges", total_charges, update_modified=False)
 
         guest_purchase_balance = frappe.db.sql(
@@ -531,6 +528,13 @@ def update_checklist_status(sign_in_sheet=None):
 def on_submit_sales_invoice(doc, method=None):
     if doc.room_folio_cf:
         frappe.get_doc("Room Folio HMS", doc.room_folio_cf).update_charges_and_amounts()
+    # set remarks
+    if not doc.remarks or doc.remarks == "No Remarks":
+        item_groups, items = [], []
+        for d in doc.items:
+            item_groups += [d.item_group]
+            items += [d.item_name]
+        doc.remarks = "{} - {}".format(", ".join(item_groups), ", ".join(items))
 
 
 def on_validate_sales_invoice(doc, method=None):
@@ -752,6 +756,39 @@ def get_party_balance(customer, company=None, posting_date=None):
         date=posting_date or today(),
         company=company or erpnext.get_default_company(),
     )
+
+
+@frappe.whitelist()
+def get_folio_outstanding_charges(folio):
+    outstanding_amount = frappe.db.sql(
+        """
+    select 
+        sum(outstanding_amount)
+    from 
+        `tabSales Invoice`
+    where 
+        room_folio_cf = %s
+    """,
+        (folio),
+    )
+    return outstanding_amount and flt(outstanding_amount[0][0]) or 0
+
+
+@frappe.whitelist()
+def get_advance_against_reservation(folio):
+    advance_amount = frappe.db.sql(
+        """
+        select 
+            sum(outstanding_amount) outstanding_amount
+        from 
+            `tabPayment Entry Reference` per
+            inner join `tabRoom Folio HMS` rf on rf.reservation = per.reference_name
+        where 
+            per.reference_doctype = 'Sales Order' and rf.name = %s
+    """,
+        (folio),
+    )
+    return advance_amount and flt(advance_amount[0][0]) or 0
 
 
 @frappe.whitelist()
