@@ -73,7 +73,6 @@ class SignInSheetHMS(Document):
                 max(so.rounded_total) total_room_charges,
                 max(so.discount_amount) discount_amount,
                 0 total_other_charges,
-                max(so.advance_paid) total_advance_paid,
                 max(so.rounded_total - so.advance_paid) balance,
                 coalesce(max(so.no_of_guest_cf),1) total_guest,
                 max(total_taxes_and_charges) total_taxes_and_charges,

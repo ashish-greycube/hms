@@ -1,338 +1,347 @@
 {
-  "autoname": "naming_series:",
-  "creation": "2020-02-03 08:04:35.352094",
-  "description": "Room Folio ",
-  "doctype": "DocType",
-  "editable_grid": 1,
-  "engine": "InnoDB",
-  "field_order": [
-    "naming_series",
-    "reservation",
-    "customer",
-    "master_folio",
-    "customer_email",
-    "customer_mobile",
-    "is_split_bill",
-    "column_break_4",
-    "company",
-    "room_type",
-    "room_no",
-    "room_package",
-    "room_rate",
-    "check_in",
-    "check_out",
-    "status",
-    "sign_in_sheet",
-    "split_bill_section_section",
-    "room_folio_split_bill_detail",
-    "guest_purchase",
-    "guest_purchase_balance",
-    "guest_details_section",
-    "room_guest_detail",
-    "vi_sb",
-    "car_make_model",
-    "vi_s_cb1",
-    "registration_plate_no",
-    "advance_payment_section",
-    "room_folio_advance",
-    "charge_purchase_section",
-    "sales_invoice_reference",
-    "finance_summary_section",
-    "total_advance_paid",
-    "total_charges",
-    "balance",
-    "amended_from",
-    "is_checklist_done"
-  ],
-  "fields": [
-    {
-      "default": "HMS-RR-.YY.-",
-      "fieldname": "naming_series",
-      "fieldtype": "Select",
-      "label": "Series",
-      "options": "HMS-RR-.YY.-",
-      "reqd": 1
-    },
-    {
-      "fieldname": "customer",
-      "fieldtype": "Link",
-      "in_list_view": 1,
-      "in_standard_filter": 1,
-      "label": "Bill To Customer",
-      "options": "Customer",
-      "reqd": 1
-    },
-    {
-      "default": "Now",
-      "fieldname": "check_in",
-      "fieldtype": "Datetime",
-      "in_list_view": 1,
-      "label": "Check In",
-      "reqd": 1
-    },
-    {
-      "fieldname": "column_break_4",
-      "fieldtype": "Column Break"
-    },
-    {
-      "fieldname": "check_out",
-      "fieldtype": "Datetime",
-      "in_list_view": 1,
-      "label": "Check Out",
-      "reqd": 1
-    },
-    {
-      "allow_on_submit": 1,
-      "fieldname": "room_no",
-      "fieldtype": "Link",
-      "in_list_view": 1,
-      "in_standard_filter": 1,
-      "label": "Room No",
-      "options": "Room HMS",
-      "reqd": 1
-    },
-    {
-      "allow_on_submit": 1,
-      "fetch_from": "room_no.room_type",
-      "fieldname": "room_type",
-      "fieldtype": "Link",
-      "in_list_view": 1,
-      "in_standard_filter": 1,
-      "label": "Room Type",
-      "options": "Room Type HMS",
-      "read_only": 1,
-      "reqd": 1
-    },
-    {
-      "fieldname": "advance_payment_section",
-      "fieldtype": "Section Break",
-      "label": "Unallocated Advance"
-    },
-    {
-      "fieldname": "charge_purchase_section",
-      "fieldtype": "Section Break",
-      "label": "Charge Purchase"
-    },
-    {
-      "fieldname": "sales_invoice_reference",
-      "fieldtype": "HTML",
-      "label": "Sales Invoice Reference"
-    },
-    {
-      "fieldname": "company",
-      "fieldtype": "Link",
-      "in_standard_filter": 1,
-      "label": "Company",
-      "options": "Company",
-      "reqd": 1
-    },
-    {
-      "default": "0",
-      "fieldname": "is_split_bill",
-      "fieldtype": "Check",
-      "label": "is split bill"
-    },
-    {
-      "depends_on": "eval:doc.is_split_bill == 1",
-      "fieldname": "split_bill_section_section",
-      "fieldtype": "Section Break",
-      "label": "Split Bill Detail"
-    },
-    {
-      "fieldname": "room_folio_split_bill_detail",
-      "fieldtype": "Table",
-      "options": "Room Folio Split Bill Detail HMS"
-    },
-    {
-      "collapsible": 1,
-      "fieldname": "guest_details_section",
-      "fieldtype": "Section Break",
-      "label": "Guest Details"
-    },
-    {
-      "fieldname": "room_guest_detail",
-      "fieldtype": "Table",
-      "label": "Room Guest Detail",
-      "options": "Room Guest Detail HMS"
-    },
-    {
-      "fieldname": "finance_summary_section",
-      "fieldtype": "Section Break",
-      "label": "Finance Summary"
-    },
-    {
-      "fieldname": "total_advance_paid",
-      "fieldtype": "Currency",
-      "label": "Total Advance Paid"
-    },
-    {
-      "fieldname": "total_charges",
-      "fieldtype": "Currency",
-      "label": "Total Charges"
-    },
-    {
-      "fieldname": "balance",
-      "fieldtype": "Currency",
-      "in_list_view": 1,
-      "in_standard_filter": 1,
-      "label": "Balance"
-    },
-    {
-      "fieldname": "amended_from",
-      "fieldtype": "Link",
-      "label": "Amended From",
-      "no_copy": 1,
-      "options": "Room Folio HMS",
-      "print_hide": 1,
-      "read_only": 1
-    },
-    {
-      "fieldname": "status",
-      "fieldtype": "Select",
-      "in_list_view": 1,
-      "in_standard_filter": 1,
-      "label": "Status",
-      "options": "\nPre-Check In\nChecked In\nChecked Out\nSkipper",
-      "read_only": 1
-    },
-    {
-      "fieldname": "reservation",
-      "fieldtype": "Link",
-      "label": "Reservation",
-      "options": "Sales Order"
-    },
-    {
-      "fieldname": "room_folio_advance",
-      "fieldtype": "HTML",
-      "label": "room_folio_advance"
-    },
-    {
-      "fieldname": "master_folio",
-      "fieldtype": "Link",
-      "label": "Master Folio",
-      "options": "Room Folio HMS"
-    },
-    {
-      "fieldname": "sign_in_sheet",
-      "fieldtype": "Link",
-      "label": "Sign In Sheet",
-      "options": "Sign In Sheet HMS",
-      "read_only": 1
-    },
-    {
-      "default": "0",
-      "fieldname": "is_checklist_done",
-      "fieldtype": "Check",
-      "hidden": 1,
-      "label": "Is Checklist Done",
-      "read_only": 1
-    },
-    {
-      "collapsible": 1,
-      "fieldname": "vi_sb",
-      "fieldtype": "Section Break",
-      "label": "Vehicle Information"
-    },
-    {
-      "fieldname": "car_make_model",
-      "fieldtype": "Data",
-      "label": "Car Make Model"
-    },
-    {
-      "fieldname": "vi_s_cb1",
-      "fieldtype": "Column Break"
-    },
-    {
-      "fieldname": "registration_plate_no",
-      "fieldtype": "Data",
-      "label": "Registration Plate No"
-    },
-    {
-      "depends_on": "eval:doc.is_split_bill==1;",
-      "fieldname": "guest_purchase",
-      "fieldtype": "HTML",
-      "label": "Guest Purchase"
-    },
-    {
-      "default": "0",
-      "fieldname": "guest_purchase_balance",
-      "fieldtype": "Currency",
-      "label": "Guest Outstanding Amount"
-    },
-    {
-      "fieldname": "customer_email",
-      "fieldtype": "Data",
-      "label": "Customer Email",
-      "options": "Email"
-    },
-    {
-      "fieldname": "customer_mobile",
-      "fieldtype": "Data",
-      "label": "Customer Mobile",
-      "options": "Phone"
-    },
-    {
-      "allow_on_submit": 1,
-      "fieldname": "room_rate",
-      "fieldtype": "Currency",
-      "label": "Room Rate",
-      "no_copy": 1
-    },
-    {
-      "allow_on_submit": 1,
-      "fieldname": "room_package",
-      "fieldtype": "Link",
-      "label": "Room Package",
-      "options": "Item",
-      "reqd": 1
-    }
-  ],
-  "is_submittable": 1,
-  "modified": "2021-01-15 05:15:30.867954",
-  "modified_by": "Administrator",
-  "module": "HMS",
-  "name": "Room Folio HMS",
-  "owner": "Administrator",
-  "permissions": [
-    {
-      "create": 1,
-      "delete": 1,
-      "email": 1,
-      "export": 1,
-      "print": 1,
-      "read": 1,
-      "report": 1,
-      "role": "System Manager",
-      "share": 1,
-      "write": 1
-    },
-    {
-      "create": 1,
-      "delete": 1,
-      "email": 1,
-      "export": 1,
-      "print": 1,
-      "read": 1,
-      "report": 1,
-      "role": "Hotel Manager HMS",
-      "share": 1,
-      "write": 1
-    },
-    {
-      "create": 1,
-      "delete": 1,
-      "email": 1,
-      "export": 1,
-      "print": 1,
-      "read": 1,
-      "report": 1,
-      "role": "Hotel User HMS",
-      "share": 1,
-      "write": 1
-    }
-  ],
-  "search_fields": "customer,room_no,room_type,status,check_in",
-  "sort_field": "modified",
-  "sort_order": "DESC",
-  "track_changes": 1
+ "autoname": "naming_series:",
+ "creation": "2020-02-03 08:04:35.352094",
+ "description": "Room Folio ",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series",
+  "reservation",
+  "customer",
+  "master_folio",
+  "customer_email",
+  "customer_mobile",
+  "is_split_bill",
+  "column_break_4",
+  "company",
+  "room_type",
+  "room_no",
+  "room_package",
+  "room_rate",
+  "check_in",
+  "check_out",
+  "status",
+  "sign_in_sheet",
+  "split_bill_section_section",
+  "room_folio_split_bill_detail",
+  "guest_purchase",
+  "guest_purchase_balance",
+  "guest_details_section",
+  "room_guest_detail",
+  "vi_sb",
+  "car_make_model",
+  "vi_s_cb1",
+  "registration_plate_no",
+  "advance_payment_section",
+  "room_folio_advance",
+  "charge_purchase_section",
+  "sales_invoice_reference",
+  "finance_summary_section",
+  "total_charges",
+  "outstanding_charges",
+  "balance",
+  "total_advance_paid",
+  "amended_from",
+  "is_checklist_done"
+ ],
+ "fields": [
+  {
+   "default": "HMS-RR-.YY.-",
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "options": "HMS-RR-.YY.-",
+   "reqd": 1
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Bill To Customer",
+   "options": "Customer",
+   "reqd": 1
+  },
+  {
+   "default": "Now",
+   "fieldname": "check_in",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Check In",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "check_out",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Check Out",
+   "reqd": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "room_no",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Room No",
+   "options": "Room HMS",
+   "reqd": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fetch_from": "room_no.room_type",
+   "fieldname": "room_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Room Type",
+   "options": "Room Type HMS",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "advance_payment_section",
+   "fieldtype": "Section Break",
+   "label": "Unallocated Advance"
+  },
+  {
+   "fieldname": "charge_purchase_section",
+   "fieldtype": "Section Break",
+   "label": "Charge Purchase"
+  },
+  {
+   "fieldname": "sales_invoice_reference",
+   "fieldtype": "HTML",
+   "label": "Sales Invoice Reference"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_split_bill",
+   "fieldtype": "Check",
+   "label": "is split bill"
+  },
+  {
+   "depends_on": "eval:doc.is_split_bill == 1",
+   "fieldname": "split_bill_section_section",
+   "fieldtype": "Section Break",
+   "label": "Split Bill Detail"
+  },
+  {
+   "fieldname": "room_folio_split_bill_detail",
+   "fieldtype": "Table",
+   "options": "Room Folio Split Bill Detail HMS"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "guest_details_section",
+   "fieldtype": "Section Break",
+   "label": "Guest Details"
+  },
+  {
+   "fieldname": "room_guest_detail",
+   "fieldtype": "Table",
+   "label": "Room Guest Detail",
+   "options": "Room Guest Detail HMS"
+  },
+  {
+   "fieldname": "finance_summary_section",
+   "fieldtype": "Section Break",
+   "label": "Finance Summary"
+  },
+  {
+   "fieldname": "total_advance_paid",
+   "fieldtype": "Currency",
+   "hidden": 1,
+   "label": "Total Advance Paid"
+  },
+  {
+   "fieldname": "total_charges",
+   "fieldtype": "Currency",
+   "label": "Total Charges"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Room Folio HMS",
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "\nPre-Check In\nChecked In\nChecked Out\nSkipper",
+   "read_only": 1
+  },
+  {
+   "fieldname": "reservation",
+   "fieldtype": "Link",
+   "label": "Reservation",
+   "options": "Sales Order"
+  },
+  {
+   "fieldname": "room_folio_advance",
+   "fieldtype": "HTML",
+   "label": "room_folio_advance"
+  },
+  {
+   "fieldname": "master_folio",
+   "fieldtype": "Link",
+   "label": "Master Folio",
+   "options": "Room Folio HMS"
+  },
+  {
+   "fieldname": "sign_in_sheet",
+   "fieldtype": "Link",
+   "label": "Sign In Sheet",
+   "options": "Sign In Sheet HMS",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_checklist_done",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Is Checklist Done",
+   "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "vi_sb",
+   "fieldtype": "Section Break",
+   "label": "Vehicle Information"
+  },
+  {
+   "fieldname": "car_make_model",
+   "fieldtype": "Data",
+   "label": "Car Make Model"
+  },
+  {
+   "fieldname": "vi_s_cb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "registration_plate_no",
+   "fieldtype": "Data",
+   "label": "Registration Plate No"
+  },
+  {
+   "depends_on": "eval:doc.is_split_bill==1;",
+   "fieldname": "guest_purchase",
+   "fieldtype": "HTML",
+   "label": "Guest Purchase"
+  },
+  {
+   "default": "0",
+   "fieldname": "guest_purchase_balance",
+   "fieldtype": "Currency",
+   "label": "Guest Outstanding Amount"
+  },
+  {
+   "fieldname": "customer_email",
+   "fieldtype": "Data",
+   "label": "Customer Email",
+   "options": "Email"
+  },
+  {
+   "fieldname": "customer_mobile",
+   "fieldtype": "Data",
+   "label": "Customer Mobile",
+   "options": "Phone"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "room_rate",
+   "fieldtype": "Currency",
+   "label": "Room Rate",
+   "no_copy": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "room_package",
+   "fieldtype": "Link",
+   "label": "Room Package",
+   "options": "Item",
+   "reqd": 1
+  },
+  {
+   "fieldname": "balance",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Balance",
+   "read_only": 1
+  },
+  {
+   "fieldname": "outstanding_charges",
+   "fieldtype": "Currency",
+   "label": "Outstanding Charges",
+   "read_only": 1
+  }
+ ],
+ "is_submittable": 1,
+ "modified": "2021-02-17 15:45:06.130578",
+ "modified_by": "Administrator",
+ "module": "HMS",
+ "name": "Room Folio HMS",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Hotel Manager HMS",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Hotel User HMS",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "search_fields": "customer,room_no,room_type,status,check_in",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
 }

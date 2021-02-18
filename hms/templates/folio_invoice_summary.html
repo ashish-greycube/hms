@@ -11,6 +11,7 @@
 {{ add_header(0,1,doc,letter_head, no_letterhead) }}
 
 {% set print_doc = doc.get_print_doc() %}
+{% set folios = print_doc.get("folios") %}
 
 {% block head_include %}
 <meta name="pdfkit-orientation" content="portrait" /> {% endblock %} {% block content %} <div>
@@ -33,32 +34,41 @@
                     <th>Folio</th>
                     <th>Check In</th>
                     <th>Check Out</th>
-                    <th>Balance</th>
+                    <th>Total Charges</th>
+                    <th>Outstanding Charges</th>
                 </tr>
             </thead>
-            <tbody> {% for d in print_doc.get("folios") %} <tr>
+            <tbody> {% for d in folios %} <tr>
                     <td>{{ d.room_no }}</td>
                     <td>{{ d.folio }}</td>
                     <td>{{ frappe.utils.format_datetime(d.check_in,"dd MMM, yyyy") }}</td>
                     <td>{{ frappe.utils.format_datetime(d.check_out,"dd MMM, yyyy") }}</td>
-                    <td class="text-right">{{ d.balance }}</td>
+                    <td class="text-right">{{ d.total_charges or 0 }}</td>
+                    <td class="text-right">{{ d.outstanding_charges or 0 }}</td>
                 </tr> {% endfor %} <tr>
                     <td colspan="2" class="text-right">Master Folio</td>
-                    <td colspan="3" class="text-right"> </td>
+                    <td colspan="4" class="text-right"> </td>
                 </tr>
             </tbody>
         </table>
+        <div class="text-right">
+            {% if folios and not folios[0].get("outstanding_charges",0) == 0 %} <div>Customer Desk Balance: {{
+                frappe.format(2500, "Currency") }}
+
+            </div>
+        </div>
+        {% endif %}
     </div>
 </div>
 <div>
     <table class="table table-bordered">
         <colgroup>
             <col style="width:10%;">
-            <col style="width:10%;">
-            <col style="width:46%;">
+            <col style="width:4%;">
+            <col style="width:50%;">
             <col style="width:12%;">
             <col style="width:12%;">
-            <col style="width:10%;">
+            <col style="width:12%;">
         </colgroup>
         <thead>
             <tr>
@@ -70,26 +80,33 @@
                 <th>Balance</th>
             </tr>
         </thead>
-        <tbody> {% for d in print_doc.get("items") %} <tr>
-                <td>{{ frappe.utils.format_datetime(d.date, "dd/MM/yyyy") }}</td>
+        <tbody> {% for d in print_doc.get("gl_items") %} <tr>
+                <td>{{ frappe.utils.format_datetime(d.posting_date, "dd/MM/yyyy") if d.posting_date else "" }}</td>
                 <td>{{ d.room_no or "" }}</td>
-                <td>{{ d.voucher }}</td>
-                <td class="text-right">{{ d.charges }}</td>
-                <td class="text-right">{{ d.credits }}</td>
+                <td>{{ d.voucher_no or ""}} {% if d.remarks %} {% if not loop.index == 1%}, {% endif %} {{ d.remarks }}
+                    {% endif %}</td>
+                <td class="text-right">{{ d.debit }}</td>
+                <td class="text-right">{{ d.credit }}</td>
                 <td class="text-right">{{ d.balance }}</td>
             </tr> {% endfor %} <tr>
                 <td colspan="3" class="text-right"></td>
                 <td class="text-right">
-                    {{ frappe.utils.fmt_money((print_doc.get("items") | sum(attribute="charges")), currency=print_doc.get("currency")) }}
+                    {{ frappe.utils.fmt_money(print_doc.get("gl_items") | sum(attribute="debit"),
+                    currency=print_doc.get("currency")) }}
                 </td>
                 <td class="text-right">
-                    {{ frappe.utils.fmt_money((print_doc.get("items") | sum(attribute="credits")), currency=print_doc.get("currency")) }}
+                    {{ frappe.utils.fmt_money(print_doc.get("gl_items") | sum(attribute="credit"),
+                    currency=print_doc.get("currency")) }}
                 </td>
-                <td class="text-right"></td>
+                <td class="text-right">
+                    {{ frappe.utils.fmt_money(print_doc.get("gl_items")[-1]["balance"],
+                    currency=print_doc.get("currency")) }}
+                </td>
             </tr>
         </tbody>
     </table>
 </div>
+
 <!-- <div>
      print_doc.get("invoice_html", "No invoices")  
 </div> -->

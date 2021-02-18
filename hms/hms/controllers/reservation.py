@@ -157,7 +157,6 @@ select d.date, r.name name, r.room_no room_no, r.room_type,
 coalesce(a.no_nights,b.no_nights) total_nights, coalesce(a.customer,b.customer) customer,
 coalesce(gd.guest, b.guest, a.customer, b.customer) guest,
 a.name `folio`, b.name `reservation`, con.email_id, con.mobile_no, con.gender,
-coalesce(a.total_advance_paid, b.advance_paid, 0) total_advance_paid,
 coalesce(a.total_charges, b.rounded_total,0) total_charges, coalesce(b.room_rate_cf,0) rate,
 coalesce(b.weekend_rate_cf,0) as weekend_rate
 -- ,a.*, b.*
@@ -168,7 +167,7 @@ left outer join
 (
     -- room folio
     select fo.room_no, fo.check_in, fo.check_out, fo.customer, fo.name, fo.status,
-    datediff(fo.check_out, fo.check_in) no_nights, fo.total_charges, fo.total_advance_paid
+    datediff(fo.check_out, fo.check_in) no_nights, fo.total_charges
     from `tabRoom Folio HMS` fo
 ) a on d.date BETWEEN a.check_in and a.check_out and r.name = a.room_no
 left outer join `tabRoom Guest Detail HMS` gd on gd.name = (
@@ -200,12 +199,6 @@ order by d.date, r.room_type, r.room_no
         )
 
         details["guest"] = get_contact_details(details["guest"])["contact_display"]
-        from hms.hms.doctype.room_folio_hms.room_folio_hms import get_folio_balance
-
-        details["balance"] = get_folio_balance(
-            party=details.customer, folio=details.folio
-        )
-
     return details
 
 
@@ -411,7 +404,7 @@ def validate_sales_order_checklist(docname, guest, customer, company, advance_pa
     allow_checkin_without_advance = cint(
         frappe.db.get_value("Customer", customer, "allow_checkin_without_advance_cf")
     )
-    balance = get_balance_on(
+    party_balance = get_balance_on(
         account=default_desk_account,
         date=today(),
         party_type="Customer",
@@ -419,8 +412,12 @@ def validate_sales_order_checklist(docname, guest, customer, company, advance_pa
         company=company,
         ignore_account_permission=True,
     )
-    balance = balance and flt(balance) > 0
-    if not cint(advance_paid) and not allow_checkin_without_advance and not balance:
+    party_balance = party_balance and flt(party_balance) > 0
+    if (
+        not cint(advance_paid)
+        and not allow_checkin_without_advance
+        and not party_balance
+    ):
         validation += [
             "Please make payment against this Reservation to be able to Check In."
         ]
@@ -431,7 +428,7 @@ def validate_sales_order_checklist(docname, guest, customer, company, advance_pa
 def get_checked_in_folios():
     return frappe.db.sql(
         """
-      select customer, room_type, room_no, balance, date_format(check_in,'%d-%b') check_in,
+      select customer, room_type, room_no, date_format(check_in,'%d-%b') check_in,
       date_format(check_out,'%d-%b') check_out, name folio
       from `tabRoom Folio HMS` where status = 'Checked In'
     """,
@@ -583,3 +580,31 @@ def get_online_packages():
         dict(company=get_default_company(), today=getdate()),
         as_dict=True,
     )
+
+
+def update_room_folio_charges():
+    room_folios = dict()
+    for d in frappe.get_all(
+        "Sales Invoice",
+        filters=[["room_folio_cf", "not in", (None)]],
+        fields=["name", "outstanding_amount", "base_rounded_total", "room_folio_cf"],
+    ):
+        item = room_folios.setdefault(
+            d.room_folio_cf, dict(total_charges=0.0, outstanding_charges=0.0)
+        )
+        item["total_charges"] += flt(d.base_rounded_total)
+        item["outstanding_charges"] += flt(d.outstanding_amount)
+
+    for folio, values in room_folios.items():
+        print(folio, values)
+        frappe.db.set_value(
+            "Room Folio HMS", folio, "total_charges", values["total_charges"]
+        )
+        frappe.db.set_value(
+            "Room Folio HMS",
+            folio,
+            "outstanding_charges",
+            values["outstanding_charges"],
+        )
+
+    frappe.db.commit()

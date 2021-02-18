@@ -34,7 +34,7 @@ def get_data(filters):
         data = frappe.db.sql(
             """
     select g.reference_name name, g.room_no, f.room_type, f.status, g.reference_name folio, f.customer,
-    f.check_in, f.check_out, f.total_charges, f.total_advance_paid, f.balance, gu.guests guest, '' mobile,
+    f.check_in, f.check_out, f.total_charges, gu.guests guest, '' mobile,
     coalesce(si.name,'') invoice, coalesce(si.outstanding_amount, 0) outstanding_amount
     from `tabRoom Status Ledger Entry HMS` g
     inner join `tabRoom Folio HMS` f on f.name = g.reference_name
@@ -102,13 +102,28 @@ def get_data(filters):
         )
     ]
     columns += [
-        dict(label="Guest", fieldname="guest", fieldtype="Link/Contact", width=180,)
+        dict(
+            label="Guest",
+            fieldname="guest",
+            fieldtype="Link/Contact",
+            width=180,
+        )
     ]
     columns += [
-        dict(label="In", fieldname="check_in", fieldtype="DateTime", width=140,)
+        dict(
+            label="In",
+            fieldname="check_in",
+            fieldtype="DateTime",
+            width=140,
+        )
     ]
     columns += [
-        dict(label="Out", fieldname="check_out", fieldtype="DateTime", width=140,)
+        dict(
+            label="Out",
+            fieldname="check_out",
+            fieldtype="DateTime",
+            width=140,
+        )
     ]
     columns += [
         dict(
@@ -135,19 +150,21 @@ def get_data(filters):
         )
     ]
     columns += [
-        dict(label="Total", fieldname="total_charges", fieldtype="Currency", width=100,)
-    ]
-    columns += [
         dict(
-            label="Advance",
-            fieldname="total_advance_paid",
+            label="Total",
+            fieldname="total_charges",
             fieldtype="Currency",
             width=100,
         )
     ]
-    columns += [
-        dict(label="Balance", fieldname="balance", fieldtype="Currency", width=100,)
-    ]
+    # columns += [
+    #     dict(
+    #         label="Advance",
+    #         fieldname="total_advance_paid",
+    #         fieldtype="Currency",
+    #         width=100,
+    #     )
+    # ]
     # columns += [dict(label="Mobile", fieldname="mobile",
     #                  fieldtype="Data", width=120,)]
 
@@ -160,8 +177,8 @@ def get_data_rooms_to_checkin(filters):
     data = frappe.db.sql(
         """
         select
-            so.name, so.room_no_cf room_no, rm.room_type, so.check_in_cf check_in, so.check_out_cf check_out,
-            so.guest_cf guest, so.customer, so.advance_paid
+            so.name, so.room_no_cf room_no, rm.room_type, so.check_in_cf check_in, 
+            so.check_out_cf check_out, so.guest_cf guest, so.customer
         from
             `tabSales Order` so
             inner join `tabRoom HMS` rm on rm.name = so.room_no_cf
@@ -180,16 +197,43 @@ def get_data_rooms_to_checkin(filters):
             width=150,
         )
     ]
-    columns += [dict(label="Room #", fieldname="room_no", width=120,)]
-    columns += [dict(label="Room Type", fieldname="room_type", width=120,)]
     columns += [
-        dict(label="Guest", fieldname="guest", fieldtype="Link/Contact", width=180,)
+        dict(
+            label="Room #",
+            fieldname="room_no",
+            width=120,
+        )
     ]
     columns += [
-        dict(label="In", fieldname="check_in", fieldtype="DateTime", width=140,)
+        dict(
+            label="Room Type",
+            fieldname="room_type",
+            width=120,
+        )
     ]
     columns += [
-        dict(label="Out", fieldname="check_out", fieldtype="DateTime", width=140,)
+        dict(
+            label="Guest",
+            fieldname="guest",
+            fieldtype="Link/Contact",
+            width=180,
+        )
+    ]
+    columns += [
+        dict(
+            label="In",
+            fieldname="check_in",
+            fieldtype="DateTime",
+            width=140,
+        )
+    ]
+    columns += [
+        dict(
+            label="Out",
+            fieldname="check_out",
+            fieldtype="DateTime",
+            width=140,
+        )
     ]
     columns += [
         dict(
@@ -197,14 +241,6 @@ def get_data_rooms_to_checkin(filters):
             fieldname="customer",
             fieldtype="Link/Customer",
             width=180,
-        )
-    ]
-    columns += [
-        dict(
-            label="Advance",
-            fieldname="total_advance_paid",
-            fieldtype="Currency",
-            width=100,
         )
     ]
 
@@ -282,7 +318,7 @@ def validate_system_date(system_date, raise_exception=0):
         message += ", ".join(
             [
                 frappe.utils.get_link_to_form("Room Folio HMS", d["folio"])
-                + f"{d['room_no']} {d['date']}"
+                + f" {d['room_no']} {d['date']}"
                 for d in rooms_to_charge
             ]
         )
@@ -300,9 +336,11 @@ def validate_system_date(system_date, raise_exception=0):
     )
     if rooms_to_check_out:
         message = "<h6>Please check out these folios.</h6>"
-        message += ", ".join(
-            [f"{d['folio']} {d['room_no']}" for d in rooms_to_check_out]
-        )
+        for d in rooms_to_check_out:
+            message += "{} {}, ".format(
+                frappe.utils.get_link_to_form("Room Folio HMS", d["folio"]),
+                d["room_no"],
+            )
         messages += [message]
 
     if messages:
