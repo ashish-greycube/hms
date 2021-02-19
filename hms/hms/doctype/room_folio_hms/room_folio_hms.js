@@ -75,13 +75,13 @@ frappe.ui.form.on("Room Folio HMS", {
       args: { customer: frm.doc.customer, company: frm.doc.company },
       callback: function (r) {
         if (!r.exc) {
-          let party_balance = 0 - (r.message || 0);
+          let party_balance = r.message || 0;
           frm.fields_dict["balance"].set_input(party_balance);
           frm.fields_dict["balance"].$input_wrapper
             .find(".control-value, input")
             .css(
               "background-color",
-              party_balance < 0 ? "mistyrose" : "lightgreen"
+              party_balance < 0 ? "lightgreen" : "mistyrose"
             );
         }
       },
