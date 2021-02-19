@@ -778,13 +778,13 @@ def get_folio_outstanding_charges(folio):
 def get_advance_against_reservation(folio):
     advance_amount = frappe.db.sql(
         """
-        select 
-            sum(outstanding_amount) outstanding_amount
-        from 
-            `tabPayment Entry Reference` per
-            inner join `tabRoom Folio HMS` rf on rf.reservation = per.reference_name
-        where 
-            per.reference_doctype = 'Sales Order' and rf.name = %s
+            select 
+                coalesce(so.advance_paid,0)
+            from 
+                `tabRoom Folio HMS` rf
+                left outer join `tabSales Order` so on so.name = rf.reservation
+            where
+                rf.name = %s
     """,
         (folio),
     )
