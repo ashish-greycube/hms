@@ -79,10 +79,8 @@ frappe.ui.form.on("Room Folio HMS", {
           frm.fields_dict["balance"].set_input(party_balance);
           frm.fields_dict["balance"].$input_wrapper
             .find(".control-value, input")
-            .css(
-              "background-color",
-              party_balance < 0 ? "lightgreen" : "mistyrose"
-            );
+            .addClass(party_balance <= 0 ? "hms-credit" : "hms-debit")
+            .removeClass(party_balance > 0 ? "hms-credit" : "hms-debit");
         }
       },
     });

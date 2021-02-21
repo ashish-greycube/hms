@@ -79,3 +79,13 @@
   padding: 12px 5px;
   font-weight: bold;
 }
+
+.hms-debit {
+  background-color: red;
+  color: white;
+}
+
+.hms-credit {
+  background-color: limegreen;
+  color: black;
+}
