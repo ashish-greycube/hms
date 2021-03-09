@@ -479,6 +479,8 @@ function make_payment_entry(frm) {
     title: __("Desk Payment"),
     fields: fields,
     primary_action: function () {
+      if (dlg.save_disabled) return;
+      dlg.save_disabled = true;
       let data = dlg.get_values();
 
       $.extend(data, {
@@ -502,6 +504,7 @@ function make_payment_entry(frm) {
           "hms.hms.controllers.reservation.make_payment_entry_from_sales_order",
         args: data,
         callback: function (r) {
+          dlg.save_disabled = false;
           if (!r.exc) {
             dlg.hide();
             frm.reload_doc();
