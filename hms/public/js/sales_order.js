@@ -310,7 +310,7 @@ function _make_room_folio(frm, docname) {
 
   $.extend(folio, {
     reservation: frm.doc.name,
-    check_in: frappe.datetime.get_datetime_as_string(),
+    check_in: frappe.datetime.now_datetime(),
     check_out: frm.doc.check_out_cf,
     customer: frm.doc.customer,
     company: frm.doc.company,

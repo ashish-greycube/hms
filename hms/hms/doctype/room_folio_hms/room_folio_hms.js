@@ -6,7 +6,19 @@ frappe.ui.form.on("Room Folio HMS", {
   //
   after_save: function (frm) {},
 
+  set_read_only: function (frm) {
+    frm.set_read_only();
+
+    for (const fld of ["room_no", "room_package", "room_rate", "check_out"]) {
+      frm.set_df_property(fld, "read_only", 1);
+    }
+  },
+
   refresh: function (frm) {
+    if (frm.doc.status == "Checked Out") {
+      frm.events.set_read_only(frm);
+    }
+
     hms.make_grid_room_folio_advance(frm);
     hms.make_grid_charge_and_purchase(frm);
     hms.make_grid_guest_purchase(frm);
@@ -121,6 +133,8 @@ frappe.ui.form.on("Room Folio HMS", {
         args: { customer: frm.doc.customer, company: frm.doc.company },
         callback: function (r) {
           if (!r.exc && r.message == 1) {
+            if (frm.page.inner_toolbar.find("a[data-label$='Sheet']").length)
+              return;
             frm.page.add_inner_button(
               __("Make Sign In Sheet"),
               function () {

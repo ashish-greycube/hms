@@ -7,6 +7,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.utils import (
+    formatdate,
     nowdate,
     flt,
     cint,
@@ -53,6 +54,66 @@ class RoomFolioHMS(Document):
     def before_insert(self):
         if getdate(self.check_in) == getdate():
             validate_system_date(getdate(), raise_exception=0)
+
+    def on_update_after_submit(self):
+        self.update_charges_and_amounts()
+        self.update_so_items()
+
+    def update_so_items(self):
+        """Update Sales Order Items if room package or Rate has changed since submit"""
+        so = frappe.get_doc("Sales Order", self.reservation)
+        updated_items, new_items = [], []
+        for item in so.items:
+            # ignore billed rows and rows where no change
+            if (
+                item.billed_amt
+                # or (item.get("reservation_date_cf") < getdate())
+                or (item.item_code == self.room_package and item.rate == self.room_rate)
+            ):
+                updated_items.append(
+                    {
+                        "item_code": item.item_code,
+                        "rate": item.rate,
+                        "qty": item.qty,
+                        "docname": item.name,
+                    },
+                )
+            else:
+                updated_items.append(
+                    {
+                        "item_code": self.room_package,
+                        "rate": self.room_rate,
+                        "qty": item.qty,
+                    },
+                )
+        # add rows for checkout date extended
+        for d in range(
+            date_diff(self.check_out, so.items[-1].get("reservation_date_cf"))
+        ):
+            updated_items.append(
+                {
+                    "item_code": self.room_package,
+                    "rate": self.room_rate,
+                    "qty": item.qty,
+                }
+            )
+
+        from erpnext.controllers.accounts_controller import update_child_qty_rate
+
+        trans_item = json.dumps(updated_items)
+        update_child_qty_rate("Sales Order", trans_item, so.name)
+        so.reload()
+
+        for idx, d in enumerate(so.items):
+            if not d.get("reservation_date_cf"):
+                frappe.db.set_value(
+                    "Sales Order Item",
+                    d.name,
+                    "reservation_date_cf",
+                    add_days(self.check_in, idx),
+                )
+        # frappe.db.commit()
+        so.reload()
 
     def validate(self):
         # check night audit completed for previous date
@@ -383,7 +444,8 @@ select status, reference_type, reference_name
         from 
             `tabSales Invoice` si
         where 
-            NULLIF(si.room_folio_cf, '') = %s""",
+            si.docstatus = 1 
+            and NULLIF(si.room_folio_cf, '') = %s""",
             (self.name),
         )
         total_charges = total_charges and flt(total_charges[0][0]) or 0
@@ -969,3 +1031,10 @@ where
 
         results.append(item)
     return results
+
+
+def on_cancel_sales_invoice(doc, method=None):
+    if doc.get("room_folio_cf"):
+        frappe.get_doc(
+            "Room Folio HMS", doc.get("room_folio_cf")
+        ).update_charges_and_amounts()

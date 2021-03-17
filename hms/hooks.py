@@ -110,10 +110,15 @@ doc_events = {
     },
     "Sales Invoice": {
         "on_submit": "hms.hms.doctype.room_folio_hms.room_folio_hms.on_submit_sales_invoice",
+        "on_cancel": "hms.hms.doctype.room_folio_hms.room_folio_hms.on_cancel_sales_invoice",
         "validate": "hms.hms.doctype.room_folio_hms.room_folio_hms.on_validate_sales_invoice",
     },
-    "Item Price": {"validate": "hms.hms.controllers.reservation.validate_item_price",},
-    "Contact": {"autoname": "hms.hms.controllers.reservation.autoname_contact",},
+    "Item Price": {
+        "validate": "hms.hms.controllers.reservation.validate_item_price",
+    },
+    "Contact": {
+        "autoname": "hms.hms.controllers.reservation.autoname_contact",
+    },
 }
 
 # Scheduled Tasks

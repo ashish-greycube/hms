@@ -24,7 +24,7 @@ def get_data(filters):
     else:
         if op == "Rooms to CheckOut":
             where_clause += [
-                " and date(f.check_out) <= %(audit_date)s and f.status='Checked In'"
+                " and date(f.check_out) < %(audit_date)s and f.status='Checked In'"
             ]
         elif op == "Rooms to Charge":
             where_clause += [

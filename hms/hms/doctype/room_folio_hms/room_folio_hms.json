@@ -77,6 +77,7 @@
    "fieldtype": "Column Break"
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "check_out",
    "fieldtype": "Datetime",
    "in_list_view": 1,
@@ -303,7 +304,7 @@
   }
  ],
  "is_submittable": 1,
- "modified": "2021-02-18 17:12:04.178684",
+ "modified": "2021-03-16 11:26:11.716326",
  "modified_by": "Administrator",
  "module": "HMS",
  "name": "Room Folio HMS",
