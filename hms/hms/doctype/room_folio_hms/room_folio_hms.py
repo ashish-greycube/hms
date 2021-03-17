@@ -7,6 +7,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.utils import (
+    get_datetime,
     formatdate,
     nowdate,
     flt,
@@ -55,9 +56,35 @@ class RoomFolioHMS(Document):
         if getdate(self.check_in) == getdate():
             validate_system_date(getdate(), raise_exception=0)
 
+    def before_update_after_submit(self):
+        self.validate_extend_checkout()
+
     def on_update_after_submit(self):
         self.update_charges_and_amounts()
         self.update_so_items()
+
+    def validate_extend_checkout(self):
+        """If checkout is extended, check room is available for extra days"""
+        if get_datetime(self.check_out) > self.db_get("check_out"):
+            from hms.hms.controllers.reservation import get_available_rooms
+
+            if not get_available_rooms(
+                "",
+                self.room_no,
+                "",
+                0,
+                1,
+                {
+                    "item_code": self.room_package,
+                    "check_in": self.db_get("check_out"),
+                    "check_out": self.check_out,
+                    "company": self.company,
+                },
+            ):
+                frappe.throw(
+                    "Room %s is not available for the new dates."
+                    % (frappe.bold(self.room_no),)
+                )
 
     def update_so_items(self):
         """Update Sales Order Items if room package or Rate has changed since submit"""
