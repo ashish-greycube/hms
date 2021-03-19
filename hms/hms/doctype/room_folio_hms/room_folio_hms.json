@@ -304,7 +304,7 @@
   }
  ],
  "is_submittable": 1,
- "modified": "2021-03-16 11:26:11.716326",
+ "modified": "2021-03-19 15:18:28.073850",
  "modified_by": "Administrator",
  "module": "HMS",
  "name": "Room Folio HMS",
@@ -320,6 +320,7 @@
    "report": 1,
    "role": "System Manager",
    "share": 1,
+   "submit": 1,
    "write": 1
   },
   {
@@ -332,6 +333,7 @@
    "report": 1,
    "role": "Hotel Manager HMS",
    "share": 1,
+   "submit": 1,
    "write": 1
   },
   {
@@ -344,6 +346,7 @@
    "report": 1,
    "role": "Hotel User HMS",
    "share": 1,
+   "submit": 1,
    "write": 1
   }
  ],
