@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from hms.hms.controllers.reservation import get_available_rooms
 from frappe.utils import (
     get_datetime,
     formatdate,
@@ -58,15 +59,44 @@ class RoomFolioHMS(Document):
 
     def before_update_after_submit(self):
         self.validate_extend_checkout()
+        self.validate_room_change()
 
     def on_update_after_submit(self):
         self.update_charges_and_amounts()
         self.update_so_items()
+        self.handle_room_change()
+
+    def handle_room_change(self):
+        if not self.flags or not self.flags.get("old_room_no"):
+            return
+            #
+        from hms.hms.doctype.room_status_ledger_entry_hms.room_status_ledger_entry_hms import (
+            update_room_status_ledger,
+        )
+
+        args = self.as_dict()
+        args["old_room_no"] = self.flags.get("old_room_no")
+        update_room_status_ledger(args, action="move")
+
+    def validate_room_change(self):
+        if self.db_get("room_no") == self.room_no:
+            return
+        args = {
+            "item_code": self.room_package,
+            "check_in": today(),
+            "check_out": self.check_out,
+            "company": self.company,
+        }
+        if not get_available_rooms("", self.room_no, "", 0, 1, args):
+            frappe.throw(
+                "Changed room %s is not available for the new dates."
+                % (frappe.bold(self.room_no),)
+            )
+        self.flags.old_room_no = self.db_get("room_no")
 
     def validate_extend_checkout(self):
         """If checkout is extended, check room is available for extra days"""
         if get_datetime(self.check_out) > self.db_get("check_out"):
-            from hms.hms.controllers.reservation import get_available_rooms
 
             if not get_available_rooms(
                 "",
