@@ -165,7 +165,7 @@
    "label": "Room Rate"
   }
  ],
- "modified": "2020-12-29 14:24:10.621240",
+ "modified": "2021-03-30 10:22:47.285754",
  "modified_by": "Administrator",
  "module": "HMS",
  "name": "Online Booking HMS",
@@ -180,6 +180,29 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Hotel Manager HMS",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Hotel User HMS",
    "share": 1,
    "write": 1
   }
