@@ -277,8 +277,12 @@ frappe.ui.form.on("Room Folio HMS", {
       title: __("Folio Payment"),
       fields: fields,
       primary_action: function () {
+        if (!frm.in_make_payment) {
+          frm.in_make_payment = true;
+        } else {
+          return;
+        }
         let data = dlg.get_values();
-
         if (data.paid_amount < 0) {
           frappe.throw(`Amount cannot be less than 0.`);
         }
@@ -296,6 +300,7 @@ frappe.ui.form.on("Room Folio HMS", {
           args: data,
           method: "make_folio_advance_entry",
           callback: function (r) {
+            delete frm.in_make_payment;
             if (!r.exc) {
               dlg.hide();
               frm.reload_doc();
