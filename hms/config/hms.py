@@ -30,6 +30,12 @@ def get_data():
                 },
                 {
                     "type": "doctype",
+                    "name": "Sign In Sheet HMS",
+                    "label": "Sign In Sheet",
+                    "description": "Sign In Sheet",
+                },
+                {
+                    "type": "doctype",
                     "name": "Laundry HMS",
                     "label": "Laundry",
                     "description": "Laundry Entries",
