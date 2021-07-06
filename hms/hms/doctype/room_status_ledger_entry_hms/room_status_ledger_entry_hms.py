@@ -172,11 +172,27 @@ class update_room_status_ledger(object):
         frappe.db.commit()
 
     def remove_out_of_order(self):
+        for d in frappe.db.sql(
+            """
+            select status
+            from `tabRoom Folio HMS` f
+            where docstatus = 1 and status = 'Checked In' 
+            and  room_no = %(room_no)s
+            limit 1""",
+            self.args,
+        ):
+            frappe.throw(
+                "Room %s is Checked In. Cannot make Available."
+                % self.args.get("room_no")
+            )
+
         frappe.db.sql(
             """
         update `tabRoom Status Ledger Entry HMS`
         set docstatus = 2, modified = %(modified)s, modified_by = %(modified_by)s
-        where docstatus = 0 and status = 'Out Of Order' and room_no = %(room_no)s
+        where docstatus = 0 
+        and room_no = %(room_no)s
+        and (status = 'Out Of Order' or status = 'Occupied')
         """,
             self.args,
         )
