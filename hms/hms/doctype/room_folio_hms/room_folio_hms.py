@@ -523,8 +523,12 @@ select status, reference_type, reference_name
                 update_modified=False,
             )
 
-    def get_print_doc(self):
-        return get_folio_invoice_summary(self.name)
+    def get_print_doc(self, only_charges=None):
+        print_doc = get_folio_invoice_summary(self.name)
+        if only_charges:
+            print_doc["only_charges"] = get_charge_and_purchase(self.name)
+
+        return print_doc
 
 
 @frappe.whitelist()

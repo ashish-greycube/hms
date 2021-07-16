@@ -1,0 +1,114 @@
+{%- macro add_header(page_num, max_pages, doc, letter_head, no_letterhead) -%}
+{% if letter_head and not no_letterhead %} <div class="letter-head">{{ letter_head }}</div> {% endif %}
+{%- if doc.meta.is_submittable and doc.docstatus==2-%} <div class="alert alert-danger text-center">
+    <h4 style="margin: 0px;">{{ _("CANCELLED") }}</h4>
+</div> {%- endif -%} {%- if doc.meta.is_submittable and doc.docstatus==0-%} <div class="alert alert-danger
+    text-center">
+    <h4 style="margin: 0px;">{{ _("DRAFT") }}</h4>
+</div> {%- endif -%} {% if max_pages > 1 %} <p class="text-right">
+    {{ _("Page #{0} of {1}").format(page_num, max_pages) }}</p> {% endif %} {%- endmacro -%}
+
+{{ add_header(0,1,doc,letter_head, no_letterhead) }}
+
+{% set print_doc = doc.get_print_doc(only_charges=1) %}
+{% set folios = print_doc.get("folios") %}
+{% set only_charges = print_doc.get("only_charges") %}
+
+{% block head_include %}
+<meta name="pdfkit-orientation" content="portrait" /> {% endblock %}
+
+{% block content %}
+
+<div>
+    <p>{{ print_doc.company_description or "" }}</p>
+</div>
+<div class="row">
+    <div class="col col-sm-3"> Customer: <br> <strong> {{doc.customer.upper()}}</strong> </div>
+    <div class="col col-sm-9">
+        <table class='table table-bordered'>
+            <colgroup>
+                <col style="width: 10%;">
+                <col style="width: 40%;">
+                <col style="width: 20%;">
+                <col style="width: 20%;">
+                <col style="width: 10%;">
+            </colgroup>
+            <thead>
+                <tr>
+                    <th>Room</th>
+                    <th>Folio</th>
+                    <th>Check In</th>
+                    <th>Check Out</th>
+                    <th>Total Charges</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for d in folios %}
+                <tr>
+                    <td>{{ d.room_no }}</td>
+                    <td>{{ d.folio }}</td>
+                    <td>{{ frappe.utils.format_datetime(d.check_in,"dd MMM, yyyy") }}</td>
+                    <td>{{ frappe.utils.format_datetime(d.check_out,"dd MMM, yyyy") }}</td>
+                    <td class="text-right">{{ d.total_charges or 0 }}</td>
+                </tr>
+                {% endfor %}
+                <tr>
+                    <td colspan="2" class="text-right">Master Folio</td>
+                    <td colspan="4" class="text-right"> </td>
+                </tr>
+            </tbody>
+        </table>
+        {% if folios and not folios[0].get("outstanding_charges",0) == 0 %}
+        <!-- <div class="text-right">
+            <div>
+                Customer Desk Balance: {{ frappe.format(2500, "Currency") }}
+            </div>
+        </div> -->
+        {% endif %}
+    </div>
+</div>
+{% if only_charges %}
+<div>
+    <table class="table table-bordered">
+        <colgroup>
+            <col style="width:10%;">
+            <col style="width:20%;">
+            <col style="width:50%;">
+            <col style="width:20%;">
+        </colgroup>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Room</th>
+                <th>Charges For</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for d in only_charges %}
+            <tr>
+                <td>{{ frappe.utils.format_datetime(d.room_date_cf, "dd/MM/yyyy") if d.room_date_cf else "" }}</td>
+                <td>{{ d.room_no or "" }}</td>
+                <td>{{ "<br>".join([d.charges_for or "", d.name or ""])}} </td>
+                <td class="text-right">{{ d.rounded_total }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+<!-- <div>
+     print_doc.get("invoice_html", "No invoices")  
+</div> -->
+{% endblock %}
+<div id="footer-html" class="visible-pdf">
+    {% if not no_letterhead and footer %}
+    <div class="letter-head-footer">
+        {{ footer }}
+    </div>
+    {% endif %}
+    <p class="text-center small page-number visible-pdf">
+        {{ _("Page {0} of {1}").format('<span class="page"></span>', '<span class="topage"></span>') }}
+    </p>
+</div>

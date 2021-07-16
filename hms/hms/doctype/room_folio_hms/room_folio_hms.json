@@ -13,6 +13,7 @@
   "customer_email",
   "customer_mobile",
   "is_split_bill",
+  "reservation_notes",
   "column_break_4",
   "company",
   "room_type",
@@ -301,10 +302,16 @@
   {
    "fieldname": "column_break_35",
    "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "reservation.reservation_notes_cf",
+   "fieldname": "reservation_notes",
+   "fieldtype": "Text Editor",
+   "label": "Reservation Notes"
   }
  ],
  "is_submittable": 1,
- "modified": "2021-03-19 15:18:28.073850",
+ "modified": "2021-07-16 13:33:04.888753",
  "modified_by": "Administrator",
  "module": "HMS",
  "name": "Room Folio HMS",
