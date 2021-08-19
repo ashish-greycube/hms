@@ -241,6 +241,9 @@ def post_charges(filters=None, doclist=None):
     if filters and isinstance(filters, string_types):
         filters = json.loads(filters)
 
+    if not filters.get("audit_date"):
+        frappe.throw("Please set the audit date to be able to Post Charges.")
+
     doclist = doclist and json.loads(doclist) or []
     count = 0
     for d in doclist:
