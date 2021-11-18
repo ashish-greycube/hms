@@ -6,10 +6,15 @@ from __future__ import unicode_literals
 import frappe
 from frappe.desk.page.setup_wizard.setup_wizard import make_records
 
+
 def after_install():
     records = [
         # Lead Source
-        {'doctype': 'Lead Source', 'name': 'Website Online', 'details': 'Booking through website'},
+        {
+            "doctype": "Lead Source",
+            "source_name": "Website Online",
+            "details": "Booking through website",
+        },
     ]
 
     make_records(records)

@@ -391,7 +391,7 @@ def make_payment_entry_from_sales_order(
         payment.set_missing_values()
         payment.save()
         payment.submit()
-    return payments[0]
+    return payments and payments[0]
 
 
 @frappe.whitelist()
