@@ -1,0 +1,232 @@
+{
+    "cards_label": "Bookmarks",
+    "category": "Modules",
+    "charts": [],
+    "creation": "2021-11-28 01:08:44.372986",
+    "developer_mode_only": 0,
+    "disable_user_customization": 0,
+    "docstatus": 0,
+    "doctype": "Workspace",
+    "extends_another_page": 0,
+    "hide_custom": 1,
+    "icon": "quality-3",
+    "idx": 0,
+    "is_default": 0,
+    "is_standard": 1,
+    "label": "HMS",
+    "links": [
+        {
+            "hidden": 0,
+            "is_query_report": 0,
+            "label": "Documents",
+            "link_type": "DocType",
+            "onboard": 0,
+            "type": "Card Break"
+        },
+        {
+            "hidden": 0,
+            "is_query_report": 0,
+            "label": "Frontdesk HMS",
+            "link_to": "Frontdesk HMS",
+            "link_type": "Report",
+            "onboard": 0,
+            "type": "Link"
+        },
+        {
+            "hidden": 0,
+            "is_query_report": 0,
+            "label": "Night Audit",
+            "link_to": "Night-Audit",
+            "link_type": "Report",
+            "onboard": 0,
+            "type": "Link"
+        },
+        {
+            "hidden": 0,
+            "is_query_report": 0,
+            "label": "Reservation",
+            "link_to": "Sales Order",
+            "link_type": "DocType",
+            "onboard": 0,
+            "type": "Link"
+        },
+        {
+            "hidden": 0,
+            "is_query_report": 0,
+            "label": "Room Folio",
+            "link_to": "Room Folio HMS",
+            "link_type": "DocType",
+            "onboard": 0,
+            "type": "Link"
+        },
+        {
+            "hidden": 0,
+            "is_query_report": 0,
+            "label": "Sign In Sheet",
+            "link_to": "Sign In Sheet HMS",
+            "link_type": "DocType",
+            "onboard": 0,
+            "type": "Link"
+        },
+        {
+            "hidden": 0,
+            "is_query_report": 0,
+            "label": "Laundry",
+            "link_to": "Laundry HMS",
+            "link_type": "DocType",
+            "onboard": 0,
+            "type": "Link"
+        },
+        {
+            "hidden": 0,
+            "is_query_report": 0,
+            "label": "Online Booking",
+            "link_to": "Online Booking HMS",
+            "link_type": "DocType",
+            "onboard": 0,
+            "type": "Link"
+        },
+        {
+            "hidden": 0,
+            "is_query_report": 0,
+            "label": "Point Of Sale",
+            "link_to": "point-of-sale",
+            "link_type": "Page",
+            "onboard": 0,
+            "type": "Link"
+        },
+        {
+            "hidden": 0,
+            "is_query_report": 0,
+            "label": "Setup",
+            "link_type": "DocType",
+            "onboard": 0,
+            "type": "Card Break"
+        },
+        {
+            "hidden": 0,
+            "is_query_report": 0,
+            "label": "Customer",
+            "link_to": "Customer",
+            "link_type": "DocType",
+            "onboard": 0,
+            "type": "Link"
+        },
+        {
+            "hidden": 0,
+            "is_query_report": 0,
+            "label": "Guest",
+            "link_to": "Contact",
+            "link_type": "DocType",
+            "onboard": 0,
+            "type": "Link"
+        },
+        {
+            "hidden": 0,
+            "is_query_report": 0,
+            "label": "Room",
+            "link_to": "Room HMS",
+            "link_type": "DocType",
+            "onboard": 0,
+            "type": "Link"
+        },
+        {
+            "hidden": 0,
+            "is_query_report": 0,
+            "label": "Room Type",
+            "link_to": "Room Type HMS",
+            "link_type": "DocType",
+            "onboard": 0,
+            "type": "Link"
+        },
+        {
+            "hidden": 0,
+            "is_query_report": 0,
+            "label": "Date Lookup",
+            "link_to": "Date Lookup HMS",
+            "link_type": "DocType",
+            "onboard": 0,
+            "type": "Link"
+        },
+        {
+            "hidden": 0,
+            "is_query_report": 0,
+            "label": "COMPLIMENTARY BREAKFAST LIST",
+            "link_to": "COMPLIMENTARY BREAKFAST LIST",
+            "link_type": "DocType",
+            "onboard": 0,
+            "type": "Link"
+        },
+        {
+            "hidden": 0,
+            "is_query_report": 0,
+            "label": "Reports",
+            "link_type": "DocType",
+            "onboard": 0,
+            "type": "Card Break"
+        },
+        {
+            "hidden": 0,
+            "is_query_report": 1,
+            "label": "Guest History",
+            "link_to": "Guest History HMS",
+            "link_type": "Report",
+            "onboard": 0,
+            "type": "Link"
+        },
+        {
+            "hidden": 0,
+            "is_query_report": 1,
+            "label": "Room Occupancy and Rev enue",
+            "link_to": "Room Occupancy and Revenue HMS",
+            "link_type": "Report",
+            "onboard": 0,
+            "type": "Link"
+        },
+        {
+            "hidden": 0,
+            "is_query_report": 1,
+            "label": "Rooms To Checkout",
+            "link_to": "Rooms To Checkout",
+            "link_type": "Report",
+            "onboard": 0,
+            "type": "Link"
+        },
+        {
+            "hidden": 0,
+            "is_query_report": 1,
+            "label": "Shift Report",
+            "link_to": "Shift Report",
+            "link_type": "Report",
+            "onboard": 0,
+            "type": "Link"
+        },
+        {
+            "hidden": 0,
+            "is_query_report": 1,
+            "label": "Complimentary Item Sales",
+            "link_to": "Complimentary Item Sales",
+            "link_type": "Report",
+            "onboard": 0,
+            "type": "Link"
+        },
+        {
+            "hidden": 0,
+            "is_query_report": 1,
+            "label": "Restaurant Chef Report",
+            "link_to": "Restaurant Chef Report",
+            "link_type": "Report",
+            "onboard": 0,
+            "type": "Link"
+        }
+    ],
+    "modified": "2021-11-28 07:36:47.557068",
+    "modified_by": "Administrator",
+    "module": "HMS",
+    "name": "HMS",
+    "owner": "Administrator",
+    "pin_to_bottom": 0,
+    "pin_to_top": 1,
+    "shortcuts": [],
+    "shortcuts_label": "Quick Links"
+}

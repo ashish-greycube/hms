@@ -1,4 +1,14 @@
 frappe.provide("hms");
+frappe.provide("frappe.utils");
+
+
+// monkey-patch generate_route to handle ag-report links
+var original_generate_route = frappe.utils.generate_route;
+frappe.utils.generate_route = function (item) {
+  let link = original_generate_route(item).replace(/\/report/i, 'ag-report');
+  return link
+}
+
 
 hms.make_grid_room_folio_advance = function (frm) {
   let $wrapper = frm.fields_dict["room_folio_advance"].$wrapper;
@@ -128,7 +138,7 @@ hms.utils.get_first_of_month = function (add_months, date) {
     .format();
 };
 
-function CustomNoRowsOverlay() {}
+function CustomNoRowsOverlay() { }
 
 CustomNoRowsOverlay.prototype.init = function (params) {
   this.eGui = document.createElement("div");
