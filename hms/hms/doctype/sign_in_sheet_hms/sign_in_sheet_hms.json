@@ -1,60 +1,61 @@
 {
- "creation": "2020-04-07 11:59:26.429134",
- "doctype": "DocType",
- "editable_grid": 1,
- "engine": "InnoDB",
- "field_order": [
-  "content",
-  "signature",
-  "folio",
-  "letter_head"
- ],
- "fields": [
-  {
-   "fieldname": "content",
-   "fieldtype": "HTML Editor",
-   "label": "Content",
-   "read_only": 1
-  },
-  {
-   "description": "Signature",
-   "fieldname": "signature",
-   "fieldtype": "Signature",
-   "label": "Signature"
-  },
-  {
-   "fieldname": "folio",
-   "fieldtype": "Data",
-   "label": "Folio",
-   "read_only": 1
-  },
-  {
-   "fieldname": "letter_head",
-   "fieldtype": "Link",
-   "label": "Letter Head",
-   "options": "Letter Head"
-  }
- ],
- "modified": "2021-01-08 13:22:31.691964",
- "modified_by": "Administrator",
- "module": "HMS",
- "name": "Sign In Sheet HMS",
- "owner": "Administrator",
- "permissions": [
-  {
-   "create": 1,
-   "delete": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
-   "role": "System Manager",
-   "share": 1,
-   "write": 1
-  }
- ],
- "quick_entry": 1,
- "sort_field": "modified",
- "sort_order": "DESC"
+    "actions": [],
+    "creation": "2020-04-07 11:59:26.429134",
+    "doctype": "DocType",
+    "editable_grid": 1,
+    "engine": "InnoDB",
+    "field_order": [
+        "content",
+        "signature",
+        "folio",
+        "letter_head"
+    ],
+    "fields": [
+        {
+            "fieldname": "content",
+            "fieldtype": "HTML Editor",
+            "label": "Content"
+        },
+        {
+            "description": "Signature",
+            "fieldname": "signature",
+            "fieldtype": "Signature",
+            "label": "Signature"
+        },
+        {
+            "fieldname": "folio",
+            "fieldtype": "Data",
+            "label": "Folio",
+            "read_only": 1
+        },
+        {
+            "fieldname": "letter_head",
+            "fieldtype": "Link",
+            "label": "Letter Head",
+            "options": "Letter Head"
+        }
+    ],
+    "links": [],
+    "modified": "2021-12-15 15:35:59.170750",
+    "modified_by": "Administrator",
+    "module": "HMS",
+    "name": "Sign In Sheet HMS",
+    "owner": "Administrator",
+    "permissions": [
+        {
+            "create": 1,
+            "delete": 1,
+            "email": 1,
+            "export": 1,
+            "print": 1,
+            "read": 1,
+            "report": 1,
+            "role": "System Manager",
+            "share": 1,
+            "write": 1
+        }
+    ],
+    "quick_entry": 1,
+    "sort_field": "modified",
+    "sort_order": "DESC"
 }
