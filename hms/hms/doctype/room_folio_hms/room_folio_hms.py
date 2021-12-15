@@ -223,6 +223,7 @@ select name
                 )
             )
 
+    @frappe.whitelist()
     def make_sign_in_sheet(self):
         from hms.hms.doctype.sign_in_sheet_hms.sign_in_sheet_hms import (
             make_sign_in_sheet,
@@ -257,6 +258,7 @@ select status, reference_type, reference_name
         ):
             frappe.throw(f"Room {self.room_no} is {d.status} for {self.check_in} ")
 
+    @frappe.whitelist()
     def validate_checklist(self):
         """
         1. Guest ID
@@ -320,6 +322,7 @@ select status, reference_type, reference_name
         else:
             return "<br>".join(checklist)
 
+    @frappe.whitelist()
     def make_check_in(self):
         "check in"
         if not self.docstatus == 1:
@@ -400,6 +403,7 @@ select status, reference_type, reference_name
             frappe.throw("No billable room charges for %s." % room_date)
         return items
 
+    @frappe.whitelist()
     def make_check_out(self):
         self.update_charges_and_amounts()
         self.validate_room_folio_balance()
@@ -417,7 +421,7 @@ select status, reference_type, reference_name
                         "Unsettled Guest Purchases in folio. Please settle outstanding amount {} before checkout."
                     ).format(format_value(self.guest_purchase_balance, df="Currency"))
                 )
-
+    @frappe.whitelist()
     def make_folio_advance_entry(self):
         args = json.loads(frappe.local.form_dict["args"] or "{}")
         mode_of_payment = args.get("mode_of_payment")

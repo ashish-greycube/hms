@@ -35,6 +35,7 @@ class LaundryHMS(Document):
         self.received_datetime = now_datetime()
         # self.create_sales_invoice()
 
+    @frappe.whitelist()
     def make_delivery_and_invoice(self):
         self.status == "OUT"
         self.delivered_datetime = now_datetime()
