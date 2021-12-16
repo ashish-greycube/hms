@@ -13,6 +13,10 @@ from erpnext.accounts.utils import (get_outstanding_invoices,
 from erpnext.controllers.accounts_controller import get_advance_payment_entries
 import json
 
+from erpnext.accounts.doctype.pos_invoice_merge_log.pos_invoice_merge_log import (
+    POSInvoiceMergeLog,
+)
+
 
 @frappe.whitelist()
 def get_unreconciled_entries(**args):
@@ -124,3 +128,46 @@ def monkeypatch_method(cls):
         setattr(cls, func.__name__, func)
         return func
     return decorator
+
+
+class HMSPOSInvoiceMergeLog(POSInvoiceMergeLog):
+    """
+    This class overrides consolidation of POS Invoices
+    into single Sales Invoice when a POS Closing Entry is made.
+    POS Invoices with no room_folio_cf are consolidated as per default behavior.
+    """
+
+    def on_submit(self):
+        pos_invoice_docs = [
+            frappe.get_doc("POS Invoice", d.pos_invoice) for d in self.pos_invoices
+        ]
+
+        individual_invoices = [d for d in pos_invoice_docs if d.room_folio_cf]
+        if not individual_invoices:
+            super(HMSPOSInvoiceMergeLog, self).on_submit()
+            return
+
+        # returns are not handles for pos invoices with room_folio_cf
+        # returns = [d for d in pos_invoice_docs if d.get("is_return") == 1]
+
+        sales = [d for d in pos_invoice_docs if d.get("is_return") == 0]
+
+        sales_invoice, credit_note = "", ""
+        if sales:
+            to_consolidate = [d for d in sales if not d.room_folio_cf]
+            if to_consolidate:
+                sales_invoice = self.process_merging_into_sales_invoice(to_consolidate)
+                self.save()
+                self.update_pos_invoices(pos_invoice_docs, sales_invoice, credit_note)
+
+            # Create individual Sales Invoices for pos invoices with room_folio_cf
+            if individual_invoices:
+                for invoice in individual_invoices:
+                    sales_invoice = self.process_merging_into_sales_invoice([invoice])
+                    self.update_pos_invoices([invoice], sales_invoice, credit_note)
+                    frappe.db.set_value(
+                        "Sales Invoice",
+                        sales_invoice,
+                        "room_folio_cf",
+                        invoice.room_folio_cf,
+                    )

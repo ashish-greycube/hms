@@ -1,4 +1,39 @@
 frappe.pages["point-of-sale"].refresh = function (wrapper) {
+
+  setTimeout(() => {
+    // 
+    // Customization to handle 0 payment amount when charging POS to room folio.
+    // 
+    let payment = cur_pos.payment;
+    payment.$component.off('click').on('click', '.submit-order-btn', () => {
+      const doc = payment.events.get_frm().doc;
+      const paid_amount = doc.paid_amount;
+      const items = doc.items;
+
+      if (!doc.room_folio_cf) {
+        if (paid_amount == 0 || !items.length) {
+          const message = items.length ? __("You can submit the order without payment.") : __("You cannot submit empty order.");
+          frappe.show_alert({ message, indicator: "orange" });
+          frappe.utils.play_sound("error");
+          return;
+        }
+      } else {
+        if (paid_amount == 0) {
+          const message = `This order will be charged to Folio: ${doc.room_folio_cf}`;
+          frappe.show_alert({ message, indicator: "orange" });
+        } else {
+          const message = `Set amount to 0 to be charge order to Room Folio.`;
+          frappe.show_alert({ message, indicator: "orange" });
+          frappe.utils.play_sound("error");
+          return;
+        }
+      }
+
+      payment.events.submit_invoice();
+    });
+
+  }, 600);
+
   if (this.page.wrapper.find(".list-folio-btn").length === 0) {
     $(`<button class="btn btn-default list-folio-btn" style="margin-left: 12px">
           <i class="octicon octicon-key"></i>
@@ -9,20 +44,20 @@ frappe.pages["point-of-sale"].refresh = function (wrapper) {
       wrapper.pos.dialog.show();
       get_folios(wrapper.pos);
 
-      if (!wrapper.pos.is_monkey_patched) {
-        wrapper.pos.is_monkey_patched = true;
-        var original = wrapper.pos.submit_sales_invoice;
-        wrapper.pos.submit_sales_invoice = function () {
-          if (
-            wrapper.pos.frm.doc.room_folio_cf &&
-            wrapper.pos.frm.doc.paid_amount > 0
-          ) {
-            let mop = wrapper.pos.frm.doc.payments[0].mode_of_payment;
-            wrapper.pos.payment.update_payment_value(mop, 0);
-          }
-          original.apply(this, arguments);
-        };
-      }
+      // if (!wrapper.pos.is_monkey_patched) {
+      //   wrapper.pos.is_monkey_patched = true;
+      //   var original = wrapper.pos.submit_sales_invoice;
+      //   wrapper.pos.submit_sales_invoice = function () {
+      //     if (
+      //       wrapper.pos.frm.doc.room_folio_cf &&
+      //       wrapper.pos.frm.doc.paid_amount > 0
+      //     ) {
+      //       let mop = wrapper.pos.frm.doc.payments[0].mode_of_payment;
+      //       wrapper.pos.payment.update_payment_value(mop, 0);
+      //     }
+      //     original.apply(this, arguments);
+      //   };
+      // }
     });
   }
 

@@ -169,3 +169,7 @@ fixtures = [
         ],
     },
 ]
+
+override_doctype_class = {
+    "POS Invoice Merge Log": "hms.hms.controllers.payment.HMSPOSInvoiceMergeLog"
+}
