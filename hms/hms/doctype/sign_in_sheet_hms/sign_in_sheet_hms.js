@@ -9,5 +9,15 @@ frappe.ui.form.on("Sign In Sheet HMS", {
       //   .replace(/(<([^>]+)>)/gi, "");
       frappe.set_route("Form", "Room Folio HMS", frm.doc.folio);
     });
-  },
+
+    setTimeout(() => {
+      // toggle preview
+      let control = frm.fields_dict["content"]
+
+      if (control && !control.showing_preview) {
+        control.preview_toggle_btn && control.preview_toggle_btn.trigger('click')
+      }
+
+    }, 800);
+  }
 });

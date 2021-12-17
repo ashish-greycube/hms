@@ -4,7 +4,7 @@ frappe.pages["point-of-sale"].refresh = function (wrapper) {
     // 
     // Customization to handle 0 payment amount when charging POS to room folio.
     // 
-    let payment = cur_pos.payment;
+    let payment = wrapper.pos.payment;
     payment.$component.off('click').on('click', '.submit-order-btn', () => {
       const doc = payment.events.get_frm().doc;
       const paid_amount = doc.paid_amount;
@@ -32,7 +32,7 @@ frappe.pages["point-of-sale"].refresh = function (wrapper) {
       payment.events.submit_invoice();
     });
 
-  }, 600);
+  }, 1000);
 
   if (this.page.wrapper.find(".list-folio-btn").length === 0) {
     $(`<button class="btn btn-default list-folio-btn" style="margin-left: 12px">
