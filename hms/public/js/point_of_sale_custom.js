@@ -1,38 +1,37 @@
-frappe.pages["point-of-sale"].refresh = function (wrapper) {
+function rebind_submit_order(wrapper) {
+  // 
+  // Customization to handle 0 payment amount when charging POS to room folio.
+  // 
 
-  setTimeout(() => {
-    // 
-    // Customization to handle 0 payment amount when charging POS to room folio.
-    // 
-    let payment = wrapper.pos.payment;
-    payment.$component.off('click').on('click', '.submit-order-btn', () => {
-      const doc = payment.events.get_frm().doc;
-      const paid_amount = doc.paid_amount;
-      const items = doc.items;
+  let payment = wrapper.pos.payment;
+  payment.$component.off('click').on('click', '.submit-order-btn', () => {
+    const doc = payment.events.get_frm().doc;
+    const paid_amount = doc.paid_amount;
+    const items = doc.items;
 
-      if (!doc.room_folio_cf) {
-        if (paid_amount == 0 || !items.length) {
-          const message = items.length ? __("You can submit the order without payment.") : __("You cannot submit empty order.");
-          frappe.show_alert({ message, indicator: "orange" });
-          frappe.utils.play_sound("error");
-          return;
-        }
-      } else {
-        if (paid_amount == 0) {
-          const message = `This order will be charged to Folio: ${doc.room_folio_cf}`;
-          frappe.show_alert({ message, indicator: "orange" });
-        } else {
-          const message = `Set amount to 0 to be charge order to Room Folio.`;
-          frappe.show_alert({ message, indicator: "orange" });
-          frappe.utils.play_sound("error");
-          return;
-        }
+    if (!doc.room_folio_cf) {
+      if (paid_amount == 0 || !items.length) {
+        const message = items.length ? __("You can submit the order without payment.") : __("You cannot submit empty order.");
+        frappe.show_alert({ message, indicator: "orange" });
+        frappe.utils.play_sound("error");
+        return;
       }
+    } else {
+      if (paid_amount == 0) {
+        const message = `This order will be charged to Folio: ${doc.room_folio_cf}`;
+        frappe.show_alert({ message, indicator: "orange" });
+      } else {
+        const message = `Set amount to 0 to be charge order to Room Folio.`;
+        frappe.show_alert({ message, indicator: "orange" });
+        frappe.utils.play_sound("error");
+        return;
+      }
+    }
+    payment.events.submit_invoice();
+  });
+}
 
-      payment.events.submit_invoice();
-    });
-
-  }, 1000);
+frappe.pages["point-of-sale"].refresh = function (wrapper) {
 
   if (this.page.wrapper.find(".list-folio-btn").length === 0) {
     $(`<button class="btn btn-default list-folio-btn" style="margin-left: 12px">
@@ -40,7 +39,13 @@ frappe.pages["point-of-sale"].refresh = function (wrapper) {
       </button>`).prependTo(wrapper.page.page_actions);
 
     $(wrapper).on("click", ".list-folio-btn", function () {
-      if (!wrapper.pos.dialog) make_folio_dialog(wrapper.pos);
+
+      if (!wrapper.pos.dialog) {
+        make_folio_dialog(wrapper.pos);
+        rebind_submit_order(wrapper);
+      }
+
+
       wrapper.pos.dialog.show();
       get_folios(wrapper.pos);
 
