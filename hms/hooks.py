@@ -150,9 +150,9 @@ doc_events = {
 # Overriding Methods
 # ------------------------------
 #
-# override_whitelisted_methods = {
-# 	"frappe.desk.doctype.event.event.get_events": "hms.event.get_events"
-# }
+override_whitelisted_methods = {
+    "erpnext.selling.page.point_of_sale.point_of_sale.get_items": "hms.hms.controllers.pos.get_items"
+}
 #
 # each overriding function accepts a `data` argument;
 # generated from the base implementation of the doctype dashboard,
@@ -171,5 +171,6 @@ fixtures = [
 ]
 
 override_doctype_class = {
-    "POS Invoice Merge Log": "hms.hms.controllers.payment.HMSPOSInvoiceMergeLog"
+    "POS Invoice Merge Log": "hms.hms.controllers.pos.HMSPOSInvoiceMergeLog",
+    "POS Invoice": "hms.hms.controllers.pos.HMSPOSInvoice",
 }
