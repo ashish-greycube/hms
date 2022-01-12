@@ -128,7 +128,7 @@ def reconcile(doc):
             )
 
     doc = frappe.get_doc(json.loads(doc))
-    doc.reconcile(args={})
+    doc.reconcile()
     frappe.response["message"] = "Reconciled successfully."
     frappe.response.docs.append(doc)
 
