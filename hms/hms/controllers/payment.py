@@ -121,7 +121,7 @@ def reconcile(doc):
                 )
 
         if not ret:
-            throw(
+            frappe.throw(
                 _(
                     """Payment Entry has been modified after you pulled it. Please pull it again."""
                 )
