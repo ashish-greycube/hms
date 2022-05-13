@@ -439,7 +439,7 @@ def get_checked_in_folios():
             `tabRoom Folio HMS` rf
             inner join `tabRoom Guest Detail HMS` gd on gd.parent = rf.name
         where 
-            status = 'Checked In'
+            status = 'Checked In' and docstatus <> 2
         group by rf.name
     """,
         as_dict=True,
