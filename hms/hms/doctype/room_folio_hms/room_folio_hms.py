@@ -55,7 +55,7 @@ folio_checklist = {
 class RoomFolioHMS(Document):
     def before_insert(self):
         if getdate(self.check_in) == getdate():
-            validate_system_date(getdate(), raise_exception=0)
+            validate_system_date(getdate(), raise_exception=1)
 
     def before_update_after_submit(self):
         self.validate_extend_checkout()
@@ -421,6 +421,7 @@ select status, reference_type, reference_name
                         "Unsettled Guest Purchases in folio. Please settle outstanding amount {} before checkout."
                     ).format(format_value(self.guest_purchase_balance, df="Currency"))
                 )
+
     @frappe.whitelist()
     def make_folio_advance_entry(self):
         args = json.loads(frappe.local.form_dict["args"] or "{}")
