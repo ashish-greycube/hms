@@ -56,9 +56,8 @@ frappe.query_reports["Room Folio Statement"] = {
     let balance = totals.length
       ? (totals[0].credit || 0) - (totals[0].debit || 0)
       : 0;
-    let html = `<span style="font-weight:bold;font-size:14px;color:${
-      balance < 0 ? "red" : "green"
-    }">Account Balance: ${format_currency(balance)}</span>`;
+    let html = `<span style="font-weight:bold;font-size:14px;color:${balance < 0 ? "red" : "green"
+      }">Account Balance: ${format_currency(balance)}</span>`;
     $(".ag-header-message").html(html);
   },
 
@@ -72,13 +71,13 @@ frappe.query_reports["Room Folio Statement"] = {
 
     gridOptions.rowSelection = "multiple";
     // gridOptions.context = { always_recreate: false };
-    gridOptions.onRowDataChanged = function (params) {};
-    gridOptions.onCellDoubleClicked = function (params) {};
+    gridOptions.onRowDataChanged = function (params) { };
+    gridOptions.onCellDoubleClicked = function (params) { };
     gridOptions.getRowStyle = function (params) {
       return params.data.voucher_type == "Payment Entry"
         ? {
-            "background-color": "#def8de",
-          }
+          "background-color": "#def8de",
+        }
         : null;
     };
 
@@ -86,7 +85,7 @@ frappe.query_reports["Room Folio Statement"] = {
       if (col.colId == "voucher_no")
         col.cellRenderer = function (params) {
           return params.data.voucher_type
-            ? `<a href='#Form/${params.data.voucher_type}/${params.value}' target="_blank">${params.value}</a>`
+            ? `<a href='/app/${frappe.router.slug(params.data.voucher_type)}/${params.value}' target="_blank">${params.value}</a>`
             : "";
         };
     }
@@ -116,13 +115,13 @@ function set_print_folio_statement(report) {
 
       const w = window.open(
         "/api/method/frappe.utils.print_format.download_multi_pdf?" +
-          "doctype=" +
-          encodeURIComponent("Room Folio HMS") +
-          "&name=" +
-          encodeURIComponent(JSON.stringify(docnames)) +
-          "&format=" +
-          encodeURIComponent("Folio Summary") +
-          "&no_letterhead=0"
+        "doctype=" +
+        encodeURIComponent("Room Folio HMS") +
+        "&name=" +
+        encodeURIComponent(JSON.stringify(docnames)) +
+        "&format=" +
+        encodeURIComponent("Folio Summary") +
+        "&no_letterhead=0"
       );
       if (!w) {
         frappe.msgprint(__("Please enable pop-ups"));
