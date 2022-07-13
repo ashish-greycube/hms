@@ -82,7 +82,7 @@ hms.make_grid_charge_and_purchase = function (frm) {
         field: "name",
         width: 160,
         cellRenderer: function (params) {
-          return `<a href='#Form/Sales Invoice/${params.value}' target="_blank">${params.value}</a>`;
+          return `<a href='/app/sales-invoice/${params.value}' target="_blank">${params.value}</a>`;
         },
       },
       // {
