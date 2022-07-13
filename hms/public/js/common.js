@@ -29,7 +29,7 @@ hms.make_grid_room_folio_advance = function (frm) {
         field: "reference_name",
         width: 160,
         cellRenderer: function (params) {
-          return `<a href='#Form/${params.data.reference_type}/${params.value}' target="_blank">${params.value}</a>`;
+          return `<a href='/app/${frappe.router.slug(params.data.reference_type)}/${params.value}' target="_blank">${params.value}</a>`;
         },
       },
       { headerName: "Posting Date", field: "posting_date", width: 100 },
