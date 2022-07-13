@@ -170,7 +170,7 @@ frappe.views.AgReport = class AgReport extends (
           if (
             this.previous_filters &&
             JSON.stringify(this.previous_filters) ==
-              JSON.stringify(this.get_filter_values())
+            JSON.stringify(this.get_filter_values())
           ) {
             // filter values have not changed
             return;
@@ -421,7 +421,7 @@ frappe.views.AgReport = class AgReport extends (
         column.fieldtype = "Varchar";
         column.cellRenderer = function (params) {
           return params.value
-            ? `<a href='#Form/${option}/${params.value}' target="_blank">${params.value}</a>`
+            ? `<a href='/app/${frappe.router.slug(option)}/${params.value}' target="_blank">${params.value}</a>`
             : "";
         };
       }
@@ -844,8 +844,8 @@ frappe.views.AgReport = class AgReport extends (
   toggle_nothing_to_show(flag) {
     let message = this.prepared_report
       ? __(
-          "This is a background report. Please set the appropriate filters and then generate a new one."
-        )
+        "This is a background report. Please set the appropriate filters and then generate a new one."
+      )
       : __("Nothing to show");
 
     this.toggle_message(flag, message);
