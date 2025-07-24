@@ -329,7 +329,7 @@ select status, reference_type, reference_name
             frappe.throw("Please submit Folio before Check In.")
 
         if getdate(self.check_in) == getdate():
-            validate_system_date(getdate(), raise_exception=0)
+            validate_system_date(getdate(), raise_exception=1)
 
         self.db_set("status", "Checked In", update_modified=True)
         update_room_status_ledger(self.as_dict(), action="check_in")
